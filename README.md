@@ -66,7 +66,7 @@ You can install the required dependencies by running pip install -r requirements
 
 To run the project, follow these steps:
 
-1. Clone the repository: git clone https://github.com/your_username/RL_PSO_Project.git
+1. Clone the repository: git clone https://github.com/PaulASeward/RL_PSO_Project.git
 
 2. Install the required dependencies: pip install -r requirements.txt
 
