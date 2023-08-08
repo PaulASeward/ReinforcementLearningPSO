@@ -106,7 +106,7 @@ eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)  # and evaluation (Ran
 # SET UP Q-Network
 # Define a helper function to create Dense layers configured with the right activation and kernel initializer.
 
-fc_layer_params = (100, 75, 50, 25)
+fc_layer_params = (100, 75, 50)
 action_tensor_spec = tensor_spec.from_spec(environment.action_spec())
 num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
 print(f"num_actions: {num_actions}")
