@@ -6,6 +6,8 @@ class PSOVectorSwarmGlobalLocal:
         self.w = 0.729844  # Inertia weight to prevent velocities becoming too large
         self.c1 = 2.05 * self.w  # Social component Learning Factor
         self.c2 = 2.05 * self.w  # Cognitive component Learning Factor
+        self.c_min = 0.88  # Min of 5 actions of decreasing 10%
+        self.c_max = 2.41  # Max of 5 actions of increasing 10%
 
         self.function = objective_function
         self.fun_num = fun_num
@@ -71,6 +73,20 @@ class PSOVectorSwarmGlobalLocal:
 
         self.X = np.where(slow_particles_reshaped, replacement_positions, self.X)
         # self.X = np.where(slow_particles, np.random.uniform(low=-1 * self.rangeF, high=self.rangeF, size=self.dimension), self.X)
+
+    def increase_social_factor(self):
+        self.c1 *= 1.10  # Social component
+        self.c1 = np.clip(self.c1, self.c_min, self.c_max)
+
+        self.c2 *= 0.90  # Cognitive component
+        self.c2 = np.clip(self.c2, self.c_min, self.c_max)
+
+    def decrease_social_factor(self):
+        self.c1 *= 0.90
+        self.c1 = np.clip(self.c1, self.c_min, self.c_max)
+
+        self.c2 *= 1.10
+        self.c2 = np.clip(self.c2, self.c_min, self.c_max)
 
     def eval(self, X):
         arr_X = np.array(X).astype(float)
