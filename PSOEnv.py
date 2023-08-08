@@ -96,7 +96,7 @@ class PSOEnv(py_environment.PyEnvironment):
             self._observation = np.concatenate([observation_array1, observation_array2, observation_array3], axis=0)
             # self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
-        else:  # Reset all particles. Maybe keep global leader?
+        elif action == 2:  # Reset all particles. Maybe keep global leader?
             self.swarm.reinitialize()
             self.swarm.optimize()
             observation_array1, observation_array2, observation_array3 = self.swarm.get_observation()
