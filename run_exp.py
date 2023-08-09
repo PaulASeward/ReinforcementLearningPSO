@@ -267,9 +267,9 @@ else:
     returns.append(float(avg_return))
     fitness.append(avg_fitness)
 
-action_history = [[] for _ in range(5)]
+action_counts = [0] * 5
 
-for _ in range(num_iterations):
+for i in range(num_iterations):
     time_step, _ = collect_driver.run(time_step)
     experience, unused_info = next(iterator)
     train_loss = agent.train(experience).loss
@@ -279,7 +279,7 @@ for _ in range(num_iterations):
 
     # Update action history
     action = experience.action
-    action_history[action].append(step)
+    action_counts[action] += 1
 
     if step % log_interval == 0:
         print('step = {0}: loss = {1}'.format(step, train_loss))
@@ -291,6 +291,11 @@ for _ in range(num_iterations):
         print('step = {0}: Average Return = {1}'.format(step, avg_return))
         returns.append(float(avg_return))
         fitness.append(avg_fitness)
+
+        # Saving action counts to CSV file
+        with open('action_counts.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(action_counts)
 
         # saving the results into a TEXT file
         # pickle.dump(returns, open(results_file_reward, "wb"))
@@ -315,14 +320,14 @@ plt.savefig(figure_file_fitness, dpi='figure', format="png", metadata=None,
             bbox_inches=None, pad_inches=0.1, facecolor='auto', edgecolor='auto')
 plt.close()
 
-# After the loop
-plt.figure(figsize=(10, 6))
-for action, history in enumerate(action_history):
-    plt.plot(history, [action] * len(history), 'o', label=f'Action {action}')
-plt.ylabel('Action')
-plt.xlabel('Iterations')
-plt.legend()
-plt.savefig('action_frequency_plot.png')
-plt.show()
+# # After the loop
+# plt.figure(figsize=(10, 6))
+# for action, history in enumerate(action_history):
+#     plt.plot(history, [action] * len(history), 'o', label=f'Action {action}')
+# plt.ylabel('Action')
+# plt.xlabel('Iterations')
+# plt.legend()
+# plt.savefig('action_frequency_plot.png')
+# plt.show()
 
 print(f"--- Execution took {(time.time() - start_time) / 3600} hours ---")
