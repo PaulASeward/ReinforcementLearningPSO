@@ -267,7 +267,8 @@ else:
     returns.append(float(avg_return))
     fitness.append(avg_fitness)
 
-action_counts = [0] * 5
+left_action_counts = np.zeros(5, dtype=np.int32)
+right_action_counts = np.zeros(5, dtype=np.int32)
 
 for i in range(num_iterations):
     time_step, _ = collect_driver.run(time_step)
@@ -277,9 +278,12 @@ for i in range(num_iterations):
     train_checkpointer.save(global_step)
     tf_policy_saver.save(policy_dir)
 
-    # Update action history
-    action = experience.action
-    action_counts[action] += 1
+    experience_actions = experience.action.numpy()
+    for pair in experience_actions:
+        left_action = pair[0]
+        right_action = pair[1]
+        left_action_counts[left_action] += 1
+        right_action_counts[right_action] += 1
 
     if step % log_interval == 0:
         print('step = {0}: loss = {1}'.format(step, train_loss))
@@ -292,10 +296,13 @@ for i in range(num_iterations):
         returns.append(float(avg_return))
         fitness.append(avg_fitness)
 
-        # Saving action counts to CSV file
-        with open('action_counts.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(action_counts)
+        with open('left_action_counts.csv', 'w') as file:
+            writer = csv.writer(file)
+            writer.writerow(left_action_counts)
+
+        with open('right_action_counts.csv', 'w') as file:
+            writer = csv.writer(file)
+            writer.writerow(right_action_counts)
 
         # saving the results into a TEXT file
         # pickle.dump(returns, open(results_file_reward, "wb"))
