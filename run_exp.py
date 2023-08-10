@@ -287,7 +287,7 @@ for i in range(num_iterations):
     train_loss = agent.train(experience).loss
     step = agent.train_step_counter.numpy()
     train_checkpointer.save(global_step)
-    tf_policy_saver.save(policy_dir)
+    # tf_policy_saver.save(policy_dir)
 
     experience_actions = experience.action.numpy()
     for pair in experience_actions:
