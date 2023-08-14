@@ -61,7 +61,7 @@ experiment = "DQN_PSO"
 results_dir = "results"
 os.makedirs(results_dir, exist_ok=True)
 
-loss_file = f"{experiment}_loss(f{func_num}).csv"
+loss_file = os.path.join(results_dir, f"{experiment}_loss(f{func_num}).csv")
 results_file_reward = os.path.join(results_dir, f"{experiment}_returns(f{func_num}).csv")
 results_file_fitness = os.path.join(results_dir, f"{experiment}_fitness(f{func_num}).csv")
 figure_file_rewards = os.path.join(results_dir, f"{experiment}_plot(f{func_num}).png")
