@@ -55,14 +55,22 @@ fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
            -500, -400, -300, -200, -100, 100, 200, 300, 400, 500, 600,
            700, 800, 900, 1000, 1100, 1200, 1300, 1400]
 
-func_num = 19
+func_num = 14
 dim = 30
 experiment = "DQN_PSO"
-loss_file = f"{experiment}_loss(f{func_num}).csv"
-results_file_reward = f"{experiment}_returns(f{func_num}).csv"
-results_file_fitness = f"{experiment}_fitness(f{func_num}).csv"
-figure_file_rewards = f"{experiment}_plot(f{func_num}).png"
-figure_file_fitness = f"{experiment}_fit_plot(f{func_num}).png"
+results_dir = "results"
+os.makedirs(results_dir, exist_ok=True)
+
+loss_file = os.path.join(results_dir, f"{experiment}_loss(f{func_num}).csv")
+results_file_reward = os.path.join(results_dir, f"{experiment}_returns(f{func_num}).csv")
+results_file_fitness = os.path.join(results_dir, f"{experiment}_fitness(f{func_num}).csv")
+figure_file_rewards = os.path.join(results_dir, f"{experiment}_plot(f{func_num}).png")
+figure_file_fitness = os.path.join(results_dir, f"{experiment}_fit_plot(f{func_num}).png")
+results_right_actions = os.path.join(results_dir, f"{experiment}_right_action_counts(f{func_num}).csv")
+results_left_actions = os.path.join(results_dir, f"{experiment}_left_action_counts(f{func_num}).csv")
+figure_file_left_action = os.path.join(results_dir, f"{experiment}_left_actions_plot(f{func_num}).png")
+figure_file_right_action = os.path.join(results_dir, f"{experiment}_right_actions_plot(f{func_num}).png")
+
 
 # Execution parameters
 num_iterations = 20000
@@ -106,7 +114,7 @@ eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)  # and evaluation (Ran
 # SET UP Q-Network
 # Define a helper function to create Dense layers configured with the right activation and kernel initializer.
 
-fc_layer_params = (100, 75, 50, 25)
+fc_layer_params = (100, 75, 50)
 action_tensor_spec = tensor_spec.from_spec(environment.action_spec())
 num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
 print(f"num_actions: {num_actions}")
@@ -267,13 +275,27 @@ else:
     returns.append(float(avg_return))
     fitness.append(avg_fitness)
 
-for _ in range(num_iterations):
+# Initialize left and right action counts
+num_eval_intervals = num_iterations // eval_interval
+left_action_counts = np.zeros((num_eval_intervals, 5), dtype=np.int32)
+right_action_counts = np.zeros((num_eval_intervals, 5), dtype=np.int32)
+action_counts_index = 0
+
+for i in range(num_iterations):
     time_step, _ = collect_driver.run(time_step)
     experience, unused_info = next(iterator)
     train_loss = agent.train(experience).loss
     step = agent.train_step_counter.numpy()
     train_checkpointer.save(global_step)
-    tf_policy_saver.save(policy_dir)
+    # tf_policy_saver.save(policy_dir)
+
+    experience_actions = experience.action.numpy()
+    for pair in experience_actions:
+        left_action = pair[0]
+        right_action = pair[1]
+        left_action_counts[action_counts_index, left_action] += 1
+        right_action_counts[action_counts_index, right_action] += 1
+
     if step % log_interval == 0:
         print('step = {0}: loss = {1}'.format(step, train_loss))
         loss.append(train_loss)
@@ -284,6 +306,14 @@ for _ in range(num_iterations):
         print('step = {0}: Average Return = {1}'.format(step, avg_return))
         returns.append(float(avg_return))
         fitness.append(avg_fitness)
+
+        with open(results_left_actions, 'a') as file:
+            writer = csv.writer(file)
+            writer.writerow(left_action_counts[action_counts_index - 1, :])
+
+        with open(results_right_actions, 'a') as file:
+            writer = csv.writer(file)
+            writer.writerow(right_action_counts[action_counts_index - 1, :])
 
         # saving the results into a TEXT file
         # pickle.dump(returns, open(results_file_reward, "wb"))
@@ -306,6 +336,38 @@ plt.ylabel('Best Fitness')
 plt.xlabel('Iterations')
 plt.savefig(figure_file_fitness, dpi='figure', format="png", metadata=None,
             bbox_inches=None, pad_inches=0.1, facecolor='auto', edgecolor='auto')
+plt.close()
+
+# Create an array of iteration intervals for the x-axis
+iteration_intervals = np.arange(0, num_iterations, eval_interval)
+
+# Names for the actions (for the legend)
+action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 'Discourage Social Learning', 'Reset All']
+
+# Create a bar plot for each action
+plt.figure(figsize=(10, 6))
+bottom = np.zeros(len(iteration_intervals))
+for action in range(5):
+    plt.bar(iteration_intervals, left_action_counts[:, action], bottom=bottom, label=action_names[action])
+    bottom += left_action_counts[:, action]
+plt.xlabel('Iteration Intervals')
+plt.ylabel('Action Counts')
+plt.title('Left Action Distribution Over Iteration Intervals')
+plt.legend()
+plt.savefig(figure_file_left_action, dpi='figure', format="png", bbox_inches='tight')
+plt.close()
+
+# Create a bar plot for each action
+plt.figure(figsize=(10, 6))
+bottom = np.zeros(len(iteration_intervals))
+for action in range(5):
+    plt.bar(iteration_intervals, right_action_counts[:, action], bottom=bottom, label=action_names[action])
+    bottom += right_action_counts[:, action]
+plt.xlabel('Iteration Intervals')
+plt.ylabel('Action Counts')
+plt.title('Right Action Distribution Over Iteration Intervals')
+plt.legend()
+plt.savefig(figure_file_right_action, dpi='figure', format="png", bbox_inches='tight')
 plt.close()
 
 print(f"--- Execution took {(time.time() - start_time) / 3600} hours ---")
