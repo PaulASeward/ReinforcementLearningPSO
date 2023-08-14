@@ -79,9 +79,9 @@ collect_steps_per_iteration = 1
 replay_buffer_max_length = 100000
 batch_size = 64
 learning_rate = 1e-3
-log_interval = 200
+log_interval = 5
 num_eval_episodes = 10
-eval_interval = 500
+eval_interval = 10
 
 # Creating environments
 environment = PSOEnv(func_num, dimension=dim, minimum=fDeltas[func_num - 1])
@@ -306,6 +306,8 @@ for i in range(num_iterations):
         print('step = {0}: Average Return = {1}'.format(step, avg_return))
         returns.append(float(avg_return))
         fitness.append(avg_fitness)
+
+        action_counts_index += 1
 
         with open(results_left_actions, 'a') as file:
             writer = csv.writer(file)
