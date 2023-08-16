@@ -55,7 +55,7 @@ fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
            -500, -400, -300, -200, -100, 100, 200, 300, 400, 500, 600,
            700, 800, 900, 1000, 1100, 1200, 1300, 1400]
 
-func_num = 14
+func_num = 19
 dim = 30
 experiment = "DQN_PSO"
 results_dir = "results"
@@ -340,8 +340,12 @@ plt.savefig(figure_file_fitness, dpi='figure', format="png", metadata=None,
             bbox_inches=None, pad_inches=0.1, facecolor='auto', edgecolor='auto')
 plt.close()
 
-# Create an array of iteration intervals for the x-axis
-iteration_intervals = np.arange(0, num_iterations, eval_interval)
+# Define iteration intervals for the x-axis
+iteration_intervals = range(eval_interval, num_iterations+eval_interval, eval_interval)
+label_iteration_intervals = range(0, num_iterations+eval_interval, eval_interval*2)
+
+# Calculate the width of the bars based on the interval size
+bar_width = 0.8 * (iteration_intervals[1] - iteration_intervals[0])
 
 # Names for the actions (for the legend)
 action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 'Discourage Social Learning', 'Reset All']
@@ -350,8 +354,10 @@ action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 
 plt.figure(figsize=(10, 6))
 bottom = np.zeros(len(iteration_intervals))
 for action in range(5):
-    plt.bar(iteration_intervals, left_action_counts[:, action], bottom=bottom, label=action_names[action])
+    plt.bar(iteration_intervals, left_action_counts[:, action], bottom=bottom, width=bar_width, label=action_names[action])
     bottom += left_action_counts[:, action]
+# Set x-axis ticks and labels with rotated tick labels
+plt.xticks(label_iteration_intervals, labels=[str(i) for i in label_iteration_intervals], rotation=45, ha="right")
 plt.xlabel('Iteration Intervals')
 plt.ylabel('Action Counts')
 plt.title('Left Action Distribution Over Iteration Intervals')
@@ -365,6 +371,8 @@ bottom = np.zeros(len(iteration_intervals))
 for action in range(5):
     plt.bar(iteration_intervals, right_action_counts[:, action], bottom=bottom, label=action_names[action])
     bottom += right_action_counts[:, action]
+# Set x-axis ticks and labels with rotated tick labels
+plt.xticks(label_iteration_intervals, labels=[str(i) for i in label_iteration_intervals], rotation=45, ha="right")
 plt.xlabel('Iteration Intervals')
 plt.ylabel('Action Counts')
 plt.title('Right Action Distribution Over Iteration Intervals')
