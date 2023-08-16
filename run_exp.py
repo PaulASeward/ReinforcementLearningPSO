@@ -369,7 +369,7 @@ plt.close()
 plt.figure(figsize=(10, 6))
 bottom = np.zeros(len(iteration_intervals))
 for action in range(5):
-    plt.bar(iteration_intervals, right_action_counts[:, action], bottom=bottom, label=action_names[action])
+    plt.bar(iteration_intervals, right_action_counts[:, action], bottom=bottom, width=bar_width, label=action_names[action])
     bottom += right_action_counts[:, action]
 # Set x-axis ticks and labels with rotated tick labels
 plt.xticks(label_iteration_intervals, labels=[str(i) for i in label_iteration_intervals], rotation=45, ha="right")
