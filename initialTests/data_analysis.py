@@ -77,75 +77,70 @@ table = tabulate(combined_df, headers='keys', tablefmt='fancy_grid', showindex=F
 print()
 print(table)
 
-# # Save the table to an Excel file
-# combined_df.to_csv('Overall_function_results.csv')
 
-# # Convert the combined dataframe to a list of lists
-# table_data = combined_df.values.tolist()
-#
-# # Get the column headers
-# headers = combined_df.columns.levels[1].tolist()
-#
-#
-# # Generate the table
-# table = tabulate(table_data, headers, tablefmt='fancy_grid', numalign='center')
+# BOXPLOT
+# Use seaborn for better aesthetics (optional)
+sns.set(style="whitegrid")
 
-# # Print the table
-# print(table)
+# Add an "Approach" column to each DataFrame
+global_df['Approach'] = 'Global Vectorized'
+local_df['Approach'] = 'Local Vectorized'
+iterative_df['Approach'] = 'Local Iterative'
+
+# Concatenate the three dataframes
+concat_df = pd.concat([global_df, local_df, iterative_df], axis=0)
+
+# Reshape the dataframe for box plot
+melted_df = pd.melt(concat_df, id_vars=['Approach', 'Function Number'], value_vars=['Mean Error', 'Standard Deviation', 'Mean Time'], var_name='Metric', value_name='Value')
+
+# Generate box plots
+plt.figure(figsize=(12, 6))
+plt.title('Comparison of Approaches for Each Function Result')
+plt.xticks(rotation=45)
+
+# Create box plot
+boxplot = sns.boxplot(data=melted_df, x='Function Number', y='Value', hue='Approach')
+
+# Add labels and legend
+boxplot.set_xlabel('Function Number')
+boxplot.set_ylabel('Value')
+boxplot.legend(title='Approach')
+
+# Show the plot
+plt.show()
+plt.savefig('comparative_approaches_box_plot.png')
 
 
-
-
-## BOXPLOT
-# # Use seaborn for better aesthetics (optional)
-# # import seaborn as sns
-# # sns.set(style="whitegrid")
-#
-# # Add an "Approach" column to each DataFrame
-# global_df['Approach'] = 'Global Vectorized'
-# local_df['Approach'] = 'Local Vectorized'
-# iterative_df['Approach'] = 'Local Iterative'
-#
-# # Concatenate the three dataframes
-# concat_df = pd.concat([global_df, local_df, iterative_df], axis=0)
-#
-# # Reshape the dataframe for box plot
-# melted_df = pd.melt(concat_df, id_vars=['Approach', 'Function Number'], value_vars=['Mean Error', 'Standard Deviation', 'Mean Time'], var_name='Metric', value_name='Value')
-#
-# # Generate box plots
-# plt.figure(figsize=(12, 6))
-# plt.title('Comparison of Approaches for Each Function Result')
-# plt.xticks(rotation=45)
-#
-# # Create box plot
-# boxplot = sns.boxplot(data=melted_df, x='Function Number', y='Value', hue='Approach')
-#
-# # Add labels and legend
-# boxplot.set_xlabel('Function Number')
-# boxplot.set_ylabel('Value')
-# boxplot.legend(title='Approach')
-#
-# # Show the plot
-# plt.show()
-
-#
 # # SCATTER PLOT
-# # Add an "Approach" column to each DataFrame
-# global_df['Approach'] = 'Global Vectorized'
-# local_df['Approach'] = 'Local Vectorized'
-# iterative_df['Approach'] = 'Local Iterative'
-#
-# # Concatenate the three dataframes
-# concat_df = pd.concat([global_df, local_df, iterative_df], axis=0)
-#
-# # Create the scatter plot
-# plt.figure(figsize=(10, 6))
-# sns.scatterplot(data=concat_df, x='Mean Time', y='Mean Error', hue='Approach', palette='Set1')
-#
-# # Set plot labels and title
-# plt.xlabel('Mean Time')
-# plt.ylabel('Mean Error')
-# plt.title('Comparison of Mean Error vs. Mean Time across Approaches')
-#
-# # Show the plot
-# plt.show()
+
+# Concatenate the three dataframes
+concat_df = pd.concat([global_df, local_df, iterative_df], axis=0)
+
+# Create the figure with two subplots
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+# Scatter plot with original data
+scatter_plot1 = sns.scatterplot(data=concat_df, x='Mean Time', y='Mean Error', hue='Approach', palette='Set1', ax=ax1)
+ax1.set_xlabel('Mean Time')
+ax1.set_ylabel('Mean Error')
+ax1.set_title('Comparison of Mean Error vs. Mean Time (Full Range)')
+scatter_plot1.legend(title='Approach')
+
+# Scatter plot with zoomed-in data
+scatter_plot2 = sns.scatterplot(data=concat_df, x='Mean Time', y='Mean Error', hue='Approach', palette='Set1', ax=ax2)
+ax2.set_xlabel('Mean Time')
+ax2.set_ylabel('Mean Error')
+ax2.set_title('Comparison of Mean Error vs. Mean Time (Zoomed-In)')
+ax2.set_ylim(0, 300)
+ax2.set_xlim(0, 100)
+ax2.legend().set_visible(False)  # Hide legend for the zoomed-in plot
+
+# Adjust layout
+plt.tight_layout()
+
+# Save the scatter plots as PNG files
+plt.savefig('scatter_plot_full_range.png')
+plt.savefig('scatter_plot_zoomed_in.png')
+
+# Show the plots
+plt.show()
