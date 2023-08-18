@@ -1,0 +1,251 @@
+[reverb/cc/platform/tfrecord_checkpointer.cc:150]  Initializing TFRecordCheckpointer in /tmp/tmp9ep60_99.
+[reverb/cc/platform/tfrecord_checkpointer.cc:386] Loading latest checkpoint from /tmp/tmp9ep60_99
+[reverb/cc/platform/default/server.cc:71] Started replay server on port 44162
+2023-08-16 10:43:37.749182: W tensorflow/python/util/util.cc:368] Sets are not currently considered sequences, but this may change in the future, so consider avoiding using them.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (34272) so Table uniform_table is accessed directly without gRPC.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (34272) so Table uniform_table is accessed directly without gRPC.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (34272) so Table uniform_table is accessed directly without gRPC.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (34272) so Table uniform_table is accessed directly without gRPC.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (34272) so Table uniform_table is accessed directly without gRPC.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (34272) so Table uniform_table is accessed directly without gRPC.
+WARNING:tensorflow:From /scratch/pseward/TF_RL/lib/python3.10/site-packages/tensorflow/python/util/dispatch.py:1082: calling foldr_v2 (from tensorflow.python.ops.functional_ops) with back_prop=False is deprecated and will be removed in a future version.
+Instructions for updating:
+back_prop=False is deprecated. Consider using tf.stop_gradient instead.
+Instead of:
+results = tf.foldr(fn, elems, back_prop=False)
+Use:
+results = tf.nest.map_structure(tf.stop_gradient, tf.foldr(fn, elems))
+WARNING:tensorflow:From /scratch/pseward/TF_RL/lib/python3.10/site-packages/tensorflow/python/util/dispatch.py:1082: calling foldr_v2 (from tensorflow.python.ops.functional_ops) with back_prop=False is deprecated and will be removed in a future version.
+Instructions for updating:
+back_prop=False is deprecated. Consider using tf.stop_gradient instead.
+Instead of:
+results = tf.foldr(fn, elems, back_prop=False)
+Use:
+results = tf.nest.map_structure(tf.stop_gradient, tf.foldr(fn, elems))
+Observation Spec:
+BoundedArraySpec(shape=(150,), dtype=dtype('float64'), name='observation', minimum=-1.7976931348623157e+308, maximum=1.7976931348623157e+308)
+Reward Spec:
+ArraySpec(shape=(), dtype=dtype('float32'), name='reward')
+Action Spec:
+BoundedArraySpec(shape=(), dtype=dtype('int32'), name='action', minimum=0, maximum=4)
+Time step:
+TimeStep(
+{'discount': array(1., dtype=float32),
+ 'observation': array([0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.40044772, 0.26973577, 0.26604055, 0.35036347, 0.35012235,
+       0.24629826, 0.32934698, 0.28494159, 0.3004784 , 0.28868763,
+       0.26787518, 0.26992288, 0.26435773, 0.3753455 , 0.35011719,
+       0.32305857, 0.23662022, 0.32369692, 0.21332879, 0.18060177,
+       0.18363709, 0.16729644, 0.        , 0.33184504, 0.25789494,
+       0.22345746, 0.32834556, 0.34050533, 0.33854774, 0.36922753,
+       0.32901759, 0.34602675, 0.39015919, 0.25540029, 0.31863766,
+       0.30486459, 0.23067576, 0.2809298 , 0.34379877, 0.13040537,
+       0.40825024, 0.22826577, 0.398994  , 0.31365808, 0.28122324,
+       0.3515401 , 0.32070915, 0.29163461, 0.32822881, 0.25410096,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ]),
+ 'reward': array(0., dtype=float32),
+ 'step_type': array(0, dtype=int32)})
+Next time step:
+TimeStep(
+{'discount': array(1., dtype=float32),
+ 'observation': array([9.20177493e-09, 1.57198971e-07, 2.91314337e-07, 1.23386073e-07,
+       1.39351984e-07, 3.43371393e-07, 1.80100276e-07, 1.91691853e-07,
+       3.13086003e-07, 1.86264076e-07, 9.40936344e-08, 1.32378718e-07,
+       3.60554822e-07, 1.67854370e-07, 1.00907005e-07, 3.00524576e-07,
+       1.52466607e-07, 4.49530372e-07, 1.61848551e-07, 2.05323250e-07,
+       6.48389988e-08, 3.68827833e-07, 7.76822909e-07, 2.91870815e-07,
+       3.64818751e-07, 1.35924044e-07, 6.30498729e-07, 2.97608455e-07,
+       4.73847216e-07, 1.33440312e-07, 9.59283719e-08, 2.33276196e-07,
+       2.66900013e-07, 2.51004547e-07, 1.80368720e-07, 2.54214047e-07,
+       1.08847960e-07, 3.42091737e-07, 1.91396143e-07, 2.37752923e-07,
+       1.43885982e-07, 1.05310419e-07, 1.56781010e-07, 2.18216939e-07,
+       1.23711443e-07, 1.74098852e-07, 2.80382650e-07, 2.61929798e-07,
+       1.32867192e-07, 2.00758201e-07, 0.00000000e+00, 9.76134533e-16,
+       1.95226907e-15, 0.00000000e+00, 0.00000000e+00, 9.76134533e-16,
+       0.00000000e+00, 0.00000000e+00, 9.76134533e-16, 0.00000000e+00,
+       0.00000000e+00, 9.76134533e-16, 1.95226907e-15, 0.00000000e+00,
+       0.00000000e+00, 0.00000000e+00, 9.76134533e-16, 1.95226907e-15,
+       0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 9.76134533e-16,
+       0.00000000e+00, 9.76134533e-16, 9.76134533e-16, 0.00000000e+00,
+       0.00000000e+00, 0.00000000e+00, 1.95226907e-15, 0.00000000e+00,
+       0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+       0.00000000e+00, 9.76134533e-16, 0.00000000e+00, 9.76134533e-16,
+       9.76134533e-16, 0.00000000e+00, 9.76134533e-16, 0.00000000e+00,
+       9.76134533e-16, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+       0.00000000e+00, 9.76134533e-16, 0.00000000e+00, 9.76134533e-16,
+       2.52000000e+02, 2.20000000e+02, 2.31000000e+02, 2.31000000e+02,
+       1.80000000e+02, 2.06000000e+02, 1.95000000e+02, 2.22000000e+02,
+       2.13000000e+02, 2.32000000e+02, 2.55000000e+02, 2.38000000e+02,
+       1.92000000e+02, 1.78000000e+02, 2.15000000e+02, 2.58000000e+02,
+       2.09000000e+02, 1.77000000e+02, 2.33000000e+02, 2.31000000e+02,
+       2.58000000e+02, 1.96000000e+02, 2.08000000e+02, 2.26000000e+02,
+       1.94000000e+02, 2.49000000e+02, 2.34000000e+02, 2.24000000e+02,
+       1.83000000e+02, 2.35000000e+02, 1.87000000e+02, 2.37000000e+02,
+       2.07000000e+02, 2.18000000e+02, 2.08000000e+02, 2.05000000e+02,
+       1.82000000e+02, 1.98000000e+02, 2.25000000e+02, 2.52000000e+02,
+       2.33000000e+02, 2.15000000e+02, 2.24000000e+02, 2.35000000e+02,
+       2.16000000e+02, 2.24000000e+02, 1.87000000e+02, 2.35000000e+02,
+       2.11000000e+02, 2.24000000e+02]),
+ 'reward': array(-1963.4618, dtype=float32),
+ 'step_type': array(1, dtype=int32)})
+num_actions: 5
+step = 200: loss = 255147.328125
+step = 400: loss = 250224.8125
+step = 500: Average Return = [-844.44714]
+step = 600: loss = 196983.3125
+step = 800: loss = 187999.625
+step = 1000: loss = 57829.3203125
+step = 1000: Average Return = [-635.4509]
+step = 1200: loss = 89137.0234375
+step = 1400: loss = 136660.765625
+step = 1500: Average Return = [-725.68176]
+step = 1600: loss = 196108.375
+step = 1800: loss = 129886.6875
+step = 2000: loss = 77165.28125
+step = 2000: Average Return = [-706.1138]
+step = 2200: loss = 162920.203125
+step = 2400: loss = 62001.75390625
+step = 2500: Average Return = [-707.4608]
+step = 2600: loss = 268953.59375
+step = 2800: loss = 99367.0
+step = 3000: loss = 81985.578125
+step = 3000: Average Return = [-782.0202]
+step = 3200: loss = 129166.578125
+step = 3400: loss = 74982.5859375
+step = 3500: Average Return = [-889.65155]
+step = 3600: loss = 49472.73828125
+step = 3800: loss = 143040.65625
+step = 4000: loss = 77711.8203125
+step = 4000: Average Return = [-842.647]
+step = 4200: loss = 60904.08984375
+step = 4400: loss = 86464.140625
+step = 4500: Average Return = [-831.7291]
+step = 4600: loss = 73691.75
+step = 4800: loss = 46251.98046875
+step = 5000: loss = 71055.9375
+step = 5000: Average Return = [-880.5161]
+step = 5200: loss = 23133.90625
+step = 5400: loss = 111070.25
+step = 5500: Average Return = [-891.78235]
+step = 5600: loss = 113128.421875
+step = 5800: loss = 90646.3984375
+step = 6000: loss = 62247.58984375
+step = 6000: Average Return = [-817.9335]
+step = 6200: loss = 87549.7421875
+step = 6400: loss = 67768.8125
+step = 6500: Average Return = [-676.6134]
+step = 6600: loss = 94104.0625
+step = 6800: loss = 56118.6875
+step = 7000: loss = 32416.861328125
+step = 7000: Average Return = [-852.80066]
+step = 7200: loss = 74879.765625
+step = 7400: loss = 100877.21875
+step = 7500: Average Return = [-652.4336]
+step = 7600: loss = 105514.125
+step = 7800: loss = 100985.625
+step = 8000: loss = 75318.5703125
+step = 8000: Average Return = [-798.4543]
+step = 8200: loss = 90510.1640625
+step = 8400: loss = 118657.4140625
+step = 8500: Average Return = [-646.00964]
+step = 8600: loss = 140027.6875
+step = 8800: loss = 60000.9921875
+step = 9000: loss = 70639.65625
+step = 9000: Average Return = [-705.393]
+step = 9200: loss = 208915.6875
+step = 9400: loss = 63416.69921875
+step = 9500: Average Return = [-689.051]
+step = 9600: loss = 100094.1015625
+step = 9800: loss = 56634.17578125
+step = 10000: loss = 83988.953125
+step = 10000: Average Return = [-661.5599]
+step = 10200: loss = 102191.5390625
+step = 10400: loss = 71925.5
+step = 10500: Average Return = [-719.0309]
+step = 10600: loss = 61146.3203125
+step = 10800: loss = 204076.4375
+step = 11000: loss = 119884.40625
+step = 11000: Average Return = [-760.0974]
+step = 11200: loss = 116970.6484375
+step = 11400: loss = 109192.21875
+step = 11500: Average Return = [-762.8146]
+step = 11600: loss = 114131.0625
+step = 11800: loss = 85434.03125
+step = 12000: loss = 94631.8203125
+step = 12000: Average Return = [-674.58344]
+step = 12200: loss = 34290.234375
+step = 12400: loss = 131121.75
+step = 12500: Average Return = [-827.0829]
+step = 12600: loss = 153589.046875
+step = 12800: loss = 153441.28125
+step = 13000: loss = 75588.2578125
+step = 13000: Average Return = [-751.83966]
+step = 13200: loss = 81133.9296875
+step = 13400: loss = 106383.703125
+step = 13500: Average Return = [-787.26825]
+step = 13600: loss = 71577.890625
+step = 13800: loss = 53022.3515625
+step = 14000: loss = 183702.4375
+step = 14000: Average Return = [-711.6059]
+step = 14200: loss = 79734.4375
+step = 14400: loss = 125615.5390625
+step = 14500: Average Return = [-919.41327]
+step = 14600: loss = 153719.25
+step = 14800: loss = 106638.234375
+step = 15000: loss = 112365.234375
+step = 15000: Average Return = [-817.2281]
+step = 15200: loss = 126476.4453125
+step = 15400: loss = 102809.515625
+step = 15500: Average Return = [-826.7671]
+step = 15600: loss = 104859.21875
+step = 15800: loss = 118554.3828125
+step = 16000: loss = 100347.90625
+step = 16000: Average Return = [-733.58777]
+step = 16200: loss = 146040.640625
+step = 16400: loss = 90122.34375
+step = 16500: Average Return = [-814.1116]
+step = 16600: loss = 66220.390625
+step = 16800: loss = 61780.65234375
+step = 17000: loss = 77339.3984375
+step = 17000: Average Return = [-731.54407]
+step = 17200: loss = 91277.25
+step = 17400: loss = 88433.0078125
+step = 17500: Average Return = [-791.757]
+step = 17600: loss = 96819.2421875
+step = 17800: loss = 73807.6484375
+step = 18000: loss = 130490.7890625
+step = 18000: Average Return = [-701.26984]
+step = 18200: loss = 66803.734375
+step = 18400: loss = 195187.25
+step = 18500: Average Return = [-855.09534]
+step = 18600: loss = 97763.6328125
+step = 18800: loss = 106257.890625
+step = 19000: loss = 124590.984375
+step = 19000: Average Return = [-716.5327]
+step = 19200: loss = 129268.015625
+step = 19400: loss = 86922.171875
+step = 19500: Average Return = [-726.21436]
+step = 19600: loss = 70083.3359375
+step = 19800: loss = 109250.359375
+step = 20000: loss = 88641.9375
+step = 20000: Average Return = [-678.8097]
+--- Execution took 36.616899145179325 hours ---
+[reverb/cc/platform/default/server.cc:84] Shutting down replay server
