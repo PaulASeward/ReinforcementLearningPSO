@@ -1,5 +1,3 @@
-# ReinforcementLearningPSO
-
 # Reinforcement Learning Project with Vectorized Particle Swarm Optimization (PSO)
 
 ## Overview
@@ -76,10 +74,8 @@ To run the project, follow these steps:
 
 ## Conclusion
 
-This project demonstrates the implementation of a Reinforcement Learning algorithm using Particle Swarm Optimization with a vectorized approach. The RL agent optimizes its policy in a 2D grid world environment to achieve the best fitness value using PSO. The vectorized PSO implementation ensures efficient updates and faster convergence.
+This project demonstrates the implementation of a Reinforcement Learning algorithm using Particle Swarm Optimization with a vectorized approach. The RL agent optimizes its policy in a PSO environment to achieve the best fitness value using PSO with additional actions to help further optimize. The vectorized PSO implementation ensures efficient updates and faster convergence.
 
 Happy Learning!
 
 ---
-
-*Note: Feel free to customize the content and structure of this markdown file to suit your project's specific details and requirements.*
