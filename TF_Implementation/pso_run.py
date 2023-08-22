@@ -30,6 +30,6 @@ def run_experiment(runs, dimensions, evals_per_dim, swarm_size):
 runs = 1
 dimensions = 30
 swarm_size = 50
-evals_per_dim = 100000
+evals_per_dim = 10000
 run_experiment(runs, dimensions, evals_per_dim, swarm_size)
 
