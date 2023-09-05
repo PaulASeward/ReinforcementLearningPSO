@@ -57,8 +57,7 @@ class PSOEnv(py_environment.PyEnvironment):
         self.swarm.reinitialize()
 
         # Concatenate the three arrays into a single array
-        observation_array1, observation_array2, observation_array3 = self.swarm.get_observation()
-        self._observation = np.concatenate([observation_array1, observation_array2, observation_array3], axis=0)
+        self._observation = self.swarm.get_observation()
 
         # return ts.TimeStep(ts.StepType.FIRST, np.asarray(0.0, dtype=np.float32), self._states)
         return ts.restart(self._observation)

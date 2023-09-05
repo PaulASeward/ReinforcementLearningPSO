@@ -28,7 +28,7 @@ def run_experiment(runs, dimensions, evals_per_dim, swarm_size):
     print(f"Error: {error}")
     print(f"Time: {run_time}")
 
-runs = 1
+runs = 30
 dimensions = 30
 swarm_size = 50
 evals_per_dim = 10000
