@@ -57,8 +57,7 @@ class PSOEnv(py_environment.PyEnvironment):
         self.swarm.reinitialize()
 
         # Concatenate the three arrays into a single array
-        observation_array1, observation_array2, observation_array3 = self.swarm.get_observation()
-        self._observation = np.concatenate([observation_array1, observation_array2, observation_array3], axis=0)
+        self._observation = self.swarm.get_observation()
 
         # return ts.TimeStep(ts.StepType.FIRST, np.asarray(0.0, dtype=np.float32), self._states)
         return ts.restart(self._observation)
@@ -85,32 +84,27 @@ class PSOEnv(py_environment.PyEnvironment):
         # Implementation of the actions
         if action == 0:  # Do nothing special
             self.swarm.optimize()
-            observation_array1, observation_array2, observation_array3 = self.swarm.get_observation()
-            self._observation = np.concatenate([observation_array1, observation_array2, observation_array3], axis=0)
+            self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
         elif action == 1:  # Reset slower half
             self.swarm.reset_slow_particles()
             self.swarm.optimize()  # Reset all particles
-            observation_array1, observation_array2, observation_array3 = self.swarm.get_observation()
-            self._observation = np.concatenate([observation_array1, observation_array2, observation_array3], axis=0)
+            self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
         elif action == 2:  # Encourage social learning
             self.swarm.increase_social_factor()
             self.swarm.optimize()
-            observation_array1, observation_array2, observation_array3 = self.swarm.get_observation()
-            self._observation = np.concatenate([observation_array1, observation_array2, observation_array3], axis=0)
+            self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
         elif action == 3:  # Discourage social learning
             self.swarm.decrease_social_factor()
             self.swarm.optimize()
-            observation_array1, observation_array2, observation_array3 = self.swarm.get_observation()
-            self._observation = np.concatenate([observation_array1, observation_array2, observation_array3], axis=0)
+            self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
         elif action == 4:  # Reset all particles. Maybe keep global leader?
             self.swarm.reinitialize()
             self.swarm.optimize()
-            observation_array1, observation_array2, observation_array3 = self.swarm.get_observation()
-            self._observation = np.concatenate([observation_array1, observation_array2, observation_array3], axis=0)
+            self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
 
         if self._best_fitness is None:

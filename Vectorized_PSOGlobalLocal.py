@@ -58,7 +58,8 @@ class PSOVectorSwarmGlobalLocal:
 
         # Calculate the average batch count for each particle
         self.average_batch_counts = np.mean(self.pbest_replacement_batchcounts, axis=0)
-        return self.velocity_magnitudes, self.relative_fitness, self.average_batch_counts
+
+        return np.concatenate([self.velocity_magnitudes, self.relative_fitness, self.average_batch_counts], axis=0)
 
     def get_current_best_fitness(self):
         return self.gbest_val
