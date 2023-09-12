@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import csv
 
 import numpy as np
 import Vectorized_PSOGlobalLocal as pso
@@ -11,6 +12,7 @@ from tf_agents.trajectories import time_step as ts
 from typing import Any
 from tf_agents.typing import types
 import functions
+import os
 
 
 class PSOEnv(py_environment.PyEnvironment):
@@ -30,6 +32,12 @@ class PSOEnv(py_environment.PyEnvironment):
         self._actions_count = 0
         self._episode_ended = False
         self._max_episodes = 10
+        self._episode_actions = []
+        csv_directory = "episode_actions/"
+        if not os.path.exists(csv_directory):
+            os.makedirs(csv_directory)
+        self.csv_filename = os.path.join(csv_directory, f"function{func_num}_.csv")
+
         self._max_evals = self._max_episodes * self._observation_interval
         self._best_fitness = None
         self._minimum = minimum
@@ -51,6 +59,7 @@ class PSOEnv(py_environment.PyEnvironment):
         """
         self._actions_count = 0
         self._episode_ended = False
+        self._episode_actions = []
         self._best_fitness = None
 
         # Restart the swarm with initializing criteria
@@ -78,10 +87,12 @@ class PSOEnv(py_environment.PyEnvironment):
 
         # Make sure episodes don't go on forever.
         self._actions_count += 1
+
         if self._actions_count == self._max_episodes:
             self._episode_ended = True
 
         # Implementation of the actions
+        self._episode_actions.append(action)
         if action == 0:  # Do nothing special
             self.swarm.optimize()
             self._observation = self.swarm.get_observation()
@@ -116,9 +127,14 @@ class PSOEnv(py_environment.PyEnvironment):
             self._best_fitness = min(self._best_fitness, current_best_f)
 
         if self._episode_ended:
+            self.store_episode_actions_to_csv(self._episode_actions)
             return ts.termination(self._observation, reward)
         else:
             return ts.transition(self._observation, reward, discount=1.0)
+
+    def store_episode_actions_to_csv(self, actionsRow):
+        with open(self.csv_filename, mode='a', newline='') as csv_file:
+            csv.writer(csv_file).writerow(actionsRow)
 
     # supposedly not needed
     def get_info(self) -> types.NestedArray:
