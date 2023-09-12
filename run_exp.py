@@ -33,6 +33,12 @@ start_time = time.time()
 def compute_avg_return(environment, policy, num_episodes=10):
     total_return = 0.0
     total_fitness = 0.0
+    actionsRow = []
+    csv_directory = "episode_actions/"
+    if not os.path.exists(csv_directory):
+        os.makedirs(csv_directory)
+    csv_filename = os.path.join(csv_directory, f"compute_action_counts_f{func_num}_.csv")
+
     for _ in range(num_episodes):
 
         time_step = environment.reset()
@@ -41,12 +47,17 @@ def compute_avg_return(environment, policy, num_episodes=10):
         while not time_step.is_last():
             action_step = policy.action(time_step)
             time_step = environment.step(action_step.action)
+            actionsRow.append(action_step.action.numpy())
             episode_return += time_step.reward
         total_return += episode_return
         total_fitness += environment.pyenv.envs[0]._best_fitness
 
     avg_return = total_return / num_episodes
     avg_fitness = total_fitness / num_episodes
+
+    with open(csv_filename, mode='a', newline='') as csv_file:
+        csv.writer(csv_file).writerow(actionsRow)
+
     return avg_return, avg_fitness
 
 
@@ -73,15 +84,15 @@ figure_file_right_action = os.path.join(results_dir, f"{experiment}_right_action
 
 
 # Execution parameters
-num_iterations = 20000
+num_iterations = 10
 initial_collect_steps = 100
 collect_steps_per_iteration = 1
 replay_buffer_max_length = 100000
 batch_size = 64
 learning_rate = 1e-3
-log_interval = 200
+log_interval = 2
 num_eval_episodes = 10
-eval_interval = 500
+eval_interval = 5
 
 # Creating environments
 environment = PSOEnv(func_num, dimension=dim, minimum=fDeltas[func_num - 1])
@@ -321,6 +332,8 @@ for i in range(num_iterations):
         # pickle.dump(returns, open(results_file_reward, "wb"))
         numpy.savetxt(results_file_reward, returns, delimiter=", ", fmt='% s')
         # numpy.savetxt(results_file_fitness, fitness, delimiter=", ", fmt='% s')
+
+    x = 1+1
 
 # saving the rewards plot into a file
 iterations = range(0, num_iterations + 1, eval_interval)
