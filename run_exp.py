@@ -97,23 +97,6 @@ eval_interval = 5
 # Creating environments
 environment = PSOEnv(func_num, dimension=dim, minimum=fDeltas[func_num - 1])
 
-# Print Array Specifications for Obs, Rewards, Actions
-print('Observation Spec:')
-print(environment.time_step_spec().observation)
-print('Reward Spec:')
-print(environment.time_step_spec().reward)
-print('Action Spec:')
-print(environment.action_spec())
-
-# Practice one step:
-time_step = environment.reset()
-print('Time step:')
-print(time_step)
-action = np.array(1, dtype=np.int32)
-next_time_step = environment.step(action)
-print('Next time step:')
-print(next_time_step)
-
 # LOAD TWO ENVIRONMENTS
 # Usually two environments are instantiated: one for training and one for evaluation
 train_py_env = environment  # Python environments for training
