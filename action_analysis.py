@@ -69,7 +69,7 @@ def plot_actions_from_env(input_file_actions, input_file_values, num_intervals):
 
         bottom = np.zeros(num_episodes)
         for action_num in range(num_actions):
-            action_occurrences = [np.count_nonzero(interval_data[:, episode] == action_num) for episode in range(0, num_episodes*2, 2)]
+            action_occurrences = [np.count_nonzero(interval_data[:, episode] == action_num) for episode in range(num_episodes)]
             ax.bar(x_values, action_occurrences, bottom=bottom, label=action_names[action_num])
             bottom += action_occurrences
 
