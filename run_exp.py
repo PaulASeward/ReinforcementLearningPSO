@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 from PSOEnv import PSOEnv
-from action_analysis import plot_results_over_iterations, plot_actions_over_iteration_intervals
+from action_analysis import plot_results_over_iterations, plot_actions_over_iteration_intervals, plot_actions_from_env
 import numpy
 import reverb
 
@@ -54,15 +54,15 @@ figure_file_right_action = os.path.join(results_dir, f"{experiment}_right_action
 
 
 # Execution parameters
-num_iterations = 10
+num_iterations = 100
 initial_collect_steps = 100
 collect_steps_per_iteration = 1
 replay_buffer_max_length = 100000
 batch_size = 64
 learning_rate = 1e-3
-log_interval = 2
+log_interval = 20
 num_eval_episodes = 10
-eval_interval = 5
+eval_interval = 50
 iterations = range(0, num_iterations + 1, eval_interval)
 
 # Creating environments
@@ -336,5 +336,5 @@ plot_actions_over_iteration_intervals(figure_file_right_action, 'Iteration Inter
                                         'Right Action Distribution Over Iteration Intervals', iteration_intervals,
                                         label_iteration_intervals, right_action_counts)
 
-plot_actions_from_env()
+plot_actions_from_env(results_action_counts, 9)
 print(f"--- Execution took {(time.time() - start_time) / 3600} hours ---")
