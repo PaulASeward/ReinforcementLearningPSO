@@ -219,30 +219,20 @@ global_step = tf.compat.v1.train.get_global_step()
 def compute_avg_return(environment, policy, num_episodes=10):
     total_return = 0.0
     total_fitness = 0.0
-    actionsRow = []
-    csv_directory = "episode_actions/"
-    if not os.path.exists(csv_directory):
-        os.makedirs(csv_directory)
-    csv_filename = os.path.join(csv_directory, f"compute_action_counts_f{func_num}_.csv")
-
     for _ in range(num_episodes):
 
         time_step = environment.reset()
         episode_return = 0.0
 
-        while not time_step.is_last():
+        while not time_step.is_last():  # This is repeats logic of for _ in range, so we are taking last 100 episodes.
             action_step = policy.action(time_step)
             time_step = environment.step(action_step.action)
-            actionsRow.append(action_step.action.numpy())
             episode_return += time_step.reward
         total_return += episode_return
         total_fitness += environment.pyenv.envs[0]._best_fitness
 
     avg_return = total_return / num_episodes
     avg_fitness = total_fitness / num_episodes
-
-    with open(csv_filename, mode='a', newline='') as csv_file:
-        csv.writer(csv_file).writerow(actionsRow)
 
     return avg_return, avg_fitness
 
