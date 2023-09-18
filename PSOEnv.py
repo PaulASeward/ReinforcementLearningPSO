@@ -122,7 +122,7 @@ class PSOEnv(py_environment.PyEnvironment):
             current_best_f = self.swarm.get_current_best_fitness()
 
         self._episode_actions.append(action)
-        self._episode_values.append(self._minimum - current_best_f[1])
+        self._episode_values.append(self._minimum - current_best_f)
 
         if self._best_fitness is None:
             reward = self._minimum - current_best_f
