@@ -46,6 +46,7 @@ results_file_reward = os.path.join(results_dir, f"{experiment}_returns(f{func_nu
 results_file_fitness = os.path.join(results_dir, f"{experiment}_fitness(f{func_num}).csv")
 figure_file_rewards = os.path.join(results_dir, f"{experiment}_plot(f{func_num}).png")
 figure_file_fitness = os.path.join(results_dir, f"{experiment}_fit_plot(f{func_num}).png")
+results_action_values = os.path.join(results_dir, f"PSO_DQN_actions_values(f{func_num}).csv")
 results_action_counts = os.path.join(results_dir, f"PSO_DQN_actions_counts(f{func_num}).csv")
 results_right_actions = os.path.join(results_dir, f"{experiment}_right_action_counts(f{func_num}).csv")
 results_left_actions = os.path.join(results_dir, f"{experiment}_left_action_counts(f{func_num}).csv")
@@ -326,5 +327,5 @@ plot_actions_over_iteration_intervals(figure_file_right_action, 'Iteration Inter
                                         'Right Action Distribution Over Iteration Intervals', iteration_intervals,
                                         label_iteration_intervals, right_action_counts)
 
-plot_actions_from_env(results_action_counts, 9)
+plot_actions_from_env(results_action_counts, results_action_values, 9)
 print(f"--- Execution took {(time.time() - start_time) / 3600} hours ---")

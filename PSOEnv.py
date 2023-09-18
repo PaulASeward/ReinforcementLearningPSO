@@ -33,11 +33,13 @@ class PSOEnv(py_environment.PyEnvironment):
         self._episode_ended = False
         self._max_episodes = 10
         self._episode_actions = []
+        self._episode_values = []
 
         csv_directory = "results"
         if not os.path.exists(csv_directory):
             os.makedirs(csv_directory)
-        self.csv_filename = os.path.join(csv_directory, f"PSO_DQN_actions_counts(f{func_num}).csv")
+        self.actions_filename = os.path.join(csv_directory, f"PSO_DQN_actions_counts(f{func_num}).csv")
+        self.values_filename = os.path.join(csv_directory, f"PSO_DQN_actions_values(f{func_num}).csv")
 
         self._max_evals = self._max_episodes * self._observation_interval
         self._best_fitness = None
@@ -61,6 +63,7 @@ class PSOEnv(py_environment.PyEnvironment):
         self._actions_count = 0
         self._episode_ended = False
         self._episode_actions = []
+        self._episode_values = []
         self._best_fitness = None
 
         # Restart the swarm with initializing criteria
@@ -93,14 +96,13 @@ class PSOEnv(py_environment.PyEnvironment):
             self._episode_ended = True
 
         # Implementation of the actions
-        self._episode_actions.append(action)
         if action == 0:  # Do nothing special
             self.swarm.optimize()
             self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
         elif action == 1:  # Reset slower half
             self.swarm.reset_slow_particles()
-            self.swarm.optimize()  # Reset all particles
+            self.swarm.optimize()
             self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
         elif action == 2:  # Encourage social learning
@@ -119,6 +121,9 @@ class PSOEnv(py_environment.PyEnvironment):
             self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
 
+        self._episode_actions.append(action)
+        self._episode_values.append(self._minimum - current_best_f[1])
+
         if self._best_fitness is None:
             reward = self._minimum - current_best_f
             self._best_fitness = current_best_f
@@ -128,14 +133,17 @@ class PSOEnv(py_environment.PyEnvironment):
             self._best_fitness = min(self._best_fitness, current_best_f)
 
         if self._episode_ended:
-            self.store_episode_actions_to_csv(self._episode_actions)
+            self.store_episode_actions_to_csv(self._episode_actions, self._episode_values)
             return ts.termination(self._observation, reward)
         else:
             return ts.transition(self._observation, reward, discount=1.0)
 
-    def store_episode_actions_to_csv(self, actionsRow):
-        with open(self.csv_filename, mode='a', newline='') as csv_file:
-            csv.writer(csv_file).writerow(actionsRow)
+    def store_episode_actions_to_csv(self, actions_row, values_row):
+        with open(self.actions_filename, mode='a', newline='') as csv_file:
+            csv.writer(csv_file).writerow(actions_row)
+
+        with open(self.values_filename, mode='a', newline='') as csv_file:
+            csv.writer(csv_file).writerow(values_row)
 
     # supposedly not needed
     def get_info(self) -> types.NestedArray:
