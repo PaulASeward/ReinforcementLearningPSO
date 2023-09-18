@@ -4,8 +4,7 @@ from matplotlib.patches import Patch
 import os
 
 action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 'Discourage Social Learning', 'Reset All']
-# colors = [(0.1, 0.2, 0.5, 0.3), (0.1, 0.5, 0.2, 0.3), (0.5, 0.1, 0.2, 0.3), (0.2, 0.1, 0.5, 0.3), (0.5, 0.2, 0.1, 0.3)]
-# hatches = ['.', 'o', '*', 'x', '+']
+
 def plot_results_over_iterations(file_name, y_label, x_label, iterations, y_data):
     plt.plot(iterations, y_data)
     plt.ylabel(y_label)
@@ -55,6 +54,17 @@ def plot_actions_from_env(input_file_actions, input_file_values, num_intervals):
     legend_handles = [Patch(facecolor=f'C{i}') for i in range(num_actions)]
     fig.legend(legend_handles, action_names, loc='upper right', title="Actions")
 
+    # Calculate the min and max values for the line graph
+    min_line_value = np.inf  # Initialize with a high value
+    max_line_value = -np.inf  # Initialize with a low value
+    for i in range(num_intervals):
+        start_idx = i * rows_per_interval
+        end_idx = (i + 1) * rows_per_interval if i < num_intervals - 1 else len(action_counts)  # Final interval length
+        interval_values = action_values[start_idx:end_idx]
+        average_value_per_episode = np.mean(interval_values, axis=0)
+        min_line_value = min(min_line_value, np.min(average_value_per_episode))
+        max_line_value = max(max_line_value, np.max(average_value_per_episode))
+
     for i in range(num_intervals):
         row = i // 3
         col = i % 3
@@ -74,7 +84,10 @@ def plot_actions_from_env(input_file_actions, input_file_values, num_intervals):
             bottom += action_occurrences
 
         # Add line graph overlay
-        ax.plot(x_values, average_value_per_episode, color='red', marker='o')
+        ax2 = ax.twinx()
+        ax2.plot(x_values, average_value_per_episode, color='black', marker='o')
+        ax2.set_ylabel("Average Value of Error Per Episode")
+        ax2.set_ylim(min_line_value, max_line_value)
 
         ax.set_xlabel("Episode Number")
         ax.set_ylabel("Action Count")
@@ -87,6 +100,3 @@ def plot_actions_from_env(input_file_actions, input_file_values, num_intervals):
     # Save the single figure with subplots
     plt.savefig(output_file_name, dpi='figure', format="png", bbox_inches='tight')
     plt.close()
-
-
-
