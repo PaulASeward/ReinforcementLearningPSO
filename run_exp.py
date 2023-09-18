@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 from PSOEnv import PSOEnv
+from action_analysis import plot_results_over_iterations, plot_actions_over_iteration_intervals
 import numpy
 import reverb
 
@@ -29,38 +30,6 @@ import csv
 
 start_time = time.time()
 
-
-def compute_avg_return(environment, policy, num_episodes=10):
-    total_return = 0.0
-    total_fitness = 0.0
-    actionsRow = []
-    csv_directory = "episode_actions/"
-    if not os.path.exists(csv_directory):
-        os.makedirs(csv_directory)
-    csv_filename = os.path.join(csv_directory, f"compute_action_counts_f{func_num}_.csv")
-
-    for _ in range(num_episodes):
-
-        time_step = environment.reset()
-        episode_return = 0.0
-
-        while not time_step.is_last():
-            action_step = policy.action(time_step)
-            time_step = environment.step(action_step.action)
-            actionsRow.append(action_step.action.numpy())
-            episode_return += time_step.reward
-        total_return += episode_return
-        total_fitness += environment.pyenv.envs[0]._best_fitness
-
-    avg_return = total_return / num_episodes
-    avg_fitness = total_fitness / num_episodes
-
-    with open(csv_filename, mode='a', newline='') as csv_file:
-        csv.writer(csv_file).writerow(actionsRow)
-
-    return avg_return, avg_fitness
-
-
 # EXPERIMENT PARAMETERS
 fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
            -500, -400, -300, -200, -100, 100, 200, 300, 400, 500, 600,
@@ -77,6 +46,7 @@ results_file_reward = os.path.join(results_dir, f"{experiment}_returns(f{func_nu
 results_file_fitness = os.path.join(results_dir, f"{experiment}_fitness(f{func_num}).csv")
 figure_file_rewards = os.path.join(results_dir, f"{experiment}_plot(f{func_num}).png")
 figure_file_fitness = os.path.join(results_dir, f"{experiment}_fit_plot(f{func_num}).png")
+results_action_counts = os.path.join(results_dir, f"PSO_DQN_actions_counts(f{func_num}).csv")
 results_right_actions = os.path.join(results_dir, f"{experiment}_right_action_counts(f{func_num}).csv")
 results_left_actions = os.path.join(results_dir, f"{experiment}_left_action_counts(f{func_num}).csv")
 figure_file_left_action = os.path.join(results_dir, f"{experiment}_left_actions_plot(f{func_num}).png")
@@ -93,6 +63,7 @@ learning_rate = 1e-3
 log_interval = 2
 num_eval_episodes = 10
 eval_interval = 5
+iterations = range(0, num_iterations + 1, eval_interval)
 
 # Creating environments
 environment = PSOEnv(func_num, dimension=dim, minimum=fDeltas[func_num - 1])
@@ -244,6 +215,38 @@ train_checkpointer = common.Checkpointer(
 train_checkpointer.initialize_or_restore()
 global_step = tf.compat.v1.train.get_global_step()
 
+
+def compute_avg_return(environment, policy, num_episodes=10):
+    total_return = 0.0
+    total_fitness = 0.0
+    actionsRow = []
+    csv_directory = "episode_actions/"
+    if not os.path.exists(csv_directory):
+        os.makedirs(csv_directory)
+    csv_filename = os.path.join(csv_directory, f"compute_action_counts_f{func_num}_.csv")
+
+    for _ in range(num_episodes):
+
+        time_step = environment.reset()
+        episode_return = 0.0
+
+        while not time_step.is_last():
+            action_step = policy.action(time_step)
+            time_step = environment.step(action_step.action)
+            actionsRow.append(action_step.action.numpy())
+            episode_return += time_step.reward
+        total_return += episode_return
+        total_fitness += environment.pyenv.envs[0]._best_fitness
+
+    avg_return = total_return / num_episodes
+    avg_fitness = total_fitness / num_episodes
+
+    with open(csv_filename, mode='a', newline='') as csv_file:
+        csv.writer(csv_file).writerow(actionsRow)
+
+    return avg_return, avg_fitness
+
+
 returns = []
 fitness = []
 loss = []
@@ -316,64 +319,22 @@ for i in range(num_iterations):
         numpy.savetxt(results_file_reward, returns, delimiter=", ", fmt='% s')
         # numpy.savetxt(results_file_fitness, fitness, delimiter=", ", fmt='% s')
 
-    x = 1+1
 
 # saving the rewards plot into a file
-iterations = range(0, num_iterations + 1, eval_interval)
-plt.plot(iterations, returns)
-plt.ylabel('Average Return')
-plt.xlabel('Iterations')
-plt.savefig(figure_file_rewards, dpi='figure', format="png", metadata=None,
-            bbox_inches=None, pad_inches=0.1, facecolor='auto', edgecolor='auto')
-plt.close()
-
-# saving the fitness plot into a file
-iterations = range(0, num_iterations + 1, eval_interval)
-plt.plot(iterations, fitness)
-plt.ylabel('Best Fitness')
-plt.xlabel('Iterations')
-plt.savefig(figure_file_fitness, dpi='figure', format="png", metadata=None,
-            bbox_inches=None, pad_inches=0.1, facecolor='auto', edgecolor='auto')
-plt.close()
+plot_results_over_iterations(figure_file_rewards, 'Average Return', 'Iterations', iterations, returns)
+plot_results_over_iterations(figure_file_fitness, 'Best Fitness', 'Iterations', iterations, fitness)
 
 # Define iteration intervals for the x-axis
 iteration_intervals = range(eval_interval, num_iterations+eval_interval, eval_interval)
 label_iteration_intervals = range(0, num_iterations+eval_interval, eval_interval*2)
 
-# Calculate the width of the bars based on the interval size
-bar_width = 0.8 * (iteration_intervals[1] - iteration_intervals[0])
+# saving the actions counts into file
+plot_actions_over_iteration_intervals(figure_file_left_action, 'Iteration Intervals', 'Action Counts',
+                                      'Left Action Distribution Over Iteration Intervals', iteration_intervals,
+                                      label_iteration_intervals, left_action_counts)
+plot_actions_over_iteration_intervals(figure_file_right_action, 'Iteration Intervals', 'Action Counts',
+                                        'Right Action Distribution Over Iteration Intervals', iteration_intervals,
+                                        label_iteration_intervals, right_action_counts)
 
-# Names for the actions (for the legend)
-action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 'Discourage Social Learning', 'Reset All']
-
-# Create a bar plot for each action
-plt.figure(figsize=(10, 6))
-bottom = np.zeros(len(iteration_intervals))
-for action in range(5):
-    plt.bar(iteration_intervals, left_action_counts[:, action], bottom=bottom, width=bar_width, label=action_names[action])
-    bottom += left_action_counts[:, action]
-# Set x-axis ticks and labels with rotated tick labels
-plt.xticks(label_iteration_intervals, labels=[str(i) for i in label_iteration_intervals], rotation=45, ha="right")
-plt.xlabel('Iteration Intervals')
-plt.ylabel('Action Counts')
-plt.title('Left Action Distribution Over Iteration Intervals')
-plt.legend()
-plt.savefig(figure_file_left_action, dpi='figure', format="png", bbox_inches='tight')
-plt.close()
-
-# Create a bar plot for each action
-plt.figure(figsize=(10, 6))
-bottom = np.zeros(len(iteration_intervals))
-for action in range(5):
-    plt.bar(iteration_intervals, right_action_counts[:, action], bottom=bottom, width=bar_width, label=action_names[action])
-    bottom += right_action_counts[:, action]
-# Set x-axis ticks and labels with rotated tick labels
-plt.xticks(label_iteration_intervals, labels=[str(i) for i in label_iteration_intervals], rotation=45, ha="right")
-plt.xlabel('Iteration Intervals')
-plt.ylabel('Action Counts')
-plt.title('Right Action Distribution Over Iteration Intervals')
-plt.legend()
-plt.savefig(figure_file_right_action, dpi='figure', format="png", bbox_inches='tight')
-plt.close()
-
+plot_actions_from_env()
 print(f"--- Execution took {(time.time() - start_time) / 3600} hours ---")
