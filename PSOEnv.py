@@ -33,10 +33,11 @@ class PSOEnv(py_environment.PyEnvironment):
         self._episode_ended = False
         self._max_episodes = 10
         self._episode_actions = []
-        csv_directory = "episode_actions/"
+
+        csv_directory = "results"
         if not os.path.exists(csv_directory):
             os.makedirs(csv_directory)
-        self.csv_filename = os.path.join(csv_directory, f"function{func_num}_.csv")
+        self.csv_filename = os.path.join(csv_directory, f"PSO_DQN_actions_counts(f{func_num}).csv")
 
         self._max_evals = self._max_episodes * self._observation_interval
         self._best_fitness = None
