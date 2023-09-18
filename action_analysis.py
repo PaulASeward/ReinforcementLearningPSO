@@ -4,8 +4,8 @@ from matplotlib.patches import Patch
 import os
 
 action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 'Discourage Social Learning', 'Reset All']
-
-
+# colors = [(0.1, 0.2, 0.5, 0.3), (0.1, 0.5, 0.2, 0.3), (0.5, 0.1, 0.2, 0.3), (0.2, 0.1, 0.5, 0.3), (0.5, 0.2, 0.1, 0.3)]
+# hatches = ['.', 'o', '*', 'x', '+']
 def plot_results_over_iterations(file_name, y_label, x_label, iterations, y_data):
     plt.plot(iterations, y_data)
     plt.ylabel(y_label)
@@ -64,8 +64,7 @@ def plot_actions_from_env(input_file_name, num_intervals):
 
         bottom = np.zeros(num_episodes)
         for action_num in range(num_actions):
-            action_occurrences = [np.count_nonzero(interval_data[:, episode] == action_num) for episode in
-                                  range(num_episodes)]
+            action_occurrences = [np.count_nonzero(interval_data[:, episode] == action_num) for episode in range(num_episodes)]
             ax.bar(x_values, action_occurrences, bottom=bottom, label=action_names[action_num])
             bottom += action_occurrences
 
@@ -80,3 +79,6 @@ def plot_actions_from_env(input_file_name, num_intervals):
     # Save the single figure with subplots
     plt.savefig(output_file_name, dpi='figure', format="png", bbox_inches='tight')
     plt.close()
+
+
+plot_actions_from_env("results/PSO_DQN_actions_counts(f19).csv", 9)
