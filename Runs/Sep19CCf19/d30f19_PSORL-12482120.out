@@ -1,0 +1,167 @@
+[reverb/cc/platform/tfrecord_checkpointer.cc:150]  Initializing TFRecordCheckpointer in /tmp/tmp3tqj9tjm.
+[reverb/cc/platform/tfrecord_checkpointer.cc:386] Loading latest checkpoint from /tmp/tmp3tqj9tjm
+[reverb/cc/platform/default/server.cc:71] Started replay server on port 33643
+2023-09-18 21:58:11.287298: W tensorflow/python/util/util.cc:368] Sets are not currently considered sequences, but this may change in the future, so consider avoiding using them.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (177907) so Table uniform_table is accessed directly without gRPC.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (177907) so Table uniform_table is accessed directly without gRPC.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (177907) so Table uniform_table is accessed directly without gRPC.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (177907) so Table uniform_table is accessed directly without gRPC.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (177907) so Table uniform_table is accessed directly without gRPC.
+[reverb/cc/client.cc:165] Sampler and server are owned by the same process (177907) so Table uniform_table is accessed directly without gRPC.
+WARNING:tensorflow:From /scratch/pseward/TF_RL/lib/python3.10/site-packages/tensorflow/python/util/dispatch.py:1082: calling foldr_v2 (from tensorflow.python.ops.functional_ops) with back_prop=False is deprecated and will be removed in a future version.
+Instructions for updating:
+back_prop=False is deprecated. Consider using tf.stop_gradient instead.
+Instead of:
+results = tf.foldr(fn, elems, back_prop=False)
+Use:
+results = tf.nest.map_structure(tf.stop_gradient, tf.foldr(fn, elems))
+WARNING:tensorflow:From /scratch/pseward/TF_RL/lib/python3.10/site-packages/tensorflow/python/util/dispatch.py:1082: calling foldr_v2 (from tensorflow.python.ops.functional_ops) with back_prop=False is deprecated and will be removed in a future version.
+Instructions for updating:
+back_prop=False is deprecated. Consider using tf.stop_gradient instead.
+Instead of:
+results = tf.foldr(fn, elems, back_prop=False)
+Use:
+results = tf.nest.map_structure(tf.stop_gradient, tf.foldr(fn, elems))
+num_actions: 5
+step = 200: loss = 254199888.0
+step = 400: loss = 1913113856.0
+step = 500: Average Return = [-2.738086]
+step = 600: loss = 190292361216.0
+step = 800: loss = 1211890532352.0
+step = 1000: loss = 2059364204544.0
+step = 1000: Average Return = [-2.483989]
+step = 1200: loss = 1573950980096.0
+step = 1400: loss = 748110610432.0
+step = 1500: Average Return = [-3.2656467]
+step = 1600: loss = 895797035008.0
+step = 1800: loss = 516159504384.0
+step = 2000: loss = 196764532736.0
+step = 2000: Average Return = [-5.0740147]
+step = 2200: loss = 89574940672.0
+step = 2400: loss = 79588540416.0
+step = 2500: Average Return = [-3.4102092]
+step = 2600: loss = 53229789184.0
+step = 2800: loss = 41810075648.0
+step = 3000: loss = 35217510400.0
+step = 3000: Average Return = [-3.1860676]
+step = 3200: loss = 24268427264.0
+step = 3400: loss = 14372247552.0
+step = 3500: Average Return = [-3.7618032]
+step = 3600: loss = 20682864640.0
+step = 3800: loss = 7576512000.0
+step = 4000: loss = 7169780736.0
+step = 4000: Average Return = [-3.5127397]
+step = 4200: loss = 15002321920.0
+step = 4400: loss = 5357442560.0
+step = 4500: Average Return = [-3.311145]
+step = 4600: loss = 3172722944.0
+step = 4800: loss = 2333172224.0
+step = 5000: loss = 1647798784.0
+step = 5000: Average Return = [-3.6911418]
+step = 5200: loss = 1728034176.0
+step = 5400: loss = 1290078464.0
+step = 5500: Average Return = [-3.5870948]
+step = 5600: loss = 689899520.0
+step = 5800: loss = 872183872.0
+step = 6000: loss = 609446016.0
+step = 6000: Average Return = [-4.0835075]
+step = 6200: loss = 1150326528.0
+step = 6400: loss = 624014400.0
+step = 6500: Average Return = [-3.3546169]
+step = 6600: loss = 340504576.0
+step = 6800: loss = 250040768.0
+step = 7000: loss = 296454400.0
+step = 7000: Average Return = [-3.0472443]
+step = 7200: loss = 170458304.0
+step = 7400: loss = 98962328.0
+step = 7500: Average Return = [-3.7076416]
+step = 7600: loss = 292508096.0
+step = 7800: loss = 161220272.0
+step = 8000: loss = 184612192.0
+step = 8000: Average Return = [-3.3121915]
+step = 8200: loss = 109133416.0
+step = 8400: loss = 88978080.0
+step = 8500: Average Return = [-2.620839]
+step = 8600: loss = 130651648.0
+step = 8800: loss = 105366880.0
+step = 9000: loss = 86234848.0
+step = 9000: Average Return = [-3.7554717]
+step = 9200: loss = 56552208.0
+step = 9400: loss = 60011428.0
+step = 9500: Average Return = [-3.581533]
+step = 9600: loss = 40717064.0
+step = 9800: loss = 65003728.0
+step = 10000: loss = 37607244.0
+step = 10000: Average Return = [-3.1804557]
+step = 10200: loss = 28031740.0
+step = 10400: loss = 15855178.0
+step = 10500: Average Return = [-3.627021]
+step = 10600: loss = 16203786.0
+step = 10800: loss = 28390474.0
+step = 11000: loss = 25364696.0
+step = 11000: Average Return = [-3.0906343]
+step = 11200: loss = 13468937.0
+step = 11400: loss = 16191954.0
+step = 11500: Average Return = [-4.322303]
+step = 11600: loss = 12120892.0
+step = 11800: loss = 9236368.0
+step = 12000: loss = 10025640.0
+step = 12000: Average Return = [-3.821724]
+step = 12200: loss = 12861176.0
+step = 12400: loss = 8167008.0
+step = 12500: Average Return = [-3.545798]
+step = 12600: loss = 4692918.0
+step = 12800: loss = 7594711.0
+step = 13000: loss = 19409822.0
+step = 13000: Average Return = [-4.4384794]
+step = 13200: loss = 4792916.0
+step = 13400: loss = 4152244.0
+step = 13500: Average Return = [-4.186946]
+step = 13600: loss = 5768089.0
+step = 13800: loss = 4695135.0
+step = 14000: loss = 5328652.0
+step = 14000: Average Return = [-3.8771255]
+step = 14200: loss = 6408081.0
+step = 14400: loss = 6660227.0
+step = 14500: Average Return = [-5.042866]
+step = 14600: loss = 3146319.5
+step = 14800: loss = 6534751.5
+step = 15000: loss = 2498978.0
+step = 15000: Average Return = [-5.5867944]
+step = 15200: loss = 2919234.0
+step = 15400: loss = 3989963.5
+step = 15500: Average Return = [-3.6270688]
+step = 15600: loss = 3525652.75
+step = 15800: loss = 1410660.625
+step = 16000: loss = 2610478.0
+step = 16000: Average Return = [-3.3323295]
+step = 16200: loss = 1791494.25
+step = 16400: loss = 2397111.75
+step = 16500: Average Return = [-2.9866595]
+step = 16600: loss = 5617611.0
+step = 16800: loss = 1943372.25
+step = 17000: loss = 1243476.875
+step = 17000: Average Return = [-3.129275]
+step = 17200: loss = 1055085.5
+step = 17400: loss = 1248408.75
+step = 17500: Average Return = [-3.4310067]
+step = 17600: loss = 3901293.25
+step = 17800: loss = 1240435.5
+step = 18000: loss = 3641062.0
+step = 18000: Average Return = [-3.2340724]
+step = 18200: loss = 640549.625
+step = 18400: loss = 3001019.5
+step = 18500: Average Return = [-2.936608]
+step = 18600: loss = 1369518.5
+step = 18800: loss = 992921.125
+step = 19000: loss = 4109021.0
+step = 19000: Average Return = [-2.9316678]
+step = 19200: loss = 1209362.875
+step = 19400: loss = 1799015.375
+step = 19500: Average Return = [-5.7565985]
+step = 19600: loss = 456644.125
+step = 19800: loss = 477372.4375
+step = 20000: loss = 1750598.0
+step = 20000: Average Return = [-3.1479027]
+--- Execution took 19.16126862015989 hours ---
+[reverb/cc/platform/default/server.cc:84] Shutting down replay server
