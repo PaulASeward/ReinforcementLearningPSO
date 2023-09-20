@@ -5,6 +5,7 @@ import os
 
 action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 'Discourage Social Learning', 'Reset All']
 
+
 def plot_results_over_iterations(file_name, y_label, x_label, iterations, y_data):
     plt.plot(iterations, y_data)
     plt.ylabel(y_label)
@@ -75,7 +76,6 @@ def plot_actions_from_env(input_file_actions, input_file_values, num_intervals):
         interval_data = action_counts[start_idx:end_idx]
         interval_values = action_values[start_idx:end_idx]
         average_value_per_episode = np.mean(interval_values, axis=0)
-
 
         bottom = np.zeros(num_episodes)
         for action_num in range(num_actions):
