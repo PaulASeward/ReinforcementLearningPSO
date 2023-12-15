@@ -72,6 +72,34 @@ To run the project, follow these steps:
 
 4. Run the training script: python run_exp.py
 
+### Installation
+ You can install all dependencies by issuing following command:
+ ```
+ pip install -r requirements.txt
+ ```
+ This will install Tensorflow without GPU support. However, I highly recommend using Tensorflow with GPU support, otherwise training will take a very long time. For more information on this topic please see https://www.tensorflow.org/install/.
+### Running
+You can start training by:
+```
+python main.py --network_type=DQN --func_num=19 --steps=10000000
+```
+This will train a DQN on PSO with global topology for 10 mio observations. For more information on command line parameters please see:
+```
+python main.py -h
+```
+
+[//]: # (Visualizing the training process can be done using tensorboard by:)
+
+[//]: # (```)
+
+[//]: # (tensorboard --logdir=out)
+
+[//]: # (```)
+[//]: # (### Pretrained models)
+
+[//]: # (A pretrained model for DQN PSO is available in `pretrained_models`)
+
+
 ## Conclusion
 
 This project demonstrates the implementation of a Reinforcement Learning algorithm using Particle Swarm Optimization with a vectorized approach. The RL agent optimizes its policy in a PSO environment to achieve the best fitness value using PSO with additional actions to help further optimize. The vectorized PSO implementation ensures efficient updates and faster convergence.

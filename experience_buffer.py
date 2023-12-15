@@ -40,6 +40,10 @@ class RecurrentExperienceBuffer(ExperienceBufferBase):
 
 
 class StackedExperienceBuffer(ExperienceBufferBase):
+    """
+    Will use later to test lstm vs stacked frame approach
+    """
+
     def __init__(self, buffer_size=5000, num_elements=5):
         super().__init__(buffer_size, num_elements)
 
