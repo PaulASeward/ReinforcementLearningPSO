@@ -29,11 +29,11 @@ class RecurrentExperienceBuffer(ExperienceBufferBase):
         super().__init__(buffer_size, num_elements)
 
     def sample(self, batch_size, trace_length):
-        tmp_buffer = [episode for episode in self.buffer if len(episode) + 1 > trace_length]
+        tmp_buffer = [episode for episode in self.buffer if len(episode) > trace_length-1]
         sampled_episodes = random.sample(tmp_buffer, batch_size)
         sampledTraces = []
         for episode in sampled_episodes:
-            point = np.random.randint(0, len(episode) + 1 - trace_length)
+            point = np.random.randint(0, len(episode) - (trace_length-1))
             sampledTraces.append(episode[point:point + trace_length])
         sampledTraces = np.array(sampledTraces)
         return np.reshape(sampledTraces, [batch_size * trace_length, self.num_elements])
@@ -41,24 +41,24 @@ class RecurrentExperienceBuffer(ExperienceBufferBase):
 
 class StackedExperienceBuffer(ExperienceBufferBase):
     """
-    Will use later to test lstm vs stacked frame approach
+    Will use later to test lstm vs fixed size stacked frame approach
     """
 
-    def __init__(self, buffer_size=5000, num_elements=5):
+    def __init__(self, buffer_size=5000, num_elements=5): # Stores episodes
         super().__init__(buffer_size, num_elements)
 
     def sample(self, batch_size, trace_length):
-        tmp_buffer = [episode for episode in self.buffer if len(episode) + 1 > trace_length]
+        tmp_buffer = [episode for episode in self.buffer if len(episode) > trace_length-1]
         sampled_episodes = random.sample(tmp_buffer, batch_size)
         sampledTraces = []
         for episode in sampled_episodes:
-            point = np.random.randint(0, len(episode) + 1 - trace_length)
+            point = np.random.randint(0, len(episode) - (trace_length-1))
             stacked_states = []
             stacked_next_states = []
             for trace in episode[point:point + trace_length]:
                 stacked_states.extend(trace[0])
                 stacked_next_states.extend(trace[3])
-            trace_to_return = episode[point + trace_length - 1].copy()
+            trace_to_return = episode[point + trace_length-1].copy()
             trace_to_return[0] = stacked_states
             trace_to_return[3] = stacked_next_states
             sampledTraces.append(trace_to_return)
