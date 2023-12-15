@@ -6,9 +6,10 @@ class Config(object):
     dim = 30
     experiment = "DQN_PSO_F19"
     network_type = "DQN"
-    algorithm = "PSO"
 
     # PSO PARAMETERS
+    # observation_length = 150
+    # swarm_size = 30
     num_iterations = 20000
     initial_collect_steps = 100
     collect_steps_per_iteration = 1
@@ -69,9 +70,9 @@ class Config(object):
 
     # LEARNING PARAMETERS
     gamma = 0.99
-    learning_rate_minimum = 0.00025
-    lr_method = "rmsprop"
     learning_rate = 0.00025
+    learning_rate_minimum = 0.00025
+    lr_method = "adam"
     lr_decay = 0.97
     keep_prob = 0.8
 
