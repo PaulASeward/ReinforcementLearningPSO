@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 from PSOEnv import PSOEnv
-from action_analysis import plot_results_over_iterations, plot_actions_over_iteration_intervals, plot_actions_from_env
+from plot_utils import plot_results_over_iterations, plot_actions_over_iteration_intervals, plot_actions_from_env
 import numpy
 import reverb
 
