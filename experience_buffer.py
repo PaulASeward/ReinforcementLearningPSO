@@ -9,10 +9,23 @@ class ExperienceBufferBase:
         self.buffer_size = buffer_size
         self.num_elements = num_elements
 
-    def add(self, experience):
+    def add(self, experience): # Should this be a Sample object type?
         self.buffer.append(experience)
 
-    def get(self):
+    def sample(self, *args, **kwargs):
+        raise NotImplementedError('This method should be overriden.')
+
+    def get_replay_experience(self, num_samples=None, **kwargs):
+
+        # # REPLAY MEMORY: https://moodle31.upei.ca/pluginfile.php/1094391/mod_resource/content/0/TensorFlow%202%20Reinforcement%20Learning%20%282021%29.pdf (pg. 131)
+        # if num_samples is None:
+        #     num_samples = self.num_elements
+        # states, actions, rewards, next_states, done = self.sample(kwargs=kwargs)
+        # targets = self.target_model.predict(states)
+        # next_q_values = self.target_model.predict(next_states).max(axis=1)
+        # targets[range(args.batch_size), actions] = (rewards + (1 - done) * next_q_values * args.gamma)
+        # self.model.train(states, targets)
+
         return np.reshape(np.array(self.buffer), [len(self.buffer), self.num_elements])
 
 
