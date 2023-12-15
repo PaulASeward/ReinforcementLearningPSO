@@ -1,4 +1,6 @@
 import numpy as np
+
+
 class PSOVectorSwarmGlobalLocal:
 
     def __init__(self, objective_function, fun_num, dimension, observation_interval, swarm_size=50, RangeF=100):
