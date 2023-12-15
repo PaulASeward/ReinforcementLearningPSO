@@ -5,12 +5,12 @@ import shutil
 from functools import reduce
 from tensorflow.python import debug as tf_debug
 
-from model_networks.base import BaseModel
+from model_networks.base_model import BaseModel
 
 
-class DQN(BaseModel):
+class DQNModel(BaseModel):
     def __init__(self, n_actions, config):
-        super(DQN, self).__init__(config, "dqn")
+        super(DQNModel, self).__init__(config, "dqn")
         self.n_actions = n_actions
         self.history_len = config.history_len
 

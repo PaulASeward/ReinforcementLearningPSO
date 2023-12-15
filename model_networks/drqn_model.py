@@ -5,12 +5,12 @@ import shutil
 from functools import reduce
 from tensorflow.python import debug as tf_debug
 
-from model_networks.base import BaseModel
+from model_networks.base_model import BaseModel
 
 
-class DRQN(BaseModel):
+class DRQNModel(BaseModel):
     def __init__(self, n_actions, config):
-        super(DRQN, self).__init__(config, "drqn")
+        super(DRQNModel, self).__init__(config, "drqn")
         self.n_actions = n_actions
 
         self.lstm_size = config.lstm_size
