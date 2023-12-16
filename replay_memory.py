@@ -1,6 +1,8 @@
 """Core classes."""
 
 import numpy as np
+import os
+import random
 
 
 class Sample:
@@ -31,16 +33,6 @@ class Sample:
         self.is_terminal = is_terminal
 
 
-# def replay_experience(self):
-#     for _ in range(10):
-#         states, actions, rewards, next_states, done= self.buffer.sample()
-#
-#         targets = self.target_model.predict(states)
-#         next_q_values = self.target_model.predict(next_states).max(axis=1)
-#         targets[range(args.batch_size), actions] = (rewards + (1 - done) * next_q_values * args.gamma)
-#         self.model.train(states, targets)
-
-
 class ReplayMemory:
     """Interface for replay memories.
 
@@ -57,56 +49,188 @@ class ReplayMemory:
     clear()
       Reset the memory. Deletes all references to the samples.
     """
-    def __init__(self, args):
+    def __init__(self, config):
         """Setup memory.
+        Collections.deque class (Once the memory fills up oldest values should be removed.) can be used as the underlying storage, but sample method is very slow.
 
-        You should specify the maximum size o the memory. Once the memory fills up oldest values should be removed.
-        You can try the collections.deque class as the underlying storage, but your sample method will be very slow.
-
-        We recommend using a list as a ring buffer. Just track the index where the next sample should be inserted in the list.
+        Instead, use a list as a ring buffer. Just track the index where the next sample should be inserted in the list.
         """
-        self.memory_size = args.replay_memory_size
-        self.history_length = args.num_frames
-        self.actions = np.zeros(self.memory_size, dtype=np.int8)
-        self.rewards = np.zeros(self.memory_size, dtype=np.float32)
-        self.states = np.zeros((self.memory_size, args.observation_length, args.swarm_size), dtype=np.float32)
-        self.terminals = np.zeros(self.memory_size, dtype=bool)
-        self.current_idx_count = 0
+        self.config = config
 
-    def append(self, state, action, reward, is_terminal):
-        self.actions[self.current_idx_count % self.memory_size] = action
-        self.rewards[self.current_idx_count % self.memory_size] = reward
-        self.states[self.current_idx_count % self.memory_size] = state
-        self.terminals[self.current_idx_count % self.memory_size] = is_terminal
-        self.current_idx_count += 1
+        self.actions = np.empty(self.config.mem_size, dtype=np.int32)
+        self.rewards = np.empty(self.config.mem_size, dtype=np.float32)
+        self.states = np.empty((self.config.mem_size, self.config.observation_length, self.config.swarm_size), dtype=np.uint8)
+        self.terminals = np.empty((self.config.mem_size,), dtype=np.float16)
+
+        self.current_count = 0  # This maxes at the mem_size
+        self.current_idx = 0  # This will go up to mem_size, then reset to 0
+        self.dir_save = config.dir_save + "memory/"
+
+        if not os.path.exists(self.dir_save):
+            os.makedirs(self.dir_save)
+
+    def save(self):
+        np.save(self.dir_save + "states.npy", self.states)
+        np.save(self.dir_save + "actions.npy", self.actions)
+        np.save(self.dir_save + "rewards.npy", self.rewards)
+        np.save(self.dir_save + "terminals.npy", self.terminals)
+
+    def load(self):
+        self.states = np.load(self.dir_save + "states.npy")
+        self.actions = np.load(self.dir_save + "actions.npy")
+        self.rewards = np.load(self.dir_save + "rewards.npy")
+        self.terminals = np.load(self.dir_save + "terminals.npy")
+
+    # def clear(self):
+    #     self.current_idx = 0
+
+
+class DQNReplayMemory(ReplayMemory):
+    def __init__(self, config):
+        super(DQNReplayMemory, self).__init__(config)
+
+        self.sample_states = np.empty((self.config.batch_size, self.config.history_len, self.config.observation_length, self.config.swarm_size), dtype=np.uint8)  # what is the difference between pre and post?
+        self.sample_next_states = np.empty((self.config.batch_size, self.config.history_len, self.config.observation_length, self.config.swarm_size), dtype=np.uint8)
 
     def get_state(self, index):
-        state = self.states[index+1 - self.history_length : index+1, :, :]
-        # history dimension last
-        return np.transpose(state, (1, 2, 0))  # Is Transpose the right thing to do here?
+        index = index % self.current_count
+        if index >= self.config.history_len - 1:
+            states = self.states[(index - (self.config.history_len - 1)):(index + 1), ...]
+            return states
+        else:
+            indices = [(index - i) % self.current_count for i in reversed(range(self.config.history_len))]
+            return self.states[indices, ...]
 
-    def sample(self, batch_size):
-        samples = []
-        # ensure enough frames to sample
-        # assert self.current_idx_count > self.history_length
-        max_index = min(self.current_idx_count, self.memory_size) - 1
+    def add(self, state, reward, action, terminal):
+        assert state.shape == (self.config.observation_length, self.config.swarm_size)  # Only keep for initial practice tests
 
-        for _ in range(batch_size):
-            index = np.random.randint(self.history_length - 1, max_index)
+        self.actions[self.current_idx] = action
+        self.rewards[self.current_idx] = reward
+        self.states[self.current_idx] = state
+        self.terminals[self.current_idx] = terminal
 
-            # sampled state shouldn't contain episode end
-            while self.terminals[index+1 - self.history_length: index+1].any():
-                index = np.random.randint(self.history_length - 1, max_index)
+        self.current_idx += 1
+        self.current_count = max(self.current_count, self.current_idx)  # This increments towards the mem_size and then stops and stays at mem_size
+        self.current_idx = self.current_idx % self.config.mem_size  # Ring buffer topology (current_idx will go up to mem_size, then reset to 0)
 
-            new_sample = Sample(
-                state=self.get_state(index),
-                action=self.actions[index],
-                reward=self.rewards[index],
-                next_state=self.get_state(index + 1),
-                is_terminal=self.terminals[index]
-            )
-            samples.append(new_sample)
-        return samples
+    #     max_index = min(self.current_idx, self.config.mem_size) - 1
+    #
+    #     for _ in range(batch_size):
+    #         sample_idx = np.random.randint(self.config.history_len - 1, max_index)
 
-    def clear(self):
-        self.current_idx_count = 0
+    def sample_batch(self):
+        assert self.current_count > self.config.history_len  # Ensures there is enough history to sample
+
+        sample_indices = []
+        max_index = min(self.current_idx, self.config.history_len)
+
+        for i in range(self.config.batch_size):
+            while True:                    # history_len is min: 5     #current_count:  100-1
+                sample_idx = random.randint(self.config.history_len, self.current_count - 1)      # sample: 30
+
+                # Here we are choosing indexes so that the consecutive indexes chosen for a sample does not cross over where the list with ring topology is rewriting at.
+
+                #        30   >=  Current_idx: 12            30  -   5 =   25              <    12
+                if sample_idx >= self.current_idx and sample_idx - self.config.history_len < self.current_idx:
+                # if sample_idx >= self.current_idx > sample_idx - self.config.history_len:
+
+                    continue  # Cannot be higher than current_idx, AND cannot be lower than current_idx - history_len
+
+                if self.terminals[(sample_idx - self.config.history_len): sample_idx].any():
+                    continue  # Sampled state shouldn't contain episode end. Re-sample
+
+                break
+            self.sample_states[i] = self.get_state(sample_idx - 1)
+            self.sample_next_states[i] = self.get_state(sample_idx)
+            sample_indices.append(sample_idx)
+
+        sample_actions = self.actions[sample_indices]
+        sample_rewards = self.rewards[sample_indices]
+        sample_terminals = self.terminals[sample_indices]
+
+        return self.sample_states, sample_actions, sample_rewards, self.sample_next_states, sample_terminals
+
+
+class DRQNReplayMemory(ReplayMemory):
+    def __init__(self, config):
+        super(DRQNReplayMemory, self).__init__(config)
+
+        self.timesteps = np.empty(self.config.mem_size, dtype=np.int32)
+        self.states = np.empty((self.config.batch_size, self.config.min_history + self.config.states_to_update + 1, self.config.observation_length, self.config.swarm_size), dtype=np.uint8)
+
+        self.actions_out = np.empty((self.config.batch_size, self.config.min_history + self.config.states_to_update + 1))
+        self.rewards_out = np.empty((self.config.batch_size, self.config.min_history + self.config.states_to_update + 1))
+        self.terminals_out = np.empty((self.config.batch_size, self.config.min_history + self.config.states_to_update + 1))
+
+    def add(self, state, reward, action, terminal, t):
+        assert state.shape == (self.config.observation_length, self.config.swarm_size)
+
+        self.actions[self.current_idx] = action
+        self.rewards[self.current_idx] = reward
+        self.states[self.current_idx] = state
+        self.timesteps[self.current_idx] = t
+        self.terminals[self.current_idx] = float(terminal)
+
+        self.current_count = max(self.current_count, self.current_idx + 1)
+        self.current_idx = (self.current_idx + 1) % self.config.mem_size
+
+    def sample_batch(self):
+        assert self.current_count > self.config.min_history + self.config.states_to_update
+
+        for i in range(self.config.batch_size):
+
+            while True:
+                sample_idx = random.randint(self.config.min_history, self.current_count - 1)
+                if sample_idx >= self.current_idx and sample_idx - self.config.min_history < self.current_idx:
+                    continue
+                if sample_idx < self.config.min_history + self.config.states_to_update + 1:
+                    continue
+                if self.timesteps[sample_idx] < self.config.min_history + self.config.states_to_update:
+                    continue
+                break
+
+            self.states[i] = self.states[sample_idx - (self.config.min_history + self.config.states_to_update + 1): sample_idx]
+            self.actions_out[i] = self.actions[sample_idx - (self.config.min_history + self.config.states_to_update + 1): sample_idx]
+            self.rewards_out[i] = self.rewards[sample_idx - (self.config.min_history + self.config.states_to_update + 1): sample_idx]
+            self.terminals_out[i] = self.terminals[sample_idx - (self.config.min_history + self.config.states_to_update + 1): sample_idx]
+
+        return self.states, self.actions_out, self.rewards_out, self.terminals_out
+
+
+    # def append(self, state, action, reward, is_terminal):
+    #     self.actions[self.current_idx_count % self.memory_size] = action
+    #     self.rewards[self.current_idx_count % self.memory_size] = reward
+    #     self.states[self.current_idx_count % self.memory_size] = state
+    #     self.terminals[self.current_idx_count % self.memory_size] = is_terminal
+    #     self.current_idx_count += 1
+    #
+    # def get_state(self, index):
+    #     state = self.states[index+1 - self.history_length : index+1, :, :]
+    #     # history dimension last
+    #     return np.transpose(state, (1, 2, 0))  # Is Transpose the right thing to do here?
+    #
+    # def sample(self, batch_size):
+    #     samples = []
+    #     # ensure enough frames to sample
+    #     # assert self.current_idx_count > self.history_length
+    #     max_index = min(self.current_idx, self.config.mem_size) - 1
+    #
+    #     for _ in range(batch_size):
+    #         sample_idx = np.random.randint(self.config.history_len - 1, max_index)
+    #
+    #         # sampled state shouldn't contain episode end
+    #         while self.terminals[sample_idx+1 - self.config.history_len: sample_idx+1].any():
+    #             sample_idx = np.random.randint(self.config.history_len - 1, max_index)
+    #
+    #         new_sample = Sample(
+    #             state=self.get_state(sample_idx),
+    #             action=self.actions[sample_idx],
+    #             reward=self.rewards[sample_idx],
+    #             next_state=self.get_state(sample_idx + 1),
+    #             is_terminal=self.terminals[sample_idx]
+    #         )
+    #         samples.append(new_sample)
+    #     return samples
+    #
+    # def clear(self):
+    #     self.current_idx_count = 0

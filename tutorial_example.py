@@ -10,18 +10,21 @@ import numpy as np
 from collections import deque
 import random
 
-parser = argparse.ArgumentParser(prog="TFRL-Cookbook-Ch3-DRQN")
-parser.add_argument("--env", default="CartPole-v0")
-parser.add_argument("--lr", type=float, default=0.005)
-parser.add_argument("--batch_size", type=int, default=64)
-parser.add_argument("--time_steps", type=int, default=4)
-parser.add_argument("--gamma", type=float, default=0.95)
-parser.add_argument("--eps", type=float, default=1.0)
-parser.add_argument("--eps_decay", type=float,default=0.995)
-parser.add_argument("--eps_min", type=float,default=0.01)
-parser.add_argument("--logdir", default="logs")
-args = parser.parse_args()
-
+try:
+    parser = argparse.ArgumentParser(prog="TFRL-Cookbook-Ch3-DRQN")
+    parser.add_argument("--env", default="CartPole-v0")
+    parser.add_argument("--lr", type=float, default=0.005)
+    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--time_steps", type=int, default=4)
+    parser.add_argument("--gamma", type=float, default=0.95)
+    parser.add_argument("--eps", type=float, default=1.0)
+    parser.add_argument("--eps_decay", type=float,default=0.995)
+    parser.add_argument("--eps_min", type=float,default=0.01)
+    parser.add_argument("--logdir", default="logs")
+    args = parser.parse_args()
+except Exception as e:
+    print(f"An error occurred: {e}")
+print("Parsed arguments:", args)
 
 logdir = os.path.join(args.logdir, parser.prog, args.env, datetime.now().strftime("%Y%m%d-%H%M%S"))
 print(f"Saving training logs to:{logdir}")
@@ -35,13 +38,14 @@ class ReplayBuffer:
     def store(self, state, action, reward, next_state, done):
         self.buffer.append([state, action, reward, next_state, done])
 
-    def sample(self):
-        sample = random.sample(self.buffer, args.batch_size)
+    def sample(self, batch_size=args.batch_size, experience_trace_length=4):
+        samples = random.sample(self.buffer, batch_size)  # sample.len=64
 
-        states, actions, rewards, next_states, done = map(np.asarray, zip(*sample))
+        states, actions, rewards, next_states, done = map(np.asarray, zip(*samples))
 
-        states = np.array(states).reshape(args.batch_size, -1)
-        next_states = np.array(next_states).reshape(args.batch_size, -1)
+        # Below code resizes to (64,16). Likely unneeded since we want to keep the dimension of the sample as this is expected input to the model.
+        # states = np.array(states).reshape(args.batch_size, -1)
+        # next_states = np.array(next_states).reshape(args.batch_size, -1)
 
         return states, actions, rewards, next_states, done
 
@@ -55,9 +59,8 @@ class DRQN:
         self.action_dim = action_dim
         self.epsilon = args.eps
 
-        self.opt = Adam(args.lr)
-        self.compute_loss = \
-            tf.keras.losses.MeanSquaredError()
+        self.optimizer = Adam(args.lr)
+        self.compute_loss = tf.keras.losses.MeanSquaredError()
         self.model = self.nn_model()
 
     def nn_model(self):
@@ -88,8 +91,6 @@ class DRQN:
 
     def train(self, states, targets):
         targets = tf.stop_gradient(targets)
-
-
         with tf.GradientTape() as tape:
             logits = self.model(states, training=True)
 
@@ -98,7 +99,7 @@ class DRQN:
             loss = self.compute_loss(targets, logits)
             grads = tape.gradient(loss, self.model.trainable_variables)
 
-            self.opt.apply_gradients(zip(grads, self.model.trainable_variables))
+            self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
 
 class Agent:
@@ -123,7 +124,7 @@ class Agent:
     def replay_experience(self):
         for _ in range(10):
             states, actions, rewards, next_states, done = self.buffer.sample()
-            targets = self.target_model.predict(states)
+            targets = self.target_model.predict(states)  # This is likely unnecessary as it ges rewritten
 
             next_q_values = self.target_model.predict(next_states).max(axis=1)
             targets[range(args.batch_size), actions] = (rewards + (1 - done) * next_q_values * args.gamma)
@@ -139,7 +140,7 @@ class Agent:
             for ep in range(max_episodes):
                 done, episode_reward = False, 0
 
-                self.states = np.zeros([args.time_steps,  self.state_dim])
+                self.states = np.zeros([args.time_steps,  self.state_dim])  # Starts with choosing an action from empty states. Uses rolling window size 4
                 self.update_states(self.env.reset())
 
                 while not done:
@@ -148,24 +149,26 @@ class Agent:
                     next_state, reward, done, _ = self.env.step(action)
                     prev_states = self.states
 
-                    self.update_states(next_state)
+                    self.update_states(next_state)  # Updates the states array removing oldest when adding newest for sliding window
                     self.buffer.store(prev_states, action, reward * 0.01, self.states, done)
 
                     episode_reward += reward
 
                 if self.buffer.size() >= args.batch_size:
-                    self.replay_experience()
-                self.update_target()
+                    self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
+
+                self.update_target()  # target model gets updated AFTER episode, not during like the regular model.
+
                 print(f"Episode#{ep} Reward:{episode_reward}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
 
 
 if __name__ == "__main__":
-    env = gym.make("Pong-v0")
+    env = gym.make("CartPole-v1")
     agent = Agent(env)
     agent.train(max_episodes=20000)
 
 
 # TO RUN:
-# python ch3-deep-rl-agents/4_drqn.py
-# python ch3-deep-rl-agents/4_drqn.py –env "MountainCar-v0"
+# python tutorial_example.py
+# python tutorial_example.py –env "MountainCar-v0"
