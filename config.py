@@ -10,6 +10,8 @@ class Config(object):
     # PSO PARAMETERS
     # observation_length = 150
     # swarm_size = 30
+    action_dim = 5
+    state_dim = 150
     num_iterations = 20000
     initial_collect_steps = 100
     collect_steps_per_iteration = 1
