@@ -54,6 +54,7 @@ class Config(object):
 
     # DQN TRAINING PARAMETERS
     batch_size = 64
+    trace_length = 10
     train_steps = 50000000
     history_len = 4
     frame_skip = 4
