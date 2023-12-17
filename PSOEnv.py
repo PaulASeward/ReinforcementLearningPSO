@@ -137,7 +137,7 @@ class PSOEnv(py_environment.PyEnvironment):
             return ts.termination(self._observation, reward)
         else:
             return ts.transition(self._observation, reward, discount=1.0)
-
+    #   returns: TimeStep(step_type, reward, discount, observation)
     def store_episode_actions_to_csv(self, actions_row, values_row):
         with open(self.actions_filename, mode='a', newline='') as csv_file:
             csv.writer(csv_file).writerow(actions_row)

@@ -43,23 +43,24 @@ class DQNAgent(BaseAgent):
     def train(self, max_episodes=1000):
         with self.writer.as_default():
             for ep in range(max_episodes):
-                done, episode_reward = False, 0
+                done, episode_reward, actions = False, 0.0, []
 
                 self.states = np.zeros([self.config.trace_length,  self.config.state_dim])  # Starts with choosing an action from empty states. Uses rolling window size 4
 
                 observation = self.env.reset()
+                observation = observation.observation
 
                 while not done:
                     action = self.model.get_action(observation)
-                    next_observation, reward, done, _ = self.env.step(action)
-                    print("action: ", action)
-                    print("next_observation: ", next_observation)
-                    print("reward: ", reward)
-                    print("done",  done)
-                    print("Last Column", _)
+                    actions.append(action)
+                    step_type, reward, discount, next_observation = self.env.step(action)
 
+                    reward = reward.numpy()[0]
+                    done = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
 
+                    # TODO: Parameterize the reward discount factor
                     self.buffer.add([observation, action, reward * 0.01, next_observation, done])
+                    observation = next_observation
                     episode_reward += reward
 
                 if self.buffer.size() >= self.config.batch_size:
@@ -67,5 +68,6 @@ class DQNAgent(BaseAgent):
 
                 self.update_target()  # target model gets updated AFTER episode, not during like the regular model.
 
-                print(f"Episode#{ep} Reward:{episode_reward}")
+                print(f"Episode#{ep} Cumulative Reward:{episode_reward}")
+                print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
