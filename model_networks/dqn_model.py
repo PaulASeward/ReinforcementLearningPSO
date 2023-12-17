@@ -38,11 +38,11 @@ class DQNModel(BaseModel):
         return self.model.predict(state)
 
     def get_action(self, state):
-        observation = state.observation
+
         self.epsilon *= self.config.epsilon_decay
         self.epsilon = max(self.epsilon, self.config.epsilon_end)
 
-        q_value_array = self.predict(observation)
+        q_value_array = self.predict(state)
         q_values = q_value_array[0]
 
         # Could use policies here
