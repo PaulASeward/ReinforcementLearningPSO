@@ -38,12 +38,12 @@ class DQNModel(BaseModel):
         return self.model.predict(state)
 
     def get_action(self, state):
-        state = np.reshape(state, [1, self.config.state_dim])
-
+        observation = state.observation
         self.epsilon *= self.config.epsilon_decay
         self.epsilon = max(self.epsilon, self.config.epsilon_end)
 
-        q_values = self.predict(state)[0]
+        q_value_array = self.predict(observation)
+        q_values = q_value_array[0]
 
         # Could use policies here
         if np.random.random() < self.epsilon:
