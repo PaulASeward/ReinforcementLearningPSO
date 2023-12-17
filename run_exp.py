@@ -332,3 +332,6 @@ def train_agent():
 
     plot_actions_from_env(results_action_counts, results_action_values, 9)
     print(f"--- Execution took {(time.time() - start_time) / 3600} hours ---")
+
+
+train_agent()
