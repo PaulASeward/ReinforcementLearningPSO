@@ -1,10 +1,9 @@
 from agents.agent import BaseAgent
 import numpy as np
 import tensorflow as tf
-from experience_buffer import RecurrentExperienceBuffer as ReplayBuffer
-
-# from tqdm import tqdm
+from experience_buffer import ExperienceBufferTutorial as ReplayBuffer
 from model_networks.drqn_model import DRQNModel
+from tf_agents.specs import tensor_spec
 
 
 class DRQNAgent(BaseAgent):
@@ -15,12 +14,18 @@ class DRQNAgent(BaseAgent):
         self.model = DRQNModel(config)
         self.target_model = DRQNModel(config)
 
+        self.build_environment()
         self.update_target()
         self.buffer = ReplayBuffer()
 
     def update_target(self):
         weights = self.model.model.get_weights()
         self.target_model.model.set_weights(weights)
+
+    def get_actions(self):
+        action_tensor_spec = tensor_spec.from_spec(self.raw_env.action_spec())
+        num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
+        print(f"num_actions: {num_actions}")
 
     def update_states(self, next_state):
         self.states = np.roll(self.states, -1, axis=0)
