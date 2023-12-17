@@ -12,13 +12,31 @@ class ExperienceBufferBase:
     def add(self, experience):  # Should this be a Sample object type? Does the experience param represent single steps, single episodes, or multiple episodes?
         self.buffer.append(experience)
 
+    def size(self):
+        return len(self.buffer)
+
+
+class ExperienceBufferTutorial(ExperienceBufferBase):
+    def __init__(self, buffer_size=10000, num_elements=5):  # Stores steps
+        super().__init__(buffer_size, num_elements)
+
+    def sample(self, batch_size):
+        sample = random.sample(self.buffer, batch_size)
+
+        states, actions, rewards, next_states, done = map(np.asarray, zip(*sample))
+
+        states = np.array(states).reshape(batch_size, -1)
+        next_states = np.array(next_states).reshape(batch_size, -1)
+
+        return states, actions, rewards, next_states, done
+
 
 class ExperienceBuffer(ExperienceBufferBase):
     def __init__(self, buffer_size=200000, num_elements=5):  # Stores steps
         super().__init__(buffer_size, num_elements)
 
-    def sample(self, size):
-        return np.reshape(np.array(random.sample(self.buffer, size)), [size, self.num_elements])
+    def sample(self, batch_size):
+        return np.reshape(np.array(random.sample(self.buffer, batch_size)), [batch_size, self.num_elements])
 
 
 class RecurrentExperienceBuffer(ExperienceBufferBase):

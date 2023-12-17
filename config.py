@@ -47,6 +47,7 @@ class Config(object):
     # Model/Checkpoint Files
     model_dir = os.path.join(results_dir, "saved_session", "network_models")
     checkpoint_dir = os.path.join(results_dir, "saved_session", "model_checkpoints")
+    log_dir = os.path.join(results_dir, "saved_session", "logs")
 
     # EPSILON GREEDY PARAMETERS
     epsilon_start = 1.0
