@@ -27,7 +27,7 @@ class DRQNModel(BaseModel):
     def nn_model(self):
         return tf.keras.Sequential(
             [
-                Input((self.config.trace_len, self.config.state_dim)),
+                Input((self.config.trace_length, self.config.state_dim)),
                 LSTM(32, activation="tanh"),
                 Dense(16, activation="relu"),
                 Dense(self.config.action_dim),
