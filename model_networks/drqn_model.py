@@ -43,7 +43,8 @@ class DRQNModel(BaseModel):
         self.epsilon *= self.config.epsilon_decay
         self.epsilon = max(self.epsilon, self.config.epsilon_end)
 
-        q_value = self.predict(state)[0]
+        q_value_array = self.predict(state)
+        q_value = q_value_array[0]
 
         # Could use policies here
         if np.random.random() < self.epsilon:
@@ -61,4 +62,8 @@ class DRQNModel(BaseModel):
             loss = self.compute_loss(targets, logits)
             grads = tape.gradient(loss, self.model.trainable_variables)
 
-            self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+            try:
+                self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+            except Exception as e:
+                print("Error in applying gradients")
+                print("Eception", e)
