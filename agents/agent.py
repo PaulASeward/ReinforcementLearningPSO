@@ -20,7 +20,7 @@ class BaseAgent:
 
     def build_environment(self):
         minimum = self.config.fDeltas[self.config.func_num -1]
-        environment = PSOEnv(self.config.func_num, dimension=self.config.dimension, minimum=minimum)
+        environment = PSOEnv(self.config.func_num, dimension=self.config.dim, minimum=minimum)
         self.raw_env = environment
 
         train_environment = tf_py_environment.TFPyEnvironment(environment)

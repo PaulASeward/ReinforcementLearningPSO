@@ -52,6 +52,12 @@ class DQNAgent(BaseAgent):
                 while not done:
                     action = self.model.get_action(observation)
                     next_observation, reward, done, _ = self.env.step(action)
+                    print("action: ", action)
+                    print("next_observation: ", next_observation)
+                    print("reward: ", reward)
+                    print("done",  done)
+                    print("Last Column", _)
+
 
                     self.buffer.add([observation, action, reward * 0.01, next_observation, done])
                     episode_reward += reward
@@ -63,4 +69,3 @@ class DQNAgent(BaseAgent):
 
                 print(f"Episode#{ep} Reward:{episode_reward}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
-                self.writer.flush()

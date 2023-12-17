@@ -2,14 +2,14 @@ import os
 
 
 class Config(object):
-    func_num = 19
-    dim = 30
     experiment = "DQN_PSO_F19"
     network_type = "DQN"
 
     # PSO PARAMETERS
-    # observation_length = 150
-    # swarm_size = 30
+    func_num = 19
+    dim = 30
+    observation_length = 150
+    swarm_size = 30
     action_dim = 5
     state_dim = 150
     num_iterations = 20000
