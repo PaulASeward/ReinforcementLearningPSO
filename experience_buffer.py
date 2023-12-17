@@ -31,6 +31,18 @@ class ExperienceBufferTutorial(ExperienceBufferBase):
         return states, actions, rewards, next_states, done
 
 
+class ExperienceBufferRecurrentTutorial(ExperienceBufferBase):
+    def __init__(self, buffer_size=10000, num_elements=5):  # Stores steps
+        super().__init__(buffer_size, num_elements)
+
+    def sample(self, batch_size):
+        sample = random.sample(self.buffer, batch_size)
+
+        states, actions, rewards, next_states, done = map(np.asarray, zip(*sample))
+
+        return states, actions, rewards, next_states, done
+
+
 class ExperienceBuffer(ExperienceBufferBase):
     def __init__(self, buffer_size=200000, num_elements=5):  # Stores steps
         super().__init__(buffer_size, num_elements)
