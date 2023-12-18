@@ -3,8 +3,8 @@ import os
 import tensorflow as tf
 from keras.api._v2.keras.optimizers import Adam
 from keras.layers import Input, Dense, LSTM
+from base_model import BaseModel
 
-from model_networks.base_model import BaseModel
 
 class DRQNModel(BaseModel):
     def __init__(self, config):
