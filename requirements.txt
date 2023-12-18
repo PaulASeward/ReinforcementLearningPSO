@@ -1,6 +1,5 @@
-numpy
-tensorflow
-tf-agents
-matplotlib
-dm-reverb
-keras
+numpy==1.23.2
+tensorflow==2.8.0
+tf-agents==0.12.0
+matplotlib==3.7.0
+keras==2.8.0

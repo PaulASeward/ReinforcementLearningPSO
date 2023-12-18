@@ -70,13 +70,19 @@ class DQNAgent(BaseAgent):
                     observation = next_observation
                     episode_reward += reward
 
+                # # Mock Data:
+                # actions = [0,1,2,3,4,0,1,2,3,4]
+                # losses = [1,2,3,4,5,6,7,8,9,10]
+
                 losses = None
                 if self.buffer.size() >= self.config.batch_size:
                     losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
 
                 self.update_target()  # target model gets updated AFTER episode, not during like the regular model.
 
-                results.save_log_statements(step=ep, actions=actions, train_loss=losses)
-                print(f"Episode#{ep} Cumulative Reward:{episode_reward}")
+                results.save_log_statements(step=ep+1, actions=actions, train_loss=losses)
+                print(f"Episode#{ep+1} Cumulative Reward:{episode_reward}")
                 # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
+
+            results.plot_log_statements()
