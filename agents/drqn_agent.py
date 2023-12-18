@@ -7,7 +7,6 @@ from tf_agents.specs import tensor_spec
 from logging_utils import ResultsLogger
 
 
-
 class DRQNAgent(BaseAgent):
     def __init__(self, config):
         super(DRQNAgent, self).__init__(config)
@@ -87,3 +86,5 @@ class DRQNAgent(BaseAgent):
                 print(f"Episode#{ep} Reward:{episode_reward}")
                 # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
+
+            results.plot_log_statements()

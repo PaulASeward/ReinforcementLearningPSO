@@ -43,13 +43,13 @@ class ResultsLogger:
         self.returns = []
         self.fitness = []
 
-        self.num_eval_episodes = self.config.num_iterations // self.config.eval_interval
-        self.action_counts = np.zeros((self.num_eval_episodes + 1, 5))
+        self.num_eval_intervals = self.config.num_iterations // self.config.eval_interval
+        self.action_counts = np.zeros((self.num_eval_intervals, 5), dtype=np.int32)
         self.eval_interval_count = 0
 
-        self.iterations = range(0, self.config.num_iterations + 1, self.config.eval_interval)
+        self.iterations = range(0, self.config.num_iterations, self.config.eval_interval)
         self.iteration_intervals = range(self.config.eval_interval, self.config.num_iterations + self.config.eval_interval, self.config.eval_interval)
-        self.label_iterations = range(0, self.config.num_iterations + self.config.eval_interval, self.config.eval_interval*2)
+        self.label_iterations_intervals = range(0, self.config.num_iterations + self.config.eval_interval, self.config.eval_interval*2)
 
         os.makedirs(self.config.results_dir, exist_ok=True)
         # file = open(self.config.loss_file, "r")
@@ -71,36 +71,38 @@ class ResultsLogger:
         for action in actions:
             self.action_counts[self.eval_interval_count, action] += 1
 
-        if step % self.config.log_interval == 0 and train_loss is not None:
+        if step % self.config.log_interval == 0:
+            if train_loss is None:
+                train_loss = 0.0
             print('step = {0}: loss = {1}'.format(step, train_loss))
             self.loss.append(train_loss)
             np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
 
         if step % self.config.eval_interval == 0:
             avg_return, avg_fitness = compute_avg_return(self.env, self.model)
-            print('step = {0}: Average Return = {1}'.format(step, avg_return))
+            # # Mock Data:
+            # avg_return, avg_fitness = 2.6, 3.2
 
+            print('step = {0}: Average Return = {1}'.format(step, avg_return))
             self.returns.append(float(avg_return))
             self.fitness.append(avg_fitness)
 
-            self.eval_interval_count += 1
-
             with open(self.config.results_actions, 'a') as file:
                 writer = csv.writer(file)
-                writer.writerow(self.action_counts[self.eval_interval_count - 1, :])
+                writer.writerow(self.action_counts[self.eval_interval_count, :])
+
+            self.eval_interval_count += 1
 
             # saving the results into a TEXT file
             np.savetxt(self.config.results_file_reward, self.returns, delimiter=", ", fmt='% s')
             np.savetxt(self.config.results_file_fitness, self.fitness, delimiter=", ", fmt='% s')
 
-
-        if step == self.config.num_iterations - 1:
-            plot_results_over_iterations(self.config.figure_file_rewards, 'Average Return', 'Iteration', self.iterations, self.returns)
-            plot_results_over_iterations(self.config.figure_file_fitness, 'Average Fitness', 'Iteration', self.iterations, self.fitness)
-            plot_actions_over_iteration_intervals(self.config.figure_file_action, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.iteration_intervals, self.label_iterations, self.action_counts)
-            plot_actions_from_env(self.config.results_actions, self.config.results_file_reward, self.num_eval_episodes)
-            print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
-
+    def plot_log_statements(self):
+        plot_results_over_iterations(self.config.figure_file_rewards, 'Average Return', 'Iteration', self.iterations, self.returns)
+        plot_results_over_iterations(self.config.figure_file_fitness, 'Average Fitness', 'Iteration', self.iterations, self.fitness)
+        plot_actions_over_iteration_intervals(self.config.figure_file_action, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.iteration_intervals, self.label_iterations_intervals, self.action_counts)
+        plot_actions_from_env(self.config.results_action_counts, self.config.results_action_values, 9)
+        print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
     def get_returns(self):
         return self.returns
 
