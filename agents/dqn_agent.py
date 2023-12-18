@@ -4,6 +4,7 @@ import tensorflow as tf
 from experience_buffer import ExperienceBufferTutorial as ReplayBuffer
 from model_networks.dqn_model import DQNModel
 from tf_agents.specs import tensor_spec
+from logging_utils import ResultsLogger
 
 
 class DQNAgent(BaseAgent):
@@ -31,6 +32,7 @@ class DQNAgent(BaseAgent):
         self.states[-1] = next_state
 
     def replay_experience(self):
+        losses = []
         for _ in range(10):  # Why size 10?
             states, actions, rewards, next_states, done = self.buffer.sample(self.config.batch_size)
             targets = self.target_model.predict(states)  # This is likely unnecessary as it ges rewritten
@@ -38,10 +40,15 @@ class DQNAgent(BaseAgent):
             next_q_values = self.target_model.predict(next_states).max(axis=1)
             targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
 
-            self.model.train(states, targets)
+            loss = self.model.train(states, targets)
+            loss.append(loss)
+
+        return losses
 
     def train(self, max_episodes=1000):
         with self.writer.as_default():
+            results = ResultsLogger(self.config, self.env, self.model, max_episodes)
+
             for ep in range(max_episodes):
                 done, episode_reward, actions = False, 0.0, []
 
@@ -63,11 +70,13 @@ class DQNAgent(BaseAgent):
                     observation = next_observation
                     episode_reward += reward
 
+                losses = None
                 if self.buffer.size() >= self.config.batch_size:
-                    self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
+                    losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
 
                 self.update_target()  # target model gets updated AFTER episode, not during like the regular model.
 
+                results.save_log_statements(step=ep, actions=actions, train_loss=losses)
                 print(f"Episode#{ep} Cumulative Reward:{episode_reward}")
-                print(f"Actions: {actions}")
+                # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)

@@ -67,3 +67,5 @@ class DRQNModel(BaseModel):
             except Exception as e:
                 print("Error in applying gradients")
                 print("Eception", e)
+
+            return loss

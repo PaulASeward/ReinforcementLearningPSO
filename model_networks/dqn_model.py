@@ -52,4 +52,6 @@ class DQNModel(BaseModel):
         return np.argmax(q_values)
 
     def train(self, states, targets):
-        self.model.fit(states, targets, epochs=1)
+        history = self.model.fit(states, targets, epochs=1)
+        loss = history.history["loss"][0]
+        return loss
