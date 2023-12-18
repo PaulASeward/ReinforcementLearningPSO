@@ -1,4 +1,4 @@
-from agent import BaseAgent
+from agents.agent import BaseAgent
 import numpy as np
 import tensorflow as tf
 from experience_buffer import ExperienceBufferRecurrentTutorial as ReplayBuffer

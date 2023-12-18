@@ -8,7 +8,7 @@ import shutil
 from functools import reduce
 from tensorflow.python import debug as tf_debug
 
-from base_model import BaseModel
+from model_networks.base_model import BaseModel
 
 
 class DQNModel(BaseModel):
