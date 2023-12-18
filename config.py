@@ -41,6 +41,7 @@ class Config(object):
     results_action_counts = os.path.join(results_dir, f"{experiment}_actions_counts.csv")
     results_right_actions = os.path.join(results_dir, f"{experiment}_right_action_counts.csv")
     results_left_actions = os.path.join(results_dir, f"{experiment}_left_action_counts.csv")
+    figure_file_action = os.path.join(results_dir, f"{experiment}_actions_plot.png")
     figure_file_left_action = os.path.join(results_dir, f"{experiment}_left_actions_plot.png")
     figure_file_right_action = os.path.join(results_dir, f"{experiment}_right_actions_plot.png")
 
