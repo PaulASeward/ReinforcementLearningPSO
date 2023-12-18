@@ -5,18 +5,23 @@ import csv
 from plot_utils import plot_results_over_iterations, plot_actions_over_iteration_intervals, plot_actions_from_env
 
 
-def compute_avg_return(env, model, num_episodes=10):
+def compute_avg_return(env, model, num_episodes=4):
     total_return = 0.0
     total_fitness = 0.0
     for _ in range(num_episodes):
 
         time_step = env.reset()
+        observation = time_step.observation
         episode_return = 0.0
 
-        while not time_step.is_last():  # This is repeats logic of for _ in range, so we are taking last 100 episodes.
-            action = model.get_action(time_step.observation)
-            step_type, reward, discount, next_observation = env.step(action)
+        terminal = False
+        while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
+            action = model.get_action(observation)
+            step_type, reward, discount, observation = env.step(action)
+
             episode_return += reward.numpy()[0]
+            terminal = bool(1 - discount)
+
         total_return += episode_return
         total_fitness += env.pyenv.envs[0]._best_fitness
 
@@ -66,7 +71,7 @@ class ResultsLogger:
         for action in actions:
             self.action_counts[self.eval_interval_count, action] += 1
 
-        if step % self.config.log_interval == 0:
+        if step % self.config.log_interval == 0 and train_loss is not None:
             print('step = {0}: loss = {1}'.format(step, train_loss))
             self.loss.append(train_loss)
             np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
