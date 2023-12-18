@@ -41,11 +41,11 @@ class DQNAgent(BaseAgent):
             targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
 
             loss = self.model.train(states, targets)
-            loss.append(loss)
+            losses.append(loss)
 
         return losses
 
-    def train(self, max_episodes=1000):
+    def train(self, max_episodes=10000):
         with self.writer.as_default():
             results = ResultsLogger(self.config, self.env, self.model, max_episodes)
 
