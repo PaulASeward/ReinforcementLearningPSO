@@ -2,7 +2,7 @@ import numpy as np
 import os
 import tensorflow as tf
 from keras.layers import Input, Dense, LSTM
-from keras.optimizers import Adam
+from keras.api._v2.keras.optimizers import Adam
 
 import shutil
 from functools import reduce

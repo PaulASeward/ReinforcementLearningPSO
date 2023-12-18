@@ -44,7 +44,7 @@ class ResultsLogger:
         self.fitness = []
 
         self.num_eval_episodes = self.config.num_iterations // self.config.eval_interval
-        self.action_counts = np.zeros((self.num_eval_episodes, 5))
+        self.action_counts = np.zeros((self.num_eval_episodes + 1, 5))
         self.eval_interval_count = 0
 
         self.iterations = range(0, self.config.num_iterations + 1, self.config.eval_interval)
