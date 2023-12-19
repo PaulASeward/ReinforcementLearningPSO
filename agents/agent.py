@@ -1,4 +1,3 @@
-import numpy as np
 import tensorflow as tf
 from tf_agents.environments import tf_py_environment
 import os

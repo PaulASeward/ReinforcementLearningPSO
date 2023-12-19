@@ -57,10 +57,6 @@ class DRQNModel(BaseModel):
             loss = self.compute_loss(targets, logits)
             grads = tape.gradient(loss, self.model.trainable_variables)
 
-            try:
-                self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
-            except Exception as e:
-                print("Error in applying gradients")
-                print("Eception", e)
+            self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
             return loss
