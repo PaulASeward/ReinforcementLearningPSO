@@ -1,9 +1,7 @@
-import os
 import tensorflow as tf
 import datetime
-import keras
 from keras.api._v2.keras.optimizers import Adam, RMSprop, Adagrad, SGD
-from keras.layers import Input, Dense, LSTM
+# from keras.layers import Input, Dense, LSTM
 # from tensorflow.python import debug as tf_debug
 
 

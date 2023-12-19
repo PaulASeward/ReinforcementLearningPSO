@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from experience_buffer import ExperienceBufferTutorial as ReplayBuffer
 from model_networks.dqn_model import DQNModel
-from tf_agents.specs import tensor_spec
+# from tf_agents.specs import tensor_spec
 from logging_utils import ResultsLogger
 
 
@@ -23,9 +23,9 @@ class DQNAgent(BaseAgent):
         self.target_model.model.set_weights(weights)
 
     def get_actions(self):
-        action_tensor_spec = tensor_spec.from_spec(self.raw_env.action_spec())
-        num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
-        print(f"num_actions: {num_actions}")
+        # action_tensor_spec = tensor_spec.from_spec(self.raw_env.action_spec())
+        # num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
+        print(f"num_actions: {5}")
 
     def update_states(self, next_state):
         self.states = np.roll(self.states, -1, axis=0)

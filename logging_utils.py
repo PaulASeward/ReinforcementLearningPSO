@@ -31,6 +31,43 @@ def compute_avg_return(env, model, num_episodes=4):
     return avg_return, avg_fitness
 
 
+def compute_avg_recurrent_return(env, model, num_episodes=4):
+    total_return = 0.0
+    total_fitness = 0.0
+
+    # Temporary Solution
+    def update_states(states, next_state):
+        states = np.roll(states, -1, axis=0)
+        states[-1] = next_state
+        return states
+
+    for _ in range(num_episodes):
+        states = np.zeros([10, 150])  # Make Dynamic
+
+        current_state = env.reset()
+        states = update_states(states, current_state.observation)
+
+        episode_return = 0.0
+
+        terminal = False
+        while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
+            action = model.get_action(states)
+            step_type, reward, discount, next_state = env.step(action)
+
+            episode_return += reward.numpy()[0]
+            terminal = bool(1 - discount)
+
+            states = update_states(states, next_state)
+
+        total_return += episode_return
+        total_fitness += env.pyenv.envs[0]._best_fitness
+
+    avg_return = total_return / num_episodes
+    avg_fitness = total_fitness / num_episodes
+
+    return avg_return, avg_fitness
+
+
 class ResultsLogger:
     def __init__(self, config, env, model, max_episodes=1000):
         self.config = config
@@ -79,7 +116,7 @@ class ResultsLogger:
             np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
 
         if step % self.config.eval_interval == 0:
-            avg_return, avg_fitness = compute_avg_return(self.env, self.model)
+            avg_return, avg_fitness = compute_avg_recurrent_return(self.env, self.model)
             # # Mock Data:
             # avg_return, avg_fitness = 2.6, 3.2
 
