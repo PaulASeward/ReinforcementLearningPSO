@@ -42,6 +42,7 @@ class DRQNAgent(BaseAgent):
             targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
 
             loss = self.model.train(states, targets)
+            loss = loss.numpy()
             losses.append(loss)
 
         return losses
