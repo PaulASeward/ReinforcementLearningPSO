@@ -1,80 +1,154 @@
 import time
+from abc import ABC, abstractmethod
+
 import numpy as np
 import os
 import csv
 from plot_utils import plot_results_over_iterations, plot_actions_over_iteration_intervals, plot_actions_from_env
 
 
-def compute_avg_return(env, model, num_episodes=4):
-    total_return = 0.0
-    total_fitness = 0.0
-    for _ in range(num_episodes):
-
-        time_step = env.reset()
-        observation = time_step.observation
-        episode_return = 0.0
-
-        terminal = False
-        while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
-            action = model.get_action(observation)
-            step_type, reward, discount, observation = env.step(action)
-
-            episode_return += reward.numpy()[0]
-            terminal = bool(1 - discount)
-
-        total_return += episode_return
-        total_fitness += env.pyenv.envs[0]._best_fitness
-
-    avg_return = total_return / num_episodes
-    avg_fitness = total_fitness / num_episodes
-
-    return avg_return, avg_fitness
+class ComputeReturnStrategy(ABC):
+    @abstractmethod
+    def compute_average_return(self, env, model, num_episodes):
+        pass
 
 
-def compute_avg_recurrent_return(env, model, num_episodes=4):
-    total_return = 0.0
-    total_fitness = 0.0
+class ComputeDqnReturn(ComputeReturnStrategy):
+    def compute_average_return(self, env, model, num_episodes=4):
+        total_return = 0.0
+        total_fitness = 0.0
+        for _ in range(num_episodes):
 
-    # Temporary Solution
-    def update_states(states, next_state):
-        states = np.roll(states, -1, axis=0)
-        states[-1] = next_state
-        return states
+            time_step = env.reset()
+            observation = time_step.observation
+            episode_return = 0.0
 
-    for _ in range(num_episodes):
-        states = np.zeros([10, 150])  # Make Dynamic
+            terminal = False
+            while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
+                action = model.get_action(observation)
+                step_type, reward, discount, observation = env.step(action)
 
-        current_state = env.reset()
-        states = update_states(states, current_state.observation)
+                episode_return += reward.numpy()[0]
+                terminal = bool(1 - discount)
 
-        episode_return = 0.0
+            total_return += episode_return
+            total_fitness += env.pyenv.envs[0]._best_fitness
 
-        terminal = False
-        while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
-            action = model.get_action(states)
-            step_type, reward, discount, next_state = env.step(action)
+        avg_return = total_return / num_episodes
+        avg_fitness = total_fitness / num_episodes
 
-            episode_return += reward.numpy()[0]
-            terminal = bool(1 - discount)
+        return avg_return, avg_fitness
 
-            states = update_states(states, next_state)
 
-        total_return += episode_return
-        total_fitness += env.pyenv.envs[0]._best_fitness
+class ComputeDrqnReturn(ComputeReturnStrategy):
+    def compute_average_return(self, env, model, num_episodes=4):
+        total_return = 0.0
+        total_fitness = 0.0
 
-    avg_return = total_return / num_episodes
-    avg_fitness = total_fitness / num_episodes
+        # Temporary Solution
+        def update_states(states, next_state):
+            states = np.roll(states, -1, axis=0)
+            states[-1] = next_state
+            return states
 
-    return avg_return, avg_fitness
+        for _ in range(num_episodes):
+            states = np.zeros([10, 150])  # Make Dynamic
+
+            current_state = env.reset()
+            states = update_states(states, current_state.observation)
+
+            episode_return = 0.0
+
+            terminal = False
+            while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
+                action = model.get_action(states)
+                step_type, reward, discount, next_state = env.step(action)
+
+                episode_return += reward.numpy()[0]
+                terminal = bool(1 - discount)
+
+                states = update_states(states, next_state)
+
+            total_return += episode_return
+            total_fitness += env.pyenv.envs[0]._best_fitness
+
+        avg_return = total_return / num_episodes
+        avg_fitness = total_fitness / num_episodes
+
+        return avg_return, avg_fitness
+
+
+# def compute_avg_return(env, model, num_episodes=4):
+#     total_return = 0.0
+#     total_fitness = 0.0
+#     for _ in range(num_episodes):
+#
+#         time_step = env.reset()
+#         observation = time_step.observation
+#         episode_return = 0.0
+#
+#         terminal = False
+#         while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
+#             action = model.get_action(observation)
+#             step_type, reward, discount, observation = env.step(action)
+#
+#             episode_return += reward.numpy()[0]
+#             terminal = bool(1 - discount)
+#
+#         total_return += episode_return
+#         total_fitness += env.pyenv.envs[0]._best_fitness
+#
+#     avg_return = total_return / num_episodes
+#     avg_fitness = total_fitness / num_episodes
+#
+#     return avg_return, avg_fitness
+#
+#
+# def compute_avg_recurrent_return(env, model, num_episodes=4):
+#     total_return = 0.0
+#     total_fitness = 0.0
+#
+#     # Temporary Solution
+#     def update_states(states, next_state):
+#         states = np.roll(states, -1, axis=0)
+#         states[-1] = next_state
+#         return states
+#
+#     for _ in range(num_episodes):
+#         states = np.zeros([10, 150])  # Make Dynamic
+#
+#         current_state = env.reset()
+#         states = update_states(states, current_state.observation)
+#
+#         episode_return = 0.0
+#
+#         terminal = False
+#         while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
+#             action = model.get_action(states)
+#             step_type, reward, discount, next_state = env.step(action)
+#
+#             episode_return += reward.numpy()[0]
+#             terminal = bool(1 - discount)
+#
+#             states = update_states(states, next_state)
+#
+#         total_return += episode_return
+#         total_fitness += env.pyenv.envs[0]._best_fitness
+#
+#     avg_return = total_return / num_episodes
+#     avg_fitness = total_fitness / num_episodes
+#
+#     return avg_return, avg_fitness
 
 
 class ResultsLogger:
-    def __init__(self, config, env, model, max_episodes=1000):
+    def __init__(self, config, env, model, logging_strategy: ComputeReturnStrategy, max_episodes=1000):
         self.config = config
         self.config.num_iterations = max_episodes
         self.start_time = time.time()
         self.env = env
         self.model = model
+        self.logging_strategy: ComputeReturnStrategy = logging_strategy
 
         self.loss = []
         self.returns = []
@@ -116,7 +190,7 @@ class ResultsLogger:
             np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
 
         if step % self.config.eval_interval == 0:
-            avg_return, avg_fitness = compute_avg_recurrent_return(self.env, self.model)
+            avg_return, avg_fitness = self.logging_strategy.compute_average_return(self.env, self.model, 4)
             # # Mock Data:
             # avg_return, avg_fitness = 2.6, 3.2
 
