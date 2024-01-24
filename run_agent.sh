@@ -6,5 +6,5 @@
 #SBATCH --time=90:00:00
 #SBATCH --job-name=d30f19_PSORL
 #SBATCH --output=%x-%j.out
-source ~/scratch/TF_RL/bin/activate
+source ~/scratch/TF_RL2/bin/activate
 python run_exp.py
