@@ -81,7 +81,6 @@ class Config(object):
     def update_properties(self, network_type=None, func_num=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
-            self.results_action_counts = os.path.join(self.results_dir, f"PSO_DQN_actions_counts(f{func_num}).csv")
 
         if train_steps is not None:
             self.train_steps = train_steps
@@ -92,7 +91,7 @@ class Config(object):
 
         if network_type is not None:
             self.network_type = network_type
-            experiment = self.network_type + "_" + self.algorithm + "_" + str(self.func_num)
+            experiment = self.network_type + "_" + self.algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
             self.results_right_actions = os.path.join(self.results_dir, f"{experiment}_right_action_counts.csv")
             self.results_left_actions = os.path.join(self.results_dir, f"{experiment}_left_action_counts.csv")
@@ -106,6 +105,9 @@ class Config(object):
             self.figure_file_rewards = os.path.join(self.results_dir, f"{experiment}_plot.png")
             self.figure_file_fitness = os.path.join(self.results_dir, f"{experiment}_fit_plot.png")
             self.results_action_values = os.path.join(self.results_dir, f"{experiment}_actions_values.csv")
+            self.results_action_counts = os.path.join(self.results_dir, f"{experiment}_actions_counts.csv")
+            # self.results_action_counts = os.path.join(self.results_dir, f"PSO_DQN_actions_counts(f{func_num}).csv")
+
 
 
 class PSOConfig(Config):
