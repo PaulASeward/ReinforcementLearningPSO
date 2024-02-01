@@ -31,6 +31,7 @@ if __name__ == "__main__":
 
     if args.algorithm == "PSO":
         config = PSOConfig()
+        config.algorithm = args.algorithm
     else:
         print("Unsupported algorithm type: ", args.algorithm)
         sys.exit(1)
@@ -38,16 +39,15 @@ if __name__ == "__main__":
     assert args.network_type in ["DQN", "DRQN"], "Please specify a network_type of either DQN or DRQN"
     assert args.func_num in list(range(1, 29)), "Please specify a func_num from 1-28"
 
-    config.network_type = args.network_type
-    config.algorithm = args.algorithm
-    config.func_num = args.func_num
-    config.experiment = args.network_type + "_" + args.algorithm + "_" + str(args.func_num)
-    config.train_steps = args.steps
+    config.update_properties(network_type=args.network_type, func_num=args.func_num, train_steps=args.steps)
     config.train = args.train
 
-    print("==== Experiment: ", config.experiment)
+    print("==== Exper`iment: ", config.experiment)
     print("==== Args used:")
     print(args)
+    print("==== Remaining (Unknown) Args:")
+
+    print(remaining)
 
     main = Main(config)
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         print(">> Training mode. Number of Steps to Train:", config.train_steps)
         main.train()
     else:
-        print(">> Evaluation mode. Number of Episodes to Evaluate:", config.number_evaluations)
+        print(">> Evaluation mode. Number of Episodes to Evaluate:", config.train_steps)
         # main.evaluate(config.number_evaluations, config.checkpoint_dir)
 
 
