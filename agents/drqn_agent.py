@@ -47,11 +47,11 @@ class DRQNAgent(BaseAgent):
 
         return losses
 
-    def train(self, max_episodes=10000):
+    def train(self):
         with self.writer.as_default():
 
             results = ResultsLogger(self.config, self.env, self.model, ComputeDrqnReturn(), max_episodes)
-            for ep in range(max_episodes):
+            for ep in range(self.config.train_steps):
                 done, episode_reward, actions = False, 0, []
                 actions, rewards = [], []
 

@@ -3,6 +3,8 @@ from tf_agents.environments import tf_py_environment
 import os
 from datetime import datetime
 from PSOEnv import PSOEnv
+from plot_utils import plot_results_over_iterations, plot_actions_over_iteration_intervals, plot_actions_from_env
+
 
 class BaseAgent:
     def __init__(self, config):
@@ -30,8 +32,14 @@ class BaseAgent:
     def replay_experience(self):
         raise NotImplementedError
 
-    def train(self, max_episodes=1000):
+    def train(self):
         raise NotImplementedError
 
     def update_target(self):
         raise NotImplementedError
+
+    def build_plots(self):
+        # plot_results_over_iterations(self.config.figure_file_rewards, 'Average Return', 'Iteration', self.config.iterations, self.returns)
+        # plot_results_over_iterations(self.config.figure_file_fitness, 'Average Fitness', 'Iteration', self.config.iterations, self.fitness)
+        # plot_actions_over_iteration_intervals(self.config.figure_file_action, 'Iteration Intervals', 'Action Count','Action Distribution Over Iteration Intervals', self.iteration_intervals, self.label_iterations_intervals, self.action_counts)
+        plot_actions_from_env(self.config.results_action_counts, self.config.results_action_values, 9)

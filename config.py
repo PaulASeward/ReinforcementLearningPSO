@@ -2,26 +2,31 @@ import os
 
 
 class Config(object):
-    experiment = "DQN_PSO_F19"
+    experiment = "DQN_PSO_F19" # Make this dynamic
     network_type = "DQN"
 
     # PSO PARAMETERS
-    func_num = 19
+    func_num = 19 # Make this dynamic
     dim = 30
     observation_length = 150
     swarm_size = 30
     action_dim = 5
     state_dim = 150
-    num_iterations = 2000
+    train_steps = 2000  # make this dynamically updated
     initial_collect_steps = 100
     collect_steps_per_iteration = 1
     replay_buffer_max_length = 100000
     # batch_size = 64
     # learning_rate = 1e-3
+
+
     log_interval = 20
     num_eval_episodes = 10
     eval_interval = 50
-    iterations = range(0, num_iterations + 1, eval_interval)
+    iterations = range(0, train_steps, eval_interval)
+    iteration_intervals = range(eval_interval, train_steps + eval_interval, eval_interval)
+    label_iterations_intervals = range(0, train_steps + eval_interval, eval_interval * 2)
+    num_eval_intervals = train_steps // eval_interval
 
     # EXPERIMENT PARAMETERS
     fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
