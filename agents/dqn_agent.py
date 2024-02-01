@@ -47,7 +47,7 @@ class DQNAgent(BaseAgent):
 
     def train(self):
         with self.writer.as_default():
-            results = ResultsLogger(self.config, self.env, self.model, ComputeDqnReturn(), max_episodes)
+            results = ResultsLogger(self.config, self.env, self.model, ComputeDqnReturn())
 
             for ep in range(self.config.train_steps):
                 done, episode_reward, actions = False, 0.0, []
