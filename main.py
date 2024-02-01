@@ -12,9 +12,9 @@ class Main:
         else:
             self.agent = DRQNAgent(config)
 
-    def train(self, train_steps):
+    def train(self):
         self.agent.get_actions()
-        self.agent.train(train_steps)
+        self.agent.train()
 
     # def evaluate(self, num_episodes, checkpoint_dir):
     #     self.agent.play(num_episodes, checkpoint_dir)
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     if config.train:
         print(">> Training mode. Number of Steps to Train:", config.train_steps)
-        main.train(config.train_steps)
+        main.train()
     else:
         print(">> Evaluation mode. Number of Episodes to Evaluate:", config.number_evaluations)
         # main.evaluate(config.number_evaluations, config.checkpoint_dir)

@@ -45,11 +45,11 @@ class DQNAgent(BaseAgent):
 
         return losses
 
-    def train(self, max_episodes=10000):
+    def train(self):
         with self.writer.as_default():
             results = ResultsLogger(self.config, self.env, self.model, ComputeDqnReturn(), max_episodes)
 
-            for ep in range(max_episodes):
+            for ep in range(self.config.train_steps):
                 done, episode_reward, actions = False, 0.0, []
 
                 self.states = np.zeros([self.config.trace_length,  self.config.state_dim])  # Starts with choosing an action from empty states. Uses rolling window size 4

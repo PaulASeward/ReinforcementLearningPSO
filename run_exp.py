@@ -334,4 +334,4 @@ def train_agent():
     print(f"--- Execution took {(time.time() - start_time) / 3600} hours ---")
 
 
-train_agent()
+# train_agent()
