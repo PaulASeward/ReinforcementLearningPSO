@@ -16,6 +16,9 @@ class Main:
         self.agent.get_actions()
         self.agent.train()
 
+    def plot(self):
+        self.agent.build_plots()
+
     # def evaluate(self, num_episodes, checkpoint_dir):
     #     self.agent.play(num_episodes, checkpoint_dir)
 
@@ -25,7 +28,7 @@ if __name__ == "__main__":
     parser.add_argument("--network_type", type=str, default="DRQN", help="Type of the network to build, can either be 'DQN' or 'DRQN'")
     parser.add_argument("--algorithm", type=str, default="PSO", help="The metaheuristic algorithm to use. Currently only pso is supported")
     parser.add_argument("--func_num", type=int, default=19, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
-    parser.add_argument("--train", type=str, default=True, help="Whether to train a network or to examine a given network")
+    parser.add_argument("--train", type=str, default=False, help="Whether to train a network or to examine a given network")
     parser.add_argument("--steps", type=int, default=20000, help="number of iterations to train")
     args, remaining = parser.parse_known_args()
 
@@ -55,7 +58,9 @@ if __name__ == "__main__":
         print(">> Training mode. Number of Steps to Train:", config.train_steps)
         main.train()
     else:
-        print(">> Evaluation mode. Number of Episodes to Evaluate:", config.train_steps)
+        print("Making Plots")
+        main.plot()
+        # print(">> Evaluation mode. Number of Episodes to Evaluate:", config.train_steps)
         # main.evaluate(config.number_evaluations, config.checkpoint_dir)
 
 
