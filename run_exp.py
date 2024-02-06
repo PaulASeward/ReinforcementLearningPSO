@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 from PSOEnv import PSOEnv
-from plot_utils import plot_results_over_iterations, plot_actions_over_iteration_intervals, plot_actions_from_env
+from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 import numpy
 import reverb
 
@@ -315,8 +315,8 @@ def train_agent():
 
 
     # saving the rewards plot into a file
-    plot_results_over_iterations(figure_file_rewards, 'Average Return', 'Iterations', iterations, returns)
-    plot_results_over_iterations(figure_file_fitness, 'Best Fitness', 'Iterations', iterations, fitness)
+    plot_data_over_iterations(figure_file_rewards, 'Average Return', 'Iterations', iterations, returns)
+    plot_data_over_iterations(figure_file_fitness, 'Best Fitness', 'Iterations', iterations, fitness)
 
     # Define iteration intervals for the x-axis
     iteration_intervals = range(eval_interval, num_iterations+eval_interval, eval_interval)
@@ -330,7 +330,7 @@ def train_agent():
                                             'Right Action Distribution Over Iteration Intervals', iteration_intervals,
                                             label_iteration_intervals, right_action_counts)
 
-    plot_actions_from_env(results_action_counts, results_action_values, 9)
+    plot_actions_with_values_over_iteration_intervals(results_action_counts, results_action_values, 9)
     print(f"--- Execution took {(time.time() - start_time) / 3600} hours ---")
 
 

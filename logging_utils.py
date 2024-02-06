@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import os
 import csv
-from plot_utils import plot_results_over_iterations, plot_actions_over_iteration_intervals, plot_actions_from_env
+from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 
 
 class ComputeReturnStrategy(ABC):
@@ -124,10 +124,11 @@ class ResultsLogger:
             np.savetxt(self.config.fitness_path, self.fitness, delimiter=", ", fmt='% s')
 
     def plot_log_statements(self):
-        plot_results_over_iterations(self.config.average_returns_plot_path, 'Average Return', 'Iteration', self.config.iterations, self.returns)
-        plot_results_over_iterations(self.config.fitness_plot_path, 'Average Fitness', 'Iteration', self.config.iterations, self.fitness)
+        plot_data_over_iterations(self.config.average_returns_plot_path, 'Average Return', 'Iteration', self.config.iterations, self.returns)
+        plot_data_over_iterations(self.config.fitness_plot_path, 'Average Fitness', 'Iteration', self.config.iterations, self.fitness)
+
         plot_actions_over_iteration_intervals(self.config.interval_actions_plot_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.action_counts)
-        plot_actions_from_env(self.config.env_action_counts, self.config.env_action_values, 9)
+        plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, 9)
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
     def get_returns(self):
         return self.returns

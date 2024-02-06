@@ -7,7 +7,7 @@ import tensorflow as tf
 action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 'Discourage Social Learning', 'Reset All']
 
 
-def plot_results_over_iterations(file_name, y_label, x_label, iterations, y_data):
+def plot_data_over_iterations(file_name, y_label, x_label, iterations, y_data):
     plt.plot(iterations, y_data)
     plt.ylabel(y_label)
     plt.xlabel(x_label)
@@ -35,7 +35,7 @@ def plot_actions_over_iteration_intervals(file_name, x_label, y_label, title, it
     plt.close()
 
 
-def plot_actions_from_env(input_file_actions, input_file_values, num_intervals):
+def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_file_values, num_intervals):
     output_file_name = os.path.splitext(input_file_actions)[0] + '.png'
     action_counts = np.genfromtxt(input_file_actions, delimiter=',')
     action_values = np.genfromtxt(input_file_values, delimiter=',')

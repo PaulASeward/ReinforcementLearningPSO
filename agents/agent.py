@@ -3,7 +3,7 @@ from tf_agents.environments import tf_py_environment
 import os
 from datetime import datetime
 from PSOEnv import PSOEnv
-from plot_utils import plot_results_over_iterations, plot_actions_over_iteration_intervals, plot_actions_from_env
+from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 from tf_agents.specs import tensor_spec
 
 
@@ -56,4 +56,4 @@ class BaseAgent:
         # plot_results_over_iterations(self.config.figure_file_rewards, 'Average Return', 'Iteration', self.config.iterations, self.returns)
         # plot_results_over_iterations(self.config.figure_file_fitness, 'Average Fitness', 'Iteration', self.config.iterations, self.fitness)
         # plot_actions_over_iteration_intervals(self.config.figure_file_action, 'Iteration Intervals', 'Action Count','Action Distribution Over Iteration Intervals', self.iteration_intervals, self.label_iterations_intervals, self.action_counts)
-        plot_actions_from_env(self.config.env_action_counts, self.config.env_action_values, 9)
+        plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, 9)
