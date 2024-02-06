@@ -59,6 +59,7 @@ class Config(object):
     test_step = 5000
 
     # LEARNING PARAMETERS
+    discount_factor = 0.01
     gamma = 0.99
     learning_rate = 0.00025
     learning_rate_minimum = 0.00025
@@ -104,8 +105,8 @@ class Config(object):
             self.results_file_fitness = os.path.join(self.results_dir, f"{experiment}_fitness.csv")
             self.figure_file_rewards = os.path.join(self.results_dir, f"{experiment}_plot.png")
             self.figure_file_fitness = os.path.join(self.results_dir, f"{experiment}_fit_plot.png")
-            self.results_action_values = os.path.join(self.results_dir, f"{experiment}_actions_values.csv")
-            self.results_action_counts = os.path.join(self.results_dir, f"{experiment}_actions_counts.csv")
+            self.env_action_values = os.path.join(self.results_dir, f"env_actions_values.csv")
+            self.env_action_counts = os.path.join(self.results_dir, f"env_actions_counts.csv")
             # self.results_action_counts = os.path.join(self.results_dir, f"PSO_DQN_actions_counts(f{func_num}).csv")
 
 

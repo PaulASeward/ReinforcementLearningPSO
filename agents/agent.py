@@ -42,4 +42,4 @@ class BaseAgent:
         # plot_results_over_iterations(self.config.figure_file_rewards, 'Average Return', 'Iteration', self.config.iterations, self.returns)
         # plot_results_over_iterations(self.config.figure_file_fitness, 'Average Fitness', 'Iteration', self.config.iterations, self.fitness)
         # plot_actions_over_iteration_intervals(self.config.figure_file_action, 'Iteration Intervals', 'Action Count','Action Distribution Over Iteration Intervals', self.iteration_intervals, self.label_iterations_intervals, self.action_counts)
-        plot_actions_from_env(self.config.results_action_counts, self.config.results_action_values, 9)
+        plot_actions_from_env(self.config.env_action_counts, self.config.env_action_values, 9)

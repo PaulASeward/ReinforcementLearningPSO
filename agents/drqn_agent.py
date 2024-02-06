@@ -72,8 +72,7 @@ class DRQNAgent(BaseAgent):
 
                     self.update_states(next_state)  # Updates the states array removing oldest when adding newest for sliding window
 
-                    # TODO: Parameterize the reward discount factor
-                    self.buffer.add([prev_states, action, reward * 0.01, self.states, done])
+                    self.buffer.add([prev_states, action, reward * self.config.discount_factor, self.states, done])
 
                     episode_reward += reward
 

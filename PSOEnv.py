@@ -38,8 +38,8 @@ class PSOEnv(py_environment.PyEnvironment):
         csv_directory = "results"
         if not os.path.exists(csv_directory):
             os.makedirs(csv_directory)
-        self.actions_filename = os.path.join(csv_directory, f"PSO_DQN_actions_counts(f{func_num}).csv")
-        self.values_filename = os.path.join(csv_directory, f"PSO_DQN_actions_values(f{func_num}).csv")
+        self.actions_filename = os.path.join(csv_directory, f"env_actions_values.csv")
+        self.values_filename = os.path.join(csv_directory, f"env_actions_counts.csv")
 
         self._max_evals = self._max_episodes * self._observation_interval
         self._best_fitness = None
