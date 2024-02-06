@@ -79,6 +79,26 @@ class Config(object):
     # EVALUATION PARAMETERS
     # number_evaluations = 10000
 
+    def __init__(self):
+        self.env_action_counts = None
+        self.env_action_values = None
+        self.fitness_plot_path = None
+        self.average_returns_plot_path = None
+        self.fitness_path = None
+        self.average_returns_path = None
+        self.loss_file = None
+        self.figure_file_right_action = None
+        self.figure_file_left_action = None
+        self.interval_actions_plot_path = None
+        self.results_left_actions = None
+        self.interval_actions_counts_path = None
+        self.results_right_actions = None
+        self.experiment = None
+        self.num_eval_intervals = None
+        self.label_iterations_intervals = None
+        self.iteration_intervals = None
+        self.iterations = None
+
     def update_properties(self, network_type=None, func_num=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
@@ -94,20 +114,15 @@ class Config(object):
             self.network_type = network_type
             experiment = self.network_type + "_" + self.algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
-            self.results_right_actions = os.path.join(self.results_dir, f"{experiment}_right_action_counts.csv")
-            self.results_left_actions = os.path.join(self.results_dir, f"{experiment}_left_action_counts.csv")
-            self.results_actions = os.path.join(self.results_dir, f"{experiment}_action_counts.csv")
-            self.figure_file_action = os.path.join(self.results_dir, f"{experiment}_actions_plot.png")
-            self.figure_file_left_action = os.path.join(self.results_dir, f"{experiment}_left_actions_plot.png")
-            self.figure_file_right_action = os.path.join(self.results_dir, f"{experiment}_right_actions_plot.png")
+            self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_action_counts.csv")
+            self.interval_actions_plot_path = os.path.join(self.results_dir, f"interval_actions_plot.png")
             self.loss_file = os.path.join(self.results_dir, f"{experiment}_loss.csv")
-            self.results_file_reward = os.path.join(self.results_dir, f"{experiment}_returns.csv")
-            self.results_file_fitness = os.path.join(self.results_dir, f"{experiment}_fitness.csv")
-            self.figure_file_rewards = os.path.join(self.results_dir, f"{experiment}_plot.png")
-            self.figure_file_fitness = os.path.join(self.results_dir, f"{experiment}_fit_plot.png")
+            self.average_returns_path = os.path.join(self.results_dir, f"average_returns.csv")
+            self.average_returns_plot_path = os.path.join(self.results_dir, f"average_returns_plot.png")
+            self.fitness_path = os.path.join(self.results_dir, f"fitness.csv")
+            self.fitness_plot_path = os.path.join(self.results_dir, f"fitness_plot.png")
             self.env_action_values = os.path.join(self.results_dir, f"env_actions_values.csv")
             self.env_action_counts = os.path.join(self.results_dir, f"env_actions_counts.csv")
-            # self.results_action_counts = os.path.join(self.results_dir, f"PSO_DQN_actions_counts(f{func_num}).csv")
 
 
 
