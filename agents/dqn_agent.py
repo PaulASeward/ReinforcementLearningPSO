@@ -65,8 +65,7 @@ class DQNAgent(BaseAgent):
                     reward = reward.numpy()[0]
                     done = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
 
-                    # TODO: Parameterize the reward discount factor
-                    self.buffer.add([observation, action, reward * 0.01, next_observation, done])
+                    self.buffer.add([observation, action, reward * self.config.discount_factor, next_observation, done])
                     observation = next_observation
                     episode_reward += reward
 
