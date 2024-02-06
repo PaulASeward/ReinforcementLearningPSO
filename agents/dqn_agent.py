@@ -20,11 +20,6 @@ class DQNAgent(BaseAgent):
         weights = self.model.model.get_weights()
         self.target_model.model.set_weights(weights)
 
-    def get_actions(self):
-        # action_tensor_spec = tensor_spec.from_spec(self.raw_env.action_spec())
-        # num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
-        print(f"num_actions: {5}")
-
     def update_states(self, next_state):
         self.states = np.roll(self.states, -1, axis=0)
         self.states[-1] = next_state
