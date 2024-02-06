@@ -9,13 +9,12 @@ from logging_utils import ResultsLogger, ComputeDqnReturn
 class DQNAgent(BaseAgent):
     def __init__(self, config):
         super(DQNAgent, self).__init__(config)
-        self.states = np.zeros([self.config.trace_length, self.config.state_dim])
+        self.states = np.zeros([self.config.trace_length, self.config.observation_length])
         self.model = DQNModel(config)
         self.target_model = DQNModel(config)
 
-        self.build_environment()
         self.update_target()
-        self.buffer = ReplayBuffer()
+        self.replay_buffer = ReplayBuffer()
 
     def update_target(self):
         weights = self.model.model.get_weights()
@@ -33,7 +32,7 @@ class DQNAgent(BaseAgent):
     def replay_experience(self):
         losses = []
         for _ in range(10):  # Why size 10?
-            states, actions, rewards, next_states, done = self.buffer.sample(self.config.batch_size)
+            states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
             targets = self.target_model.predict(states)  # This is likely unnecessary as it ges rewritten
 
             next_q_values = self.target_model.predict(next_states).max(axis=1)
@@ -46,12 +45,12 @@ class DQNAgent(BaseAgent):
 
     def train(self):
         with self.writer.as_default():
-            results = ResultsLogger(self.config, self.env, self.model, ComputeDqnReturn())
+            results_logger = ResultsLogger(self.config, self.env, self.model, ComputeDqnReturn())
 
             for ep in range(self.config.train_steps):
                 done, episode_reward, actions = False, 0.0, []
 
-                self.states = np.zeros([self.config.trace_length,  self.config.state_dim])  # Starts with choosing an action from empty states. Uses rolling window size 4
+                self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
 
                 observation = self.env.reset()
                 observation = observation.observation
@@ -64,7 +63,7 @@ class DQNAgent(BaseAgent):
                     reward = reward.numpy()[0]
                     done = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
 
-                    self.buffer.add([observation, action, reward * self.config.discount_factor, next_observation, done])
+                    self.replay_buffer.add([observation, action, reward * self.config.discount_factor, next_observation, done])
                     observation = next_observation
                     episode_reward += reward
 
@@ -73,14 +72,14 @@ class DQNAgent(BaseAgent):
                 # losses = [1,2,3,4,5,6,7,8,9,10]
 
                 losses = None
-                if self.buffer.size() >= self.config.batch_size:
+                if self.replay_buffer.size() >= self.config.batch_size:
                     losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
 
                 self.update_target()  # target model gets updated AFTER episode, not during like the regular model.
 
-                results.save_log_statements(step=ep+1, actions=actions, train_loss=losses)
+                results_logger.save_log_statements(step=ep+1, actions=actions, train_loss=losses)
                 print(f"Episode#{ep+1} Cumulative Reward:{episode_reward}")
                 # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
 
-            results.plot_log_statements()
+            results_logger.plot_log_statements()
