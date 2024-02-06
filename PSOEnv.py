@@ -16,7 +16,7 @@ import os
 
 
 class PSOEnv(py_environment.PyEnvironment):
-    def __init__(self, func_num, dimension, minimum):
+    def __init__(self, func_num, dimension, minimum, actions_filename, values_filename):
         super().__init__()
         swarm_size = 50
         self._observ_size = swarm_size * 3  # [0-49]: Velocities, [50-99]: Relative Fitness, [100-149]: Average Replacement Rate
@@ -35,15 +35,11 @@ class PSOEnv(py_environment.PyEnvironment):
         self._episode_actions = []
         self._episode_values = []
 
-        csv_directory = "results"
-        if not os.path.exists(csv_directory):
-            os.makedirs(csv_directory)
-        self.actions_filename = os.path.join(csv_directory, f"env_actions_counts.csv")
-        self.values_filename = os.path.join(csv_directory, f"env_actions_values.csv")
-
         self._max_evals = self._max_episodes * self._observation_interval
         self._best_fitness = None
         self._minimum = minimum
+        self.actions_filename = actions_filename
+        self.values_filename = values_filename
 
         obj_f = functions.CEC_functions(dimension)
 
