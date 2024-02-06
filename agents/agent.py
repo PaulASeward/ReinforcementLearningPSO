@@ -25,16 +25,16 @@ class BaseAgent:
         environment = PSOEnv(self.config.func_num, dimension=self.config.dim, minimum=minimum, actions_filename=self.config.env_action_counts, values_filename=self.config.env_action_values)
         self.raw_env = environment
 
+        action_tensor_spec = tensor_spec.from_spec(self.raw_env.action_spec())
+        self.config.num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
+
         train_environment = tf_py_environment.TFPyEnvironment(environment)
         self.env = train_environment
 
         return train_environment
 
     def get_actions(self):
-        action_tensor_spec = tensor_spec.from_spec(self.raw_env.action_spec())
-        num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
-        print(f"num_actions: {num_actions}")
-
+        print(f"num_actions: {self.config.num_actions}")
         action_descriptions = self.raw_env.actions_descriptions
 
         for index, description in enumerate(action_descriptions):

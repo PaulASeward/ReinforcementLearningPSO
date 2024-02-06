@@ -113,20 +113,20 @@ class ResultsLogger:
             self.returns.append(float(avg_return))
             self.fitness.append(avg_fitness)
 
-            with open(self.config.results_actions, 'a') as file:
+            with open(self.config.interval_actions_counts_path, 'a') as file:
                 writer = csv.writer(file)
                 writer.writerow(self.action_counts[self.eval_interval_count, :])
 
             self.eval_interval_count += 1
 
             # saving the results into a TEXT file
-            np.savetxt(self.config.results_file_reward, self.returns, delimiter=", ", fmt='% s')
-            np.savetxt(self.config.results_file_fitness, self.fitness, delimiter=", ", fmt='% s')
+            np.savetxt(self.config.average_returns_path, self.returns, delimiter=", ", fmt='% s')
+            np.savetxt(self.config.fitness_path, self.fitness, delimiter=", ", fmt='% s')
 
     def plot_log_statements(self):
-        plot_results_over_iterations(self.config.figure_file_rewards, 'Average Return', 'Iteration', self.config.iterations, self.returns)
-        plot_results_over_iterations(self.config.figure_file_fitness, 'Average Fitness', 'Iteration', self.config.iterations, self.fitness)
-        plot_actions_over_iteration_intervals(self.config.figure_file_action, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.action_counts)
+        plot_results_over_iterations(self.config.average_returns_plot_path, 'Average Return', 'Iteration', self.config.iterations, self.returns)
+        plot_results_over_iterations(self.config.fitness_plot_path, 'Average Fitness', 'Iteration', self.config.iterations, self.fitness)
+        plot_actions_over_iteration_intervals(self.config.interval_actions_plot_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.action_counts)
         plot_actions_from_env(self.config.env_action_counts, self.config.env_action_values, 9)
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
     def get_returns(self):
