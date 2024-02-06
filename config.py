@@ -7,20 +7,14 @@ class Config(object):
 
     # PSO PARAMETERS
     dim = 30
-    observation_length = 150
     swarm_size = 30
-    action_dim = 5
-    state_dim = 150
-    train_steps = 2000  # make this dynamically updated
-    initial_collect_steps = 100
-    collect_steps_per_iteration = 1
-    replay_buffer_max_length = 100000
-    # batch_size = 64
-    # learning_rate = 1e-3
+    observation_length = 150
+    num_actions = 5
 
+    train_steps = 20000
     log_interval = 200
-    num_eval_episodes = 10
     eval_interval = 500
+    num_eval_episodes = 10
 
     # EXPERIMENT PARAMETERS
     fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
@@ -80,6 +74,7 @@ class Config(object):
     # number_evaluations = 10000
 
     def __init__(self):
+        self.func_num = None
         self.env_action_counts = None
         self.env_action_values = None
         self.fitness_plot_path = None
@@ -105,6 +100,8 @@ class Config(object):
 
         if train_steps is not None:
             self.train_steps = train_steps
+            self.log_interval = train_steps // 100
+            self.eval_interval = train_steps // 40
             self.iterations = range(0, train_steps, self.eval_interval)
             self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
             self.label_iterations_intervals = range(0, train_steps + self.eval_interval, self.eval_interval * 2)
@@ -123,7 +120,6 @@ class Config(object):
             self.fitness_plot_path = os.path.join(self.results_dir, f"fitness_plot.png")
             self.env_action_values = os.path.join(self.results_dir, f"env_actions_values.csv")
             self.env_action_counts = os.path.join(self.results_dir, f"env_actions_counts.csv")
-
 
 
 class PSOConfig(Config):

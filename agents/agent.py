@@ -16,6 +16,8 @@ class BaseAgent:
         self.raw_env = None
         self.env = None
 
+        self.build_environment()
+
     # def update_target_model_weights(self):
     #     weights = self.model.model.get_weights()
     #     self.target_model.model.set_weights(weights)

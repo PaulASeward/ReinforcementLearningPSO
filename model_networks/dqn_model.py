@@ -16,12 +16,12 @@ class DQNModel(BaseModel):
         self.model = self.nn_model()
 
     def nn_model(self):
-        model =  tf.keras.Sequential(
+        model = tf.keras.Sequential(
             [
-                Input((self.config.state_dim,)),
+                Input((self.config.observation_length,)),
                 Dense(32, activation="relu"),
                 Dense(16, activation="relu"),
-                Dense(self.config.action_dim),
+                Dense(self.config.num_actions),
             ]
         )
 
@@ -42,7 +42,7 @@ class DQNModel(BaseModel):
 
         # Could use policies here
         if np.random.random() < self.epsilon:
-            return np.random.randint(0, self.config.action_dim - 1)
+            return np.random.randint(0, self.config.num_actions - 1)
 
         return np.argmax(q_values)
 

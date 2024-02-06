@@ -22,10 +22,10 @@ class DRQNModel(BaseModel):
     def nn_model(self):
         return tf.keras.Sequential(
             [
-                Input((self.config.trace_length, self.config.state_dim)),
+                Input((self.config.trace_length, self.config.observation_length)),
                 LSTM(32, activation="tanh"),
                 Dense(16, activation="relu"),
-                Dense(self.config.action_dim),
+                Dense(self.config.num_actions),
             ]
         )
 
@@ -33,7 +33,7 @@ class DRQNModel(BaseModel):
         return self.model.predict(state)
 
     def get_action(self, state):
-        state = np.reshape(state, [1, self.config.trace_length, self.config.state_dim])
+        state = np.reshape(state, [1, self.config.trace_length, self.config.observation_length])
 
         self.epsilon *= self.config.epsilon_decay
         self.epsilon = max(self.epsilon, self.config.epsilon_end)
@@ -43,7 +43,7 @@ class DRQNModel(BaseModel):
 
         # Could use policies here
         if np.random.random() < self.epsilon:
-            return np.random.randint(0, self.config.action_dim - 1)
+            return np.random.randint(0, self.config.num_actions - 1)
 
         return np.argmax(q_value)
 
