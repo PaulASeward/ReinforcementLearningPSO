@@ -28,6 +28,7 @@ class PSOEnv(py_environment.PyEnvironment):
 
         self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=4, name='action')
         self._observation_spec = array_spec.BoundedArraySpec(shape=(self._observ_size,), dtype=np.float64, name='observation')
+        self.actions_descriptions = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles']
 
         self._actions_count = 0
         self._episode_ended = False

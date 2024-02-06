@@ -3,7 +3,6 @@ import numpy as np
 import tensorflow as tf
 from experience_buffer import ExperienceBufferTutorial as ReplayBuffer
 from model_networks.dqn_model import DQNModel
-# from tf_agents.specs import tensor_spec
 from logging_utils import ResultsLogger, ComputeDqnReturn
 
 
