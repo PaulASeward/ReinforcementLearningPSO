@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from PSOEnv import PSOEnv
 from plot_utils import plot_results_over_iterations, plot_actions_over_iteration_intervals, plot_actions_from_env
+from tf_agents.specs import tensor_spec
 
 
 class BaseAgent:
@@ -20,7 +21,7 @@ class BaseAgent:
     #     self.target_model.model.set_weights(weights)
 
     def build_environment(self):
-        minimum = self.config.fDeltas[self.config.func_num -1]
+        minimum = self.config.fDeltas[self.config.func_num - 1]
         environment = PSOEnv(self.config.func_num, dimension=self.config.dim, minimum=minimum, actions_filename=self.config.env_action_counts, values_filename=self.config.env_action_values)
         self.raw_env = environment
 
@@ -28,6 +29,17 @@ class BaseAgent:
         self.env = train_environment
 
         return train_environment
+
+    def get_actions(self):
+        action_tensor_spec = tensor_spec.from_spec(self.raw_env.action_spec())
+        num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
+        print(f"num_actions: {num_actions}")
+
+        action_descriptions = self.raw_env.actions_descriptions
+
+        for index, description in enumerate(action_descriptions):
+            action_no = str(index+1)
+            print(f"Action #{action_no} Description: {description}")
 
     def replay_experience(self):
         raise NotImplementedError
