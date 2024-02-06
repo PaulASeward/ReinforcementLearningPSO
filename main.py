@@ -45,7 +45,7 @@ if __name__ == "__main__":
     config.update_properties(network_type=args.network_type, func_num=args.func_num, train_steps=args.steps)
     config.train = args.train
 
-    print("==== Exper`iment: ", config.experiment)
+    print("==== Experiment: ", config.experiment)
     print("==== Args used:")
     print(args)
     print("==== Remaining (Unknown) Args:")
