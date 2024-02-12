@@ -5,6 +5,7 @@ from datetime import datetime
 from PSOEnv import PSOEnv
 from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 from tf_agents.specs import tensor_spec
+import numpy as np
 
 
 class BaseAgent:
@@ -53,7 +54,8 @@ class BaseAgent:
         raise NotImplementedError
 
     def build_plots(self):
-        # plot_results_over_iterations(self.config.figure_file_rewards, 'Average Return', 'Iteration', self.config.iterations, self.returns)
-        # plot_results_over_iterations(self.config.figure_file_fitness, 'Average Fitness', 'Iteration', self.config.iterations, self.fitness)
-        # plot_actions_over_iteration_intervals(self.config.figure_file_action, 'Iteration Intervals', 'Action Count','Action Distribution Over Iteration Intervals', self.iteration_intervals, self.label_iterations_intervals, self.action_counts)
+        plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration', self.config.eval_interval)
+        plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
+        plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
+        plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals)
         plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, 9)

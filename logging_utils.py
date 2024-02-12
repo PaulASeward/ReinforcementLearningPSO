@@ -100,6 +100,8 @@ class ResultsLogger:
         if step % self.config.log_interval == 0:
             if train_loss is None:
                 train_loss = 0.0
+            else:
+                train_loss = np.mean(train_loss)
             print('step = {0}: loss = {1}'.format(step, train_loss))
             self.loss.append(train_loss)
             np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
@@ -124,12 +126,13 @@ class ResultsLogger:
             np.savetxt(self.config.fitness_path, self.fitness, delimiter=", ", fmt='% s')
 
     def plot_log_statements(self):
-        plot_data_over_iterations(self.config.average_returns_plot_path, 'Average Return', 'Iteration', self.config.iterations, self.returns)
-        plot_data_over_iterations(self.config.fitness_plot_path, 'Average Fitness', 'Iteration', self.config.iterations, self.fitness)
-
-        plot_actions_over_iteration_intervals(self.config.interval_actions_plot_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.action_counts)
+        plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration', self.config.eval_interval)
+        plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
+        plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
+        plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals)
         plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, 9)
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
+
     def get_returns(self):
         return self.returns
 
