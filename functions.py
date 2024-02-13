@@ -15,7 +15,8 @@ import csv
 
 
 class CEC_functions:
-    def __init__(self, dim):
+    def __init__(self, dim, fun_num):
+        self.fun_num = fun_num
         csv_file = open('extdata/M_D' + str(dim) + '.txt')
         csv_data = csv.reader(csv_file, delimiter=' ')
         csv_data_not_null = [[float(data) for data in row if len(data) > 0] for row in csv_data]
@@ -73,12 +74,13 @@ class CEC_functions:
 
         return np.sum(omega)
 
+    def Y_matrix(self, X, rflag=None):
+        return np.apply_along_axis(lambda x: self.Y(x, self.fun_num, rflag), axis=1, arr=X)
 
-    def Y_matrix(self, X, fun_num, rflag=None):
-        result = np.inf * np.ones((X.shape[0],))
-        for i in range(X.shape[0]):
-            result[i] = self.Y(X[i, :], fun_num, rflag)
-        return result
+        # result = np.inf * np.ones((X.shape[0],))
+        # for i in range(X.shape[0]):
+        #     result[i] = self.Y(X[i, :], fun_num, rflag)
+        # return result
 
 
     def Y(self, X, fun_num, rflag=None):
@@ -517,19 +519,19 @@ class CEC_functions:
         return Y
 
 
-if __name__ == "__main__":
-    f_num = 9
-    cec_functions = CEC_functions(30)
-
-    X = np.ones(30)
-
-    # C Calculations
-    # import cic13functions
-    # C_Y = np.longdouble(cic13functions.run(str(f_num) + ',' + str(list(X))[1:-1]))
-
-    # Python Calculations
-    P_Y = cec_functions.Y(X, f_num)
-
-    # print('c response:', C_Y )
-    print('python response:', P_Y)
-    pass
+# if __name__ == "__main__":
+#     f_num = 9
+#     cec_functions = CEC_functions(30)
+#
+#     X = np.ones(30)
+#
+#     # C Calculations
+#     # import cic13functions
+#     # C_Y = np.longdouble(cic13functions.run(str(f_num) + ',' + str(list(X))[1:-1]))
+#
+#     # Python Calculations
+#     P_Y = cec_functions.Y(X, f_num)
+#
+#     # print('c response:', C_Y )
+#     print('python response:', P_Y)
+#     pass

@@ -42,9 +42,9 @@ class PSOEnv(py_environment.PyEnvironment):
         self.actions_filename = actions_filename
         self.values_filename = values_filename
 
-        obj_f = functions.CEC_functions(dimension)
+        obj_f = functions.CEC_functions(dimension, fun_num=func_num)
 
-        self.swarm = pso.PSOVectorSwarmGlobalLocal(obj_f, func_num, dimension, self._observation_interval, swarm_size, RangeF=100)
+        self.swarm = pso.PSOVectorSwarmGlobalLocal(obj_f, self._observation_interval, dimension=dimension, swarm_size=swarm_size, RangeF=100)
 
     def action_spec(self):
         return self._action_spec
