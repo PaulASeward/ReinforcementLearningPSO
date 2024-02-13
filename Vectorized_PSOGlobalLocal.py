@@ -13,15 +13,20 @@ class PSOVectorSwarmGlobalLocal:
 
         self.function = objective_function
         self.dimension = dimension
+        self.swarm_size = swarm_size
+        self.rangeF = RangeF
         self.num_swarm_obs_intervals = num_swarm_obs_intervals
         self.swarm_obs_interval_length = swarm_obs_interval_length
         self.iterations = num_swarm_obs_intervals * swarm_obs_interval_length
-        self.swarm_size = swarm_size
-        self.rangeF = RangeF
 
         # Set Constraints for clamping position and limiting velocity
         self.Vmin, self.Vmax = -1 * RangeF, RangeF
         self.Xmin, self.Xmax = -1 * RangeF, RangeF
+
+        self.velocity_magnitudes = None
+        self.relative_fitness = None
+        self.average_batch_counts = None
+
 
         # Initialize the swarm's positions velocities and best solutions
         self._initialize()
@@ -37,7 +42,7 @@ class PSOVectorSwarmGlobalLocal:
 
         # Static class variable to track pbest_val replacements
         self.pbest_replacements_counter = np.zeros(self.swarm_size)
-        self.pbest_replacement_batchcounts = np.zeros((self.iterations // 1000, self.swarm_size))
+        self.pbest_replacement_batchcounts = np.zeros((self.iterations // 1000, self.swarm_size))  # TODO: Why was this // 1000 since iterations is 1000? Should this be, np.zeros(num_swarm_obs_intervals, swarm_size)
         self.average_batch_counts = np.zeros(self.swarm_size)
 
         # Record the initialized particle and global best solutions
@@ -55,12 +60,14 @@ class PSOVectorSwarmGlobalLocal:
     def update_velocity_maginitude(self):
         self.velocity_magnitudes = np.linalg.norm(self.V, axis=1)
 
+    def update_batch_counts(self):
+        # Calculate the average batch count for each particle
+        self.average_batch_counts = np.mean(self.pbest_replacement_batchcounts, axis=0)
+
     def get_observation(self):
         self.update_relative_fitness()
         self.update_velocity_maginitude()
-
-        # Calculate the average batch count for each particle
-        self.average_batch_counts = np.mean(self.pbest_replacement_batchcounts, axis=0)
+        self.update_batch_counts()
 
         return np.concatenate([self.velocity_magnitudes, self.relative_fitness, self.average_batch_counts], axis=0)
 
@@ -151,7 +158,7 @@ class PSOVectorSwarmGlobalLocal:
             self.update_pbest()
             self.update_gbest()
 
-            if (i + 1) % 1000 == 0:
+            if (i + 1) % 1000 == 0:  # TODO: Should this be evaluated at the swarm observation interval length?
                 # Store pbest_replacements counts and reset the array
                 self.pbest_replacement_batchcounts[replacement_peak_counter] = self.pbest_replacements_counter
                 self.pbest_replacements_counter = np.zeros(self.swarm_size)
