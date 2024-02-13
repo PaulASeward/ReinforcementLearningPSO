@@ -100,8 +100,8 @@ class Config(object):
 
         if train_steps is not None:
             self.train_steps = train_steps
-            self.log_interval = train_steps // 1000 # TODO: Change this to 100
-            self.eval_interval = train_steps // 400 # TODO: Change this to 40
+            self.log_interval = train_steps // 100
+            self.eval_interval = train_steps // 40
             self.iterations = range(0, train_steps, self.eval_interval)
             self.num_eval_intervals = train_steps // self.eval_interval
             self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
@@ -113,12 +113,12 @@ class Config(object):
             experiment = self.network_type + "_" + self.algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
             self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
-            self.interval_actions_plot_path = os.path.join(self.results_dir, f"interval_actions_plot.png")
+            # self.interval_actions_plot_path = os.path.join(self.results_dir, f"interval_actions_plot.png")
             self.loss_file = os.path.join(self.results_dir, f"average_training_loss.csv")
             self.average_returns_path = os.path.join(self.results_dir, f"average_returns.csv")
-            self.average_returns_plot_path = os.path.join(self.results_dir, f"average_returns_plot.png")
+            # self.average_returns_plot_path = os.path.join(self.results_dir, f"average_returns_plot.png")
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
-            self.fitness_plot_path = os.path.join(self.results_dir, f"average_fitness_plot.png")
+            # self.fitness_plot_path = os.path.join(self.results_dir, f"average_fitness_plot.png")
             self.env_action_values = os.path.join(self.results_dir, f"env_actions_values.csv")
             self.env_action_counts = os.path.join(self.results_dir, f"env_actions_counts.csv")
 
