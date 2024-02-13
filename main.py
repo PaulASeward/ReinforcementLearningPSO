@@ -68,6 +68,7 @@ if __name__ == "__main__":
         print(f"=== Function Evaluation Budget: {config.dim} dimensions x 10 000/dim = {func_eval_budget} Function Evaluations")
         print(f"=== Observations Per Episode: {config.num_swarm_obs_intervals} Number of Swarm Observation Intervals per Episode x {config.swarm_obs_interval_length} Number of Observations in each Interval  = {obs_per_episode}  Observations per Episode")
         print(f"=== Function Evaluation Allocation: {config.swarm_size} Swarm Size (# Particles) x {config.num_episodes} Episodes x {obs_per_episode} Observations per Episode  = {max_func_eval} Function Evaluations")
+        print()
 
         if func_eval_budget != max_func_eval:
             raise ValueError("Maximum Function Evaluation budget does not match total allocations of function evaluations.")

@@ -41,9 +41,11 @@ class PSOVectorSwarmGlobalLocal:
         self.P = self.X
 
         # Static class variable to track pbest_val replacements
-        self.pbest_replacements_counter = np.zeros(self.swarm_size)
-        self.pbest_replacement_batchcounts = np.zeros((self.iterations // 1000, self.swarm_size))  # TODO: Why was this // 1000 since iterations is 1000? Should this be, np.zeros(num_swarm_obs_intervals, swarm_size)
+        self.pbest_replacement_counts = np.zeros(self.swarm_size)
+        self.pbest_replacement_batchcounts = np.zeros((self.num_swarm_obs_intervals, self.swarm_size))
         self.average_batch_counts = np.zeros(self.swarm_size)
+
+        # self.pbest_replacement_batchcounts2 = np.zeros((self.iterations // 1000, self.swarm_size))  # TODO: Why was this // 1000 since iterations is 1000? Should this be, np.zeros(num_swarm_obs_intervals, swarm_size)
 
         # Record the initialized particle and global best solutions
         self.val = self.eval(self.P)  # Vector of particle's current value of its position based on Function Eval
@@ -144,7 +146,7 @@ class PSOVectorSwarmGlobalLocal:
         self.pbest_val = np.where(improved_particles, self.val, self.pbest_val)
 
         # Update pbest_val replacement counter
-        self.pbest_replacements_counter += improved_particles
+        self.pbest_replacement_counts += improved_particles
 
     def update_gbest(self):
         self.gbest_pos = self.P[np.argmin(self.pbest_val)]
@@ -158,12 +160,16 @@ class PSOVectorSwarmGlobalLocal:
             self.update_pbest()
             self.update_gbest()
 
-            if (i + 1) % 1000 == 0:  # TODO: Should this be evaluated at the swarm observation interval length?
+            # if (i + 1) % 1000 == 0:  # TODO: Should this be evaluated at the swarm observation interval length?
+
+            if (i + 1) % self.swarm_obs_interval_length == 0:
                 # Store pbest_replacements counts and reset the array
-                self.pbest_replacement_batchcounts[replacement_peak_counter] = self.pbest_replacements_counter
-                self.pbest_replacements_counter = np.zeros(self.swarm_size)
+                self.pbest_replacement_batchcounts[replacement_peak_counter] = self.pbest_replacement_counts
+                self.pbest_replacement_counts = np.zeros(self.swarm_size)
 
                 replacement_peak_counter += 1
+
+        x=1
 
 
 
