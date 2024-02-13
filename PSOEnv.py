@@ -16,35 +16,40 @@ import os
 
 
 class PSOEnv(py_environment.PyEnvironment):
-    def __init__(self, func_num, dimension, minimum, actions_filename, values_filename):
+    def __init__(self, func_num, minimum, actions_filename, values_filename, max_episodes=10,
+                 num_swarm_obs_intervals=10, swarm_obs_interval_length=60, swarm_size=50, dimension=30):
         super().__init__()
-        swarm_size = 50
-        self._observ_size = swarm_size * 3  # [0-49]: Velocities, [50-99]: Relative Fitness, [100-149]: Average Replacement Rate
-        self._dim = dimension
-        self.func_num = func_num
-
-        self._observation_interval = 1000
-        self._replacement_ratio_interval = 100
-
-        self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=4, name='action')
-        self._observation_spec = array_spec.BoundedArraySpec(shape=(self._observ_size,), dtype=np.float64, name='observation')
-        self.actions_descriptions = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles']
-
-        self._actions_count = 0
-        self._episode_ended = False
-        self._max_episodes = 10
-        self._episode_actions = []
-        self._episode_values = []
-
-        self._max_evals = self._max_episodes * self._observation_interval
-        self._best_fitness = None
+        self._func_num = func_num
         self._minimum = minimum
         self.actions_filename = actions_filename
         self.values_filename = values_filename
 
+        self._max_episodes = max_episodes
+        self._num_swarm_obs_intervals = num_swarm_obs_intervals
+        self._swarm_obs_interval_length = swarm_obs_interval_length
+        self._swarm_size = swarm_size
+        self._dim = dimension
+
+        self._observ_size = swarm_size * 3  # [0-49]: Velocities, [50-99]: Relative Fitness, [100-149]: Average Replacement Rate
+        self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=4, name='action')
+        self._observation_spec = array_spec.BoundedArraySpec(shape=(self._observ_size,), dtype=np.float64,
+                                                             name='observation')
+        self.actions_descriptions = ['Do nothing', 'Reset slower half', 'Encourage social learning',
+                                     'Discourage social learning', 'Reset all particles']
+
+        self._actions_count = 0
+        self._episode_ended = False
+        self._episode_actions = []
+        self._episode_values = []
+        self._best_fitness = None
+
         obj_f = functions.CEC_functions(dimension, fun_num=func_num)
 
-        self.swarm = pso.PSOVectorSwarmGlobalLocal(obj_f, self._observation_interval, dimension=dimension, swarm_size=swarm_size, RangeF=100)
+        self.swarm = pso.PSOVectorSwarmGlobalLocal(
+            objective_function=obj_f,
+            num_swarm_obs_intervals=num_swarm_obs_intervals,
+            swarm_obs_interval_length=swarm_obs_interval_length,
+            dimension=dimension, swarm_size=swarm_size, RangeF=100)
 
     def action_spec(self):
         return self._action_spec
@@ -134,6 +139,7 @@ class PSOEnv(py_environment.PyEnvironment):
             return ts.termination(self._observation, reward)
         else:
             return ts.transition(self._observation, reward, discount=1.0)
+
     #   returns: TimeStep(step_type, reward, discount, observation)
     def store_episode_actions_to_csv(self, actions_row, values_row):
         with open(self.actions_filename, mode='a', newline='') as csv_file:

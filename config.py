@@ -7,14 +7,17 @@ class Config(object):
 
     # PSO PARAMETERS
     dim = 30
-    swarm_size = 30
+    swarm_size = 50
+    num_episodes = 10
+    num_swarm_obs_intervals = 10
+    swarm_obs_interval_length = 1000 # TODO: Change to 60
+
     observation_length = 150
     num_actions = 5
 
     train_steps = 20000
     log_interval = 200
     eval_interval = 500
-    num_eval_episodes = 10
 
     # EXPERIMENT PARAMETERS
     fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
@@ -40,11 +43,11 @@ class Config(object):
     batch_size = 64
     trace_length = 10
     history_len = 4
-    frame_skip = 4
-    max_steps = 10000
-    train_freq = 8
-    update_freq = 10000
-    train_start = 20000
+    # frame_skip = 4
+    # max_steps = 10000
+    # train_freq = 8
+    # update_freq = 10000
+    # train_start = 20000
 
     dir_save = "saved_session/"
     restore = False
@@ -94,9 +97,18 @@ class Config(object):
         self.iteration_intervals = None
         self.iterations = None
 
-    def update_properties(self, network_type=None, func_num=None, train_steps=None):
+    def update_properties(self, network_type=None, func_num=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
+
+        if num_episodes is not None:
+            self.num_episodes = num_episodes
+
+        if num_swarm_obs_intervals is not None:
+            self.num_swarm_obs_intervals = num_swarm_obs_intervals
+
+        if swarm_obs_interval_length is not None:
+            self.swarm_obs_interval_length = swarm_obs_interval_length
 
         if train_steps is not None:
             self.train_steps = train_steps
@@ -106,7 +118,6 @@ class Config(object):
             self.num_eval_intervals = train_steps // self.eval_interval
             self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
             self.label_iterations_intervals = range(0, train_steps + self.eval_interval, self.train_steps // 20)
-
 
         if network_type is not None:
             self.network_type = network_type
