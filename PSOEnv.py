@@ -49,7 +49,7 @@ class PSOEnv(py_environment.PyEnvironment):
             objective_function=obj_f,
             num_swarm_obs_intervals=num_swarm_obs_intervals,
             swarm_obs_interval_length=swarm_obs_interval_length,
-            dimension=dimension, swarm_size=swarm_size, RangeF=100)
+            dimension=dimension, swarm_size=swarm_size)
 
     def action_spec(self):
         return self._action_spec
