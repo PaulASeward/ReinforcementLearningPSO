@@ -3,7 +3,7 @@ import numpy as np
 
 class PSOVectorSwarmGlobalLocal:
 
-    def __init__(self, objective_function, observation_interval, dimension=30, swarm_size=50, RangeF=100):
+    def __init__(self, objective_function, num_swarm_obs_intervals, swarm_obs_interval_length, dimension=30, swarm_size=50, RangeF=100):
         # Store Function Evaluator and current evaluation column vector for each particle's best.
         self.w = 0.729844  # Inertia weight to prevent velocities becoming too large
         self.c1 = 2.05 * self.w  # Social component Learning Factor
@@ -13,7 +13,9 @@ class PSOVectorSwarmGlobalLocal:
 
         self.function = objective_function
         self.dimension = dimension
-        self.iterations = observation_interval
+        self.num_swarm_obs_intervals = num_swarm_obs_intervals
+        self.swarm_obs_interval_length = swarm_obs_interval_length
+        self.iterations = num_swarm_obs_intervals * swarm_obs_interval_length
         self.swarm_size = swarm_size
         self.rangeF = RangeF
 

@@ -25,7 +25,15 @@ class BaseAgent:
 
     def build_environment(self):
         minimum = self.config.fDeltas[self.config.func_num - 1]
-        environment = PSOEnv(self.config.func_num, dimension=self.config.dim, minimum=minimum, actions_filename=self.config.env_action_counts, values_filename=self.config.env_action_values)
+        environment = PSOEnv(self.config.func_num,
+                             minimum=minimum,
+                             actions_filename=self.config.env_action_counts,
+                             values_filename=self.config.env_action_values,
+                             max_episodes=self.config.num_episodes,
+                             num_swarm_obs_intervals=self.config.num_swarm_obs_intervals,
+                             swarm_obs_interval_length=self.config.swarm_obs_interval_length,
+                             swarm_size=self.config.swarm_size,
+                             dimension=self.config.dim)
         self.raw_env = environment
 
         action_tensor_spec = tensor_spec.from_spec(self.raw_env.action_spec())
