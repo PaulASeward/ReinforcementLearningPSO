@@ -26,6 +26,7 @@ class PSOVectorSwarmGlobalLocal:
         self.velocity_magnitudes = None
         self.relative_fitness = None
         self.average_batch_counts = None
+        self.pbest_replacement_counts = None
 
         # Initialize the swarm's positions velocities and best solutions
         self._initialize()
@@ -43,8 +44,6 @@ class PSOVectorSwarmGlobalLocal:
         self.pbest_replacement_counts = np.zeros(self.swarm_size)
         self.pbest_replacement_batchcounts = np.zeros((self.num_swarm_obs_intervals, self.swarm_size))
         self.average_batch_counts = np.zeros(self.swarm_size)
-
-        # self.pbest_replacement_batchcounts2 = np.zeros((self.iterations // 1000, self.swarm_size))  # TODO: Why was this // 1000 since iterations is 1000? Should this be, np.zeros(num_swarm_obs_intervals, swarm_size)
 
         # Record the initialized particle and global best solutions
         self.val = self.eval(self.P)  # Vector of particle's current value of its position based on Function Eval
@@ -132,7 +131,6 @@ class PSOVectorSwarmGlobalLocal:
 
         # Update the positions and evaluate the new positions
         self.V = np.where(out_of_bounds, 0, self.V)
-        pbest_replacement_counts = np.zeros((self.iterations // 1000, self.swarm_size))
 
         # Use function evaluation for each particle (vector) in Swarm to provide
         # value for each position in X.
@@ -158,8 +156,6 @@ class PSOVectorSwarmGlobalLocal:
             self.update_position()
             self.update_pbest()
             self.update_gbest()
-
-            # if (i + 1) % 1000 == 0:  # TODO: Should this be evaluated at the swarm observation interval length?
 
             if (i + 1) % self.swarm_obs_interval_length == 0:
                 # Store pbest_replacements counts and reset the array
