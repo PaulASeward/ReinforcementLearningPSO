@@ -27,7 +27,6 @@ class PSOVectorSwarmGlobalLocal:
         self.relative_fitness = None
         self.average_batch_counts = None
 
-
         # Initialize the swarm's positions velocities and best solutions
         self._initialize()
 
@@ -168,8 +167,6 @@ class PSOVectorSwarmGlobalLocal:
                 self.pbest_replacement_counts = np.zeros(self.swarm_size)
 
                 replacement_peak_counter += 1
-
-        x=1
 
 
 
