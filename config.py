@@ -112,8 +112,8 @@ class Config(object):
 
         if train_steps is not None:
             self.train_steps = train_steps
-            self.log_interval = train_steps // 1000 # TODO normal is 100
-            self.eval_interval = train_steps // 400 # Normal is 40
+            self.log_interval = train_steps // 100  # normal is 100
+            self.eval_interval = train_steps // 40  # Normal is 40
             self.iterations = range(0, train_steps, self.eval_interval)
             self.num_eval_intervals = train_steps // self.eval_interval
             self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
