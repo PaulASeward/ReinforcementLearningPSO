@@ -25,9 +25,9 @@ class DRQNAgent(BaseAgent):
         self.states = np.roll(self.states, -1, axis=0)
         self.states[-1] = next_state
 
-    def replay_experience(self):
+    def replay_experience(self, experience_length=10):
         losses = []
-        for _ in range(10):  # Why size 10?
+        for _ in range(experience_length):  # Why size 10?
             states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
             targets = self.target_model.predict(states)  # This is likely unnecessary as it ges rewritten
 
