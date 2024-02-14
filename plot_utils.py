@@ -4,7 +4,7 @@ from matplotlib.patches import Patch
 import os
 import tensorflow as tf
 
-action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 'Discourage Social Learning', 'Reset All']
+action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 'Discourage Social Learning', 'Reset All', 'Reset All and Keep Global Best']
 
 
 def plot_data_over_iterations(file_name, y_label, x_label, iteration_interval_scale):
@@ -42,13 +42,12 @@ def plot_actions_over_iteration_intervals(file_name, x_label, y_label, title, it
     plt.close()
 
 
-def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_file_values, num_intervals):
+def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_file_values, num_intervals, num_actions=5):
     output_file_name = os.path.splitext(input_file_actions)[0] + '.png'
     action_counts = np.genfromtxt(input_file_actions, delimiter=',')
     action_values = np.genfromtxt(input_file_values, delimiter=',')
 
-    num_episodes = 10
-    num_actions = 5
+    num_episodes = action_counts.shape[1]
     rows_per_interval = len(action_counts) // num_intervals
     x_values = range(1, num_episodes + 1)
 
@@ -61,7 +60,7 @@ def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_
 
     # Create a legend for the actions using action names
     legend_handles = [Patch(facecolor=f'C{i}') for i in range(num_actions)]
-    fig.legend(legend_handles, action_names, loc='upper right', title="Actions")
+    fig.legend(legend_handles, action_names[:num_actions], loc='upper right', title="Actions")
 
     # Calculate the min and max values for the line graph
     min_line_value = np.inf  # Initialize with a high value

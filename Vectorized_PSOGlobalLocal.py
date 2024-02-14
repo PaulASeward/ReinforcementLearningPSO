@@ -46,6 +46,9 @@ class PSOVectorSwarmGlobalLocal:
         self.average_batch_counts = np.zeros(self.swarm_size)
 
         # Record the initialized particle and global best solutions
+        self.update_swarm_valuations_and_bests()
+
+    def update_swarm_valuations_and_bests(self):
         self.val = self.eval(self.P)  # Vector of particle's current value of its position based on Function Eval
         self.pbest_val = self.val  # Vector of particle's best value of a visited position.
         self.gbest_pos = self.P[np.argmin(self.pbest_val)]  # Vector of globally best visited position.
@@ -74,16 +77,33 @@ class PSOVectorSwarmGlobalLocal:
     def get_current_best_fitness(self):
         return self.gbest_val
 
+    def reset_all_particles(self):
+        self._initialize()
+
+    def reset_all_particles_keep_global_best(self):
+        old_gbest_pos = self.P[np.argmin(self.pbest_val)]
+        old_gbest_val = np.min(self.pbest_val)
+
+        self._initialize()
+
+        # Keep Previous Solution before resetting.
+        if old_gbest_val < self.gbest_val:
+            self.gbest_pos = old_gbest_pos
+            self.gbest_val = old_gbest_val
+
     def reset_slow_particles(self):
         self.update_velocity_maginitude()
         avg_velocity = np.mean(self.velocity_magnitudes)
         slow_particles = self.velocity_magnitudes < avg_velocity
-        replacement_positions = np.random.uniform(low=-1 * self.rangeF, high=self.rangeF,
-                                                  size=(self.swarm_size, self.dimension))
+        replacement_positions = np.random.uniform(low=-1 * self.rangeF, high=self.rangeF, size=(self.swarm_size, self.dimension))
+        replacement_velocities = np.full((self.swarm_size, self.dimension), 0)
         slow_particles_reshaped = slow_particles[:, np.newaxis]  # Reshape to match self.X
 
         self.X = np.where(slow_particles_reshaped, replacement_positions, self.X)
-        # self.X = np.where(slow_particles, np.random.uniform(low=-1 * self.rangeF, high=self.rangeF, size=self.dimension), self.X)
+        self.V = np.where(slow_particles_reshaped, replacement_velocities, self.V)
+        self.P = self.X
+
+        self.update_swarm_valuations_and_bests()
 
     def increase_social_factor(self):
         self.c1 *= 1.10  # Social component

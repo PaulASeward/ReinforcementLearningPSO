@@ -14,9 +14,12 @@ from tf_agents.typing import types
 import functions
 import os
 
+ACTION_DESCRIPTIONS = ['Do nothing', 'Reset slower half', 'Encourage social learning',
+                                     'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best']
+
 
 class PSOEnv(py_environment.PyEnvironment):
-    def __init__(self, func_num, minimum, actions_filename, values_filename, max_episodes=10,
+    def __init__(self, func_num, minimum, actions_filename, values_filename, num_actions=5, max_episodes=10,
                  num_swarm_obs_intervals=10, swarm_obs_interval_length=60, swarm_size=50, dimension=30):
         super().__init__()
         self._func_num = func_num
@@ -31,11 +34,10 @@ class PSOEnv(py_environment.PyEnvironment):
         self._dim = dimension
 
         self._observ_size = swarm_size * 3  # [0-49]: Velocities, [50-99]: Relative Fitness, [100-149]: Average Replacement Rate
-        self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=4, name='action')
+        self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=num_actions-1, name='action')
         self._observation_spec = array_spec.BoundedArraySpec(shape=(self._observ_size,), dtype=np.float64,
                                                              name='observation')
-        self.actions_descriptions = ['Do nothing', 'Reset slower half', 'Encourage social learning',
-                                     'Discourage social learning', 'Reset all particles']
+        self.actions_descriptions = ACTION_DESCRIPTIONS[:num_actions]
 
         self._actions_count = 0
         self._episode_ended = False
@@ -118,7 +120,12 @@ class PSOEnv(py_environment.PyEnvironment):
             self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
         elif action == 4:  # Reset all particles. Maybe keep global leader?
-            self.swarm.reinitialize()
+            self.swarm.reset_all_particles()
+            self.swarm.optimize()
+            self._observation = self.swarm.get_observation()
+            current_best_f = self.swarm.get_current_best_fitness()
+        elif action == 5:  # Reset all particles. Keep global leader.
+            self.swarm.reset_all_particles_keep_global_best()
             self.swarm.optimize()
             self._observation = self.swarm.get_observation()
             current_best_f = self.swarm.get_current_best_fitness()
