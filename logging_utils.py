@@ -90,7 +90,7 @@ class ResultsLogger:
         self.returns = []
         self.fitness = []
 
-        self.action_counts = np.zeros((self.config.num_eval_intervals, 5), dtype=np.int32)
+        self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.num_actions), dtype=np.int32)
         self.eval_interval_count = 0
 
     def save_log_statements(self, step, actions, train_loss=None):
@@ -130,7 +130,7 @@ class ResultsLogger:
         plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
         plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
         plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals)
-        plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, 9)
+        plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, num_intervals=9, num_actions=self.config.num_actions)
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
 
     def get_returns(self):
