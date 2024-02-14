@@ -7,4 +7,4 @@
 #SBATCH --job-name=PSO_RL_Test_FE_Distributions
 #SBATCH --output=%x-%j.out
 source ~/scratch/TF_RL2/bin/activate
-python main.py --network_type=DRQN --func_num=19 --num_episodes=10 --num_swarm_obs_intervals=10 --swarm_obs_interval_length=60
+python main.py --network_type=DRQN --func_num=19 --num_actions=5 --num_episodes=10 --num_swarm_obs_intervals=10 --swarm_obs_interval_length=60
