@@ -150,19 +150,15 @@ class PSOVectorSwarmGlobalLocal:
         self.gbest_val = np.min(self.pbest_val)
 
     def optimize(self):
-        replacement_peak_counter = 0
-        for i in range(self.iterations):
-            self.update_velocities(self.gbest_pos)  # Input global leader particle position
-            self.update_position()
-            self.update_pbest()
-            self.update_gbest()
+        for obs_interval_idx in range(self.num_swarm_obs_intervals):
+            for _ in range(self.swarm_obs_interval_length):
+                self.update_velocities(self.gbest_pos)  # Input global leader particle position
+                self.update_position()
+                self.update_pbest()
+                self.update_gbest()
 
-            if (i + 1) % self.swarm_obs_interval_length == 0:
-                # Store pbest_replacements counts and reset the array
-                self.pbest_replacement_batchcounts[replacement_peak_counter] = self.pbest_replacement_counts
-                self.pbest_replacement_counts = np.zeros(self.swarm_size)
-
-                replacement_peak_counter += 1
+            self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
+            self.pbest_replacement_counts = np.zeros(self.swarm_size)
 
 
 
