@@ -347,7 +347,7 @@ plt.show()
 #         returns.append(float(avg_return))
 #         fitness.append(avg_fitness)
 #
-#         # saving the results into a TEXT file
+#         # saving the f19_drqn_10_10_60_results into a TEXT file
 #         # pickle.dump(returns, open(results_file_reward, "wb"))
 #         numpy.savetxt(results_file_reward, returns, delimiter=", ", fmt='% s')
 #         # numpy.savetxt(results_file_fitness, fitness, delimiter=", ", fmt='% s')
