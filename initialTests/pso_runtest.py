@@ -52,14 +52,14 @@ def run_experiment(runs, dimensions, evals_per_dim, swarm_size, global_topology,
         run_results.append(run_result)
         function_result_array.append([fun_num, avg_error, std_dev, avg_time])  # Include std_dev in the result array
 
-    # Save run results to a CSV file
+    # Save run f19_drqn_10_10_60_results to a CSV file
     with open(f'{topology_label}{comp_label}runresults.csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['Function Number', 'Run Number', 'Error', 'Time'])  # Header for run results
+        writer.writerow(['Function Number', 'Run Number', 'Error', 'Time'])  # Header for run f19_drqn_10_10_60_results
         for run_result in run_results:
             writer.writerows(run_result)  # Write each run result
 
-    # Save function number summative results to a CSV file
+    # Save function number summative f19_drqn_10_10_60_results to a CSV file
     with open(f'{topology_label}{comp_label}functionresults.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['Function Number', 'Mean Error', 'Standard Deviation', 'Mean Time'])  # Header for result array

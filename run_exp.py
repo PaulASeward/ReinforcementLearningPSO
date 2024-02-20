@@ -315,8 +315,8 @@ def train_agent():
 
 
     # saving the rewards plot into a file
-    plot_data_over_iterations(figure_file_rewards, 'Average Return', 'Iterations', iterations, returns)
-    plot_data_over_iterations(figure_file_fitness, 'Best Fitness', 'Iterations', iterations, fitness)
+    plot_data_over_iterations(figure_file_rewards, 'Average Return', 'Iterations', iterations)
+    plot_data_over_iterations(figure_file_fitness, 'Best Fitness', 'Iterations', iterations)
 
     # Define iteration intervals for the x-axis
     iteration_intervals = range(eval_interval, num_iterations+eval_interval, eval_interval)
@@ -325,10 +325,10 @@ def train_agent():
     # saving the actions counts into file
     plot_actions_over_iteration_intervals(figure_file_left_action, 'Iteration Intervals', 'Action Counts',
                                           'Left Action Distribution Over Iteration Intervals', iteration_intervals,
-                                          label_iteration_intervals, left_action_counts)
+                                          label_iteration_intervals)
     plot_actions_over_iteration_intervals(figure_file_right_action, 'Iteration Intervals', 'Action Counts',
                                             'Right Action Distribution Over Iteration Intervals', iteration_intervals,
-                                            label_iteration_intervals, right_action_counts)
+                                            label_iteration_intervals)
 
     plot_actions_with_values_over_iteration_intervals(results_action_counts, results_action_values, 9)
     print(f"--- Execution took {(time.time() - start_time) / 3600} hours ---")
