@@ -10,7 +10,7 @@ class Config(object):
     swarm_size = 50
     num_episodes = 10
     num_swarm_obs_intervals = 10
-    swarm_obs_interval_length = 1000 # TODO: Change to 60
+    swarm_obs_interval_length = 60
 
     observation_length = 150
     num_actions = 5
@@ -52,8 +52,8 @@ class Config(object):
     dir_save = "saved_session/"
     restore = False
 
-    random_start = 10
-    test_step = 5000
+    # random_start = 10
+    # test_step = 5000
 
     # LEARNING PARAMETERS
     discount_factor = 0.01
@@ -103,6 +103,7 @@ class Config(object):
 
         if num_episodes is not None:
             self.num_episodes = num_episodes
+            self.trace_length = num_episodes if num_episodes < 20 else 20
 
         if num_swarm_obs_intervals is not None:
             self.num_swarm_obs_intervals = num_swarm_obs_intervals
