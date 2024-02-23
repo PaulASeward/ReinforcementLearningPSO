@@ -32,16 +32,14 @@ class DRQNModel(BaseModel):
     def predict(self, state):
         return self.model.predict(state)
 
-    def get_action(self, state):
-        state = np.reshape(state, [1, self.config.trace_length, self.config.observation_length])
+    def get_action_q_values(self, state):
+        q_value_array = self.predict(state)
+        return q_value_array[0]
 
+        # Could use policies here
         self.epsilon *= self.config.epsilon_decay
         self.epsilon = max(self.epsilon, self.config.epsilon_end)
 
-        q_value_array = self.predict(state)
-        q_value = q_value_array[0]
-
-        # Could use policies here
         if np.random.random() < self.epsilon:
             return np.random.randint(0, self.config.num_actions - 1)
 
@@ -58,5 +56,6 @@ class DRQNModel(BaseModel):
             grads = tape.gradient(loss, self.model.trainable_variables)
 
             self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+            loss = loss.numpy()
 
             return loss

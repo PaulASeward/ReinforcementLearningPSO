@@ -25,7 +25,7 @@ class ComputeDqnReturn(ComputeReturnStrategy):
 
             terminal = False
             while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
-                action = model.get_action(observation)
+                action = model.get_action_q_values(observation)
                 step_type, reward, discount, observation = env.step(action)
 
                 episode_return += reward.numpy()[0]
@@ -61,7 +61,8 @@ class ComputeDrqnReturn(ComputeReturnStrategy):
 
             terminal = False
             while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
-                action = model.get_action(states)
+                q_values = model.get_action_q_values(np.reshape(states, [1, model.config.trace_length, model.config.observation_length]))
+                action = np.argmax(q_values)
                 step_type, reward, discount, next_state = env.step(action)
 
                 episode_return += reward.numpy()[0]
