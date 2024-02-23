@@ -17,28 +17,27 @@ class DRQNAgent(BaseAgent):
         self.update_target()
         self.replay_buffer = ReplayBuffer()
 
-    def update_target(self):
-        weights = self.model.model.get_weights()
-        self.target_model.model.set_weights(weights)
-
-    def update_states(self, next_state):
-        self.states = np.roll(self.states, -1, axis=0)
-        self.states[-1] = next_state
-
-    def replay_experience(self, experience_length=10):
-        losses = []
-        for _ in range(experience_length):  # Why size 10?
-            states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
-            targets = self.target_model.predict(states)  # This is likely unnecessary as it ges rewritten
-
-            next_q_values = self.target_model.predict(next_states).max(axis=1)
-            targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
-
-            loss = self.model.train(states, targets)
-            loss = loss.numpy()
-            losses.append(loss)
-
-        return losses
+    # def update_target(self):
+    #     weights = self.model.model.get_weights()
+    #     self.target_model.model.set_weights(weights)
+    #
+    # def update_states(self, next_state):
+    #     self.states = np.roll(self.states, -1, axis=0)
+    #     self.states[-1] = next_state
+    #
+    # def replay_experience(self, experience_length=10):
+    #     losses = []
+    #     for _ in range(experience_length):  # Why size 10?
+    #         states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
+    #         targets = self.target_model.predict(states)
+    #
+    #         next_q_values = self.target_model.predict(next_states).max(axis=1)
+    #         targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
+    #
+    #         loss = self.model.train(states, targets)
+    #         losses.append(loss)
+    #
+    #     return losses
 
     def train(self):
         with self.writer.as_default():
@@ -52,7 +51,8 @@ class DRQNAgent(BaseAgent):
                 self.update_states(current_state.observation)  # Check states array update
 
                 while not done:
-                    action = self.model.get_action(self.states)
+                    q_values = self.model.get_action_q_values(np.reshape(self.states, [1, self.config.trace_length, self.config.observation_length]))
+                    action = self.policy.select_action(q_values)
                     step_type, reward, discount, next_state = self.env.step(action)
 
                     reward = reward.numpy()[0]
@@ -75,7 +75,7 @@ class DRQNAgent(BaseAgent):
                 self.update_target()  # target model gets updated AFTER episode, not during like the regular model.
 
                 results_logger.save_log_statements(step=ep+1, actions=actions, train_loss=losses)
-                print(f"Step #{ep+1} Reward:{episode_reward}")
+                print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")
                 # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
 

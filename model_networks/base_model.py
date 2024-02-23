@@ -17,6 +17,7 @@ class BaseModel:
 
         self.compute_loss = tf.keras.losses.MeanSquaredError()
         self.optimizer = None
+        self.model = None
 
         self.debug = not True
         self.sess = None
@@ -56,6 +57,13 @@ class BaseModel:
         self.optimizer = optimizer
 
         return optimizer
+
+    def predict(self, state):
+        return self.model.predict(state)
+
+    def get_action_q_values(self, state):
+        q_value_array = self.predict(state)
+        return q_value_array[0]
 
     # def initialize_session(self):
     #     print("Initializing tf session")

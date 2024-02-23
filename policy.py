@@ -1,49 +1,28 @@
 """RL Policy classes."""
 
 import numpy as np
-import tensorflow as tf
 
 
 class Policy:
-    """Base class representing an MDP policy.
-
+    """
     Policies are used by the agent to choose actions.
-
-    Policies are designed to be stacked to get interesting behaviors
-    of choices. For instances in a discrete action space the lowest
-    level policy may take in Q-Values and select the action index
-    corresponding to the largest value. If this policy is wrapped in
-    an epsilon greedy policy then with some probability epsilon, a
-    random action will be chosen.
     """
 
     def select_action(self, **kwargs):
-        """Used by agents to select actions. Return a random action index.
-
-        Action index in range [0, num_actions)
+        """Used by agents to select actions.
 
         Returns
         -------
         Action index in range [0, num_actions)
 
         """
-        raise NotImplementedError('This method should be overriden.')
+        raise NotImplementedError('This method should be override.')
 
 
 class UniformRandomPolicy(Policy):
     """
     Chooses a discrete action with uniform random probability.
-    This policy cannot contain others.
-
-    Parameters
-    ----------
-    num_actions: int  Number of actions to choose from. Must be > 0.
-
-    Raises
-    ------
-    ValueError:  If num_actions <= 0
     """
-
     def __init__(self, num_actions):
         assert num_actions >= 1
         self.num_actions = num_actions
@@ -51,16 +30,14 @@ class UniformRandomPolicy(Policy):
     def select_action(self, **kwargs):
         return np.random.randint(0, self.num_actions)
 
-    def get_config(self):  # noqa: D102
+    def get_config(self):
         return {'num_actions': self.num_actions}
 
 
 class GreedyPolicy(Policy):
-    """Always returns best action according to Q-values.
-
-    This is a pure exploitation policy.
+    """Always returns best action according to Q-values. This is a pure exploitation policy.
     """
-    def select_action(self, q_values, **kwargs):  # noqa: D102
+    def select_action(self, q_values, **kwargs):
         """
         Parameters
         ----------
@@ -71,7 +48,6 @@ class GreedyPolicy(Policy):
 
 class GreedyEpsilonPolicy(Policy):
     """Selects greedy action or with some probability a random action.
-
     Standard greedy-epsilon implementation. With probability epsilon
     choose a random action. Otherwise, choose the greedy action.
 
@@ -89,11 +65,11 @@ class GreedyEpsilonPolicy(Policy):
         ----------
         q_values: (array-like)   Array-like structure of floats representing the Q-values for each action.
         """
-        num_actions = q_values.shape[1]
+        num_actions = q_values.shape[0]
         if np.random.rand() < self.epsilon:
-            return UniformRandomPolicy(num_actions).select_action()
+            return np.random.randint(0, num_actions)
         else:
-            return GreedyPolicy().select_action(q_values)
+            return np.argmax(q_values)
 
 
 class LinearDecayGreedyEpsilonPolicy(Policy):
@@ -104,37 +80,91 @@ class LinearDecayGreedyEpsilonPolicy(Policy):
 
     Parameters
     ----------
-    start_value: int, float
-      The initial value of the parameter
-    end_value: int, float
-      The value of the policy at the end of the decay.
+    epsilon_start: int, float
+      The initial value at the start of the decay.
+    epsilon_end: int, float
+      The value of the policy at the end of the decay. Also the minimum value.
     num_steps: int
       The number of steps over which to decay the value.
 
     """
 
-    def __init__(self, start_value, end_value, num_steps):  # noqa: D102
-        self.start_value = start_value
-        self.decay_rate = float(end_value - start_value) / num_steps
-        self.end_value = end_value
+    def __init__(self, epsilon_start, epsilon_end, num_steps):
+        self.epsilon_start = epsilon_start
+        self.epsilon_end = epsilon_end
+
+        self.decay_rate = float(epsilon_end - epsilon_start) / num_steps
         self.step = 0
 
-    def select_action(self, q_values, is_training = True, **kwargs):
+    def select_action(self, q_values, **kwargs):
+        """Decay epsilon and select action.
+
+        Parameters
+        ----------
+        q_values: np.array
+          The Q-values for each action.
+        """
+        epsilon = self.epsilon_start
+        epsilon += self.decay_rate * self.step
+        epsilon = max(epsilon, self.epsilon_end)
+
+        self.step += 1
+        num_actions = q_values.shape[0]
+
+        if np.random.rand() < epsilon:
+            return np.random.randint(0, num_actions)
+        else:
+            return np.argmax(q_values)
+
+    def reset(self):
+        """Start the decay over at the start value."""
+        self.step = 0
+
+
+class ExponentialDecayGreedyEpsilonPolicy(Policy):
+    """ Policy with a parameter that decays exponentially.
+
+        Like GreedyEpsilonPolicy but the epsilon decays from a start value
+        to an end value over k steps.
+
+        Parameters
+        ----------
+        epsilon_start: int, float
+          The initial value of the parameter
+        epsilon_end: int, float
+          The value of the policy at the end of the decay.
+        num_steps: int
+          The number of steps over which to decay the value.
+
+        """
+
+    def __init__(self, epsilon_start, epsilon_end, num_steps):
+        self.current_epsilon = epsilon_start
+        self.epsilon_start = epsilon_start
+        self.epsilon_end = epsilon_end
+
+        self.decay_rate = 4 * float(epsilon_start - epsilon_end) / num_steps
+        self.step = 0
+
+    def select_action(self, q_values, **kwargs):
         """Decay parameter and select action.
 
         Parameters
         ----------
         q_values: np.array
           The Q-values for each action.
-        is_training: bool, optional
-          If true then parameter will be decayed. Defaults to true.
         """
-        epsilon = self.start_value
-        if is_training:
-            epsilon += self.decay_rate * self.step
-            self.step += 1
-        epsilon = max(epsilon, self.end_value)
-        return GreedyEpsilonPolicy(epsilon).select_action(q_values)
+
+        self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
+        epsilon = max(self.current_epsilon, self.epsilon_end)
+
+        self.step += 1
+        num_actions = q_values.shape[0]
+
+        if np.random.rand() < epsilon:
+            return np.random.randint(0, num_actions)
+        else:
+            return np.argmax(q_values)
 
     def reset(self):
         """Start the decay over at the start value."""

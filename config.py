@@ -35,9 +35,10 @@ class Config(object):
 
     # EPSILON GREEDY PARAMETERS
     epsilon_start = 1.0
-    epsilon_end = 0.02
-    epsilon_decay_episodes = 1000
-    epsilon_decay = float((epsilon_start - epsilon_end)) / float(epsilon_decay_episodes)
+    epsilon_end = 0.01
+    # epsilon_decay_episodes = 1000
+    # epsilon_decay = float((epsilon_start - epsilon_end)) / float(epsilon_decay_episodes)
+    epsilon_decay = 0.995
 
     # DQN TRAINING PARAMETERS
     batch_size = 64
@@ -96,6 +97,7 @@ class Config(object):
         self.label_iterations_intervals = None
         self.iteration_intervals = None
         self.iterations = None
+        self.policy = None
 
     def update_properties(self, network_type=None, func_num=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
