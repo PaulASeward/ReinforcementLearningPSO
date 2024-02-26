@@ -5,13 +5,13 @@ from __future__ import print_function
 import csv
 
 import numpy as np
-import pso_swarm as pso
+from environment.pso_swarm import PSOSwarm
 from tf_agents.environments import py_environment
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts
 from typing import Any
 from tf_agents.typing import types
-import functions
+import environment.functions as functions
 import os
 
 ACTION_DESCRIPTIONS = ['Do nothing', 'Reset slower half', 'Encourage social learning',
@@ -47,7 +47,7 @@ class PSOEnv(py_environment.PyEnvironment):
 
         obj_f = functions.CEC_functions(dimension, fun_num=func_num)
 
-        self.swarm = pso.PSOVectorSwarmGlobalLocal(
+        self.swarm = PSOSwarm(
             objective_function=obj_f,
             num_swarm_obs_intervals=num_swarm_obs_intervals,
             swarm_obs_interval_length=swarm_obs_interval_length,

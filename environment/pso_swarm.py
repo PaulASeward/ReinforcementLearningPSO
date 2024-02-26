@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class PSOVectorSwarmGlobalLocal:
+class PSOSwarm:
 
     def __init__(self, objective_function, num_swarm_obs_intervals, swarm_obs_interval_length, dimension=30, swarm_size=50, RangeF=100):
         # Store Function Evaluator and current evaluation column vector for each particle's best.

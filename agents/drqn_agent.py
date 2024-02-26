@@ -14,30 +14,8 @@ class DRQNAgent(BaseAgent):
         self.model = DRQNModel(config)
         self.target_model = DRQNModel(config)
 
-        self.update_target()
+        self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer()
-
-    # def update_target(self):
-    #     weights = self.model.model.get_weights()
-    #     self.target_model.model.set_weights(weights)
-    #
-    # def update_states(self, next_state):
-    #     self.states = np.roll(self.states, -1, axis=0)
-    #     self.states[-1] = next_state
-    #
-    # def replay_experience(self, experience_length=10):
-    #     losses = []
-    #     for _ in range(experience_length):  # Why size 10?
-    #         states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
-    #         targets = self.target_model.predict(states)
-    #
-    #         next_q_values = self.target_model.predict(next_states).max(axis=1)
-    #         targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
-    #
-    #         loss = self.model.train(states, targets)
-    #         losses.append(loss)
-    #
-    #     return losses
 
     def train(self):
         with self.writer.as_default():
@@ -72,7 +50,7 @@ class DRQNAgent(BaseAgent):
                 if self.replay_buffer.size() >= self.config.batch_size:
                     losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
 
-                self.update_target()  # target model gets updated AFTER episode, not during like the regular model.
+                self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
                 results_logger.save_log_statements(step=ep+1, actions=actions, train_loss=losses)
                 print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")
