@@ -2,10 +2,8 @@ import tensorflow as tf
 from tf_agents.environments import tf_py_environment
 import os
 from datetime import datetime
-from PSOEnv import PSOEnv
+from environment.pso_env import PSOEnv
 from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
-from tf_agents.specs import tensor_spec
-import numpy as np
 from policy import *
 
 class BaseAgent:
@@ -29,7 +27,7 @@ class BaseAgent:
     def set_policy(self, policy):
         self.policy = policy
 
-    def update_target(self):
+    def update_model_target_weights(self):
         weights = self.model.model.get_weights()
         self.target_model.model.set_weights(weights)
 
@@ -51,10 +49,6 @@ class BaseAgent:
             losses.append(loss)
 
         return losses
-
-    # def update_target_model_weights(self):
-    #     weights = self.model.model.get_weights()
-    #     self.target_model.model.set_weights(weights)
 
     def build_environment(self):
         minimum = self.config.fDeltas[self.config.func_num - 1]
@@ -84,18 +78,9 @@ class BaseAgent:
                 action_no = str(index+1)
                 print(f"Action #{action_no} Description: {description}")
 
-    # def replay_experience(self):
-    #     raise NotImplementedError
-    #
-    # def train(self):
-    #     raise NotImplementedError
-    #
-    # def update_target(self):
-    #     raise NotImplementedError
-
-    def build_plots(self):
-        plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration', self.config.eval_interval)
-        plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
-        plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
-        plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals)
-        plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, num_intervals=9, num_actions=self.config.num_actions)
+    # def build_plots(self):
+    #     plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration', self.config.eval_interval)
+    #     plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
+    #     plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
+    #     plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals)
+    #     plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, num_intervals=9, num_actions=self.config.num_actions)
