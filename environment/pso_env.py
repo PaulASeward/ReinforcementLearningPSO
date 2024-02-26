@@ -15,7 +15,7 @@ import environment.functions as functions
 import os
 
 ACTION_DESCRIPTIONS = ['Do nothing', 'Reset slower half', 'Encourage social learning',
-                                     'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best']
+                                     'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
 
 
 class PSOEnv(py_environment.PyEnvironment):
@@ -44,6 +44,7 @@ class PSOEnv(py_environment.PyEnvironment):
         self._episode_actions = []
         self._episode_values = []
         self._best_fitness = None
+        self.current_best_f = None
 
         obj_f = functions.CEC_functions(dimension, fun_num=func_num)
 
@@ -52,6 +53,17 @@ class PSOEnv(py_environment.PyEnvironment):
             num_swarm_obs_intervals=num_swarm_obs_intervals,
             swarm_obs_interval_length=swarm_obs_interval_length,
             dimension=dimension, swarm_size=swarm_size)
+
+        self.action_methods = {
+            0: lambda: None,  # Do nothing special
+            1: self.swarm.reset_slow_particles,  # Reset slower half
+            2: self.swarm.increase_social_factor,  # Encourage social learning
+            3: self.swarm.decrease_social_factor,  # Discourage social learning
+            4: self.swarm.reset_all_particles,  # Reset all particles. Maybe keep global leader?
+            5: self.swarm.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
+            6: self.swarm.decrease_gbest_replacement_threshold,  # Decrease Threshold for Replacement
+            7: self.swarm.increase_gbest_replacement_threshold  # Increase Threshold for Replacement
+        }
 
     def action_spec(self):
         return self._action_spec
@@ -93,53 +105,29 @@ class PSOEnv(py_environment.PyEnvironment):
             # Last action ended the episode, so we need to create a new episode:
             return self.reset()
 
-        # Make sure episodes don't go on forever.
         self._actions_count += 1
-
         if self._actions_count == self._max_episodes:
             self._episode_ended = True
 
-        # Implementation of the actions
-        if action == 0:  # Do nothing special
-            self.swarm.optimize()
-            self._observation = self.swarm.get_observation()
-            current_best_f = self.swarm.get_current_best_fitness()
-        elif action == 1:  # Reset slower half
-            self.swarm.reset_slow_particles()
-            self.swarm.optimize()
-            self._observation = self.swarm.get_observation()
-            current_best_f = self.swarm.get_current_best_fitness()
-        elif action == 2:  # Encourage social learning
-            self.swarm.increase_social_factor()
-            self.swarm.optimize()
-            self._observation = self.swarm.get_observation()
-            current_best_f = self.swarm.get_current_best_fitness()
-        elif action == 3:  # Discourage social learning
-            self.swarm.decrease_social_factor()
-            self.swarm.optimize()
-            self._observation = self.swarm.get_observation()
-            current_best_f = self.swarm.get_current_best_fitness()
-        elif action == 4:  # Reset all particles. Maybe keep global leader?
-            self.swarm.reset_all_particles()
-            self.swarm.optimize()
-            self._observation = self.swarm.get_observation()
-            current_best_f = self.swarm.get_current_best_fitness()
-        elif action == 5:  # Reset all particles. Keep global leader.
-            self.swarm.reset_all_particles_keep_global_best()
-            self.swarm.optimize()
-            self._observation = self.swarm.get_observation()
-            current_best_f = self.swarm.get_current_best_fitness()
+        # Implementation of the action
+        action_method = self.action_methods.get(action, lambda: None)
+        action_method()
+
+        # Execute common operations after action
+        self.swarm.optimize()
+        self._observation = self.swarm.get_observation()
+        self.current_best_f = self.swarm.get_current_best_fitness()
 
         self._episode_actions.append(action)
-        self._episode_values.append(self._minimum - current_best_f)
+        self._episode_values.append(self._minimum - self.current_best_f)
 
         if self._best_fitness is None:
-            reward = self._minimum - current_best_f
-            self._best_fitness = current_best_f
+            reward = self._minimum - self.current_best_f
+            self._best_fitness = self.current_best_f
         else:
-            reward = max(self._best_fitness - current_best_f, 0)  # no penalty in reward
-            # reward = self._minimum - current_best_f
-            self._best_fitness = min(self._best_fitness, current_best_f)
+            reward = max(self._best_fitness - self.current_best_f, 0)  # no penalty in reward
+            # reward = self._minimum - self.current_best_f
+            self._best_fitness = min(self._best_fitness, self.current_best_f)
 
         if self._episode_ended:
             self.store_episode_actions_to_csv(self._episode_actions, self._episode_values)
