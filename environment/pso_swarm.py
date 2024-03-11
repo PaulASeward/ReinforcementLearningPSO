@@ -15,10 +15,17 @@ class PSOSwarm:
         self.c_min = 0.88  # Min of 5 actions of decreasing 10%
         self.c_max = 2.41  # Max of 5 actions of increasing 10%
 
+        # Threshold Params
         self.gbest_replacement_threshold_min = 0.5
         self.gbest_replacement_threshold_max = 1.0
-        self.gbest_replacement_threshold = 1.0  # Threshold to replace pbest with gbest
+        self.gbest_replacement_threshold = 1.0
         self.gbest_replacement_threshold_decay = 0.95
+        self.num_clusters = 10
+
+        self.pbest_replacement_threshold_min = 0.5
+        self.pbest_replacement_threshold_max = 1.0
+        self.pbest_replacement_threshold = 1.0
+        self.pbest_replacement_threshold_decay = 0.95
 
         self.function = objective_function
         self.dimension = dimension
@@ -133,6 +140,7 @@ class PSOSwarm:
         self.c2 *= 1.10
         self.c2 = np.clip(self.c2, self.c_min, self.c_max)
 
+    # Threshold actions to promote exploration vs exploitation
     def decrease_gbest_replacement_threshold(self):
         self.gbest_replacement_threshold *= self.gbest_replacement_threshold_decay
         self.gbest_replacement_threshold = np.clip(self.gbest_replacement_threshold, self.gbest_replacement_threshold_min, self.gbest_replacement_threshold_max)
@@ -140,6 +148,15 @@ class PSOSwarm:
     def increase_gbest_replacement_threshold(self):
         self.gbest_replacement_threshold *= 1.10
         self.gbest_replacement_threshold = np.clip(self.gbest_replacement_threshold, self.gbest_replacement_threshold_min, self.gbest_replacement_threshold_max)
+
+    def decrease_pbest_replacement_threshold(self):
+        self.pbest_replacement_threshold *= self.pbest_replacement_threshold_decay
+        self.pbest_replacement_threshold = np.clip(self.pbest_replacement_threshold, self.pbest_replacement_threshold_min, self.pbest_replacement_threshold_max)
+
+    def increase_pbest_replacement_threshold(self):
+        self.pbest_replacement_threshold *= 1.10
+        self.pbest_replacement_threshold = np.clip(self.pbest_replacement_threshold, self.pbest_replacement_threshold_min, self.pbest_replacement_threshold_max)
+
 
     def eval(self, X):
         return self.function.Y_matrix(np.array(X).astype(float))
@@ -151,63 +168,30 @@ class PSOSwarm:
 
         # Update new velocity with old velocity*inertia plus component matrices
         self.V = self.w * self.V + social + cognitive
-
-        # Maintain velocity constraints
         self.V = np.clip(self.V, self.Vmin, self.Vmax)
-        return
 
     def update_position(self):
+        # Clamp position inside boundary and reflect them in case they are out of the boundary based on:
+        # S. Helwig, J. Branke, and S. Mostaghim, "Experimental Analysis of Bound Handling Techniques in Particle Swarm Optimization," IEEE TEC: 17(2), 2013, pp. 259-271
+
         self.X = self.X + self.V # Add velocity to current position
 
-        # Clamp position inside boundary and:
-        # Reflect them in case they are out of the boundary based on: S. Helwig, J. Branke, and
-        # S. Mostaghim, "Experimental Analysis of Bound Handling Techniques in Particle Swarm Optimization,"
-        # IEEE TEC: 17(2), 2013, pp. 259-271
-
-        # Identify positions outside the boundaries
+        # Identify positions outside the boundaries, and reflect the out-of-bounds positions
         out_of_bounds = np.logical_or(self.X < self.Xmin, self.X > self.Xmax)
-
-        # Reflect the out-of-bounds positions and set their velocities to zero
         self.X = np.where(out_of_bounds, np.sign(self.X) * 2 * self.Xmax - self.X, self.X)
-
-        # Update the positions and evaluate the new positions
-        self.V = np.where(out_of_bounds, 0, self.V)
+        self.V = np.where(out_of_bounds, 0, self.V)  # Out-of-bounds velocities are set to 0
 
         # Use function evaluation for each particle (vector) in Swarm to provide value for each position in X.
         self.val = self.eval(self.X)
 
-    def update_pbest(self):
-        improved_particles = self.val < self.pbest_val # Update each Particle's best position for each particle dimension
+    def update_pbest_with_elitist_selection(self):
+        improved_particles = self.val < self.pbest_val  # Update each Particle's best position for each particle index
         self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
         self.pbest_val = np.where(improved_particles, self.val, self.pbest_val)
 
         self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counter
 
-    def select_diverse_global_best(self):
-        # Number of clusters is arbitrarily set; adjust based on problem dimensionality or swarm size
-        num_clusters = min(self.swarm_size // 5, 10)
-
-        # Perform clustering based on particle positions
-        if self.swarm_size > num_clusters:
-            kmeans = KMeans(n_clusters=num_clusters, random_state=42).fit(self.P)
-            labels = kmeans.labels_
-        else:
-            labels = np.zeros(self.swarm_size)  # Fallback to no clustering if swarm is too small
-
-        # Calculate cluster fitness: average or best fitness in each cluster
-        cluster_fitness = np.array([self.pbest_val[labels == i].min() for i in range(num_clusters)])
-
-        # Select the cluster with the highest potential for exploration
-        # Here, potential is inversely related to the fitness; adjust the criterion as needed
-        selected_cluster = np.argmax(cluster_fitness)
-
-        # Update the global best with a particle from the selected cluster
-        candidates_indices = np.where(labels == selected_cluster)[0]
-        best_candidate_index = candidates_indices[np.argmin(self.pbest_val[candidates_indices])]
-        self.gbest_pos = self.P[best_candidate_index]
-        self.gbest_val = self.pbest_val[best_candidate_index]
-
-    def update_gbest(self):
+    def update_gbest_with_elitist_selection(self):
         self.gbest_pos = self.P[np.argmin(self.pbest_val)]
         self.gbest_val = np.min(self.pbest_val)
 
@@ -216,13 +200,13 @@ class PSOSwarm:
             for _ in range(self.swarm_obs_interval_length):
                 self.update_velocities(self.gbest_pos)  # Input global leader particle position
                 self.update_position()
-                self.update_pbest()
-                self.update_gbest()
+                self.update_pbest_with_elitist_selection()
+                self.update_gbest_with_elitist_selection()
 
             self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
             self.pbest_replacement_counts = np.zeros(self.swarm_size)
 
-    def diversely_optimize(self):
+    def optimize_with_stagnant_diversification_strategy(self):
         stagnation_counter = 0
         previous_gbest_val = np.inf
 
@@ -230,10 +214,10 @@ class PSOSwarm:
             for _ in range(self.swarm_obs_interval_length):
                 self.update_velocities(self.gbest_pos)  # Use global leader particle position
                 self.update_position()
-                self.update_pbest()
+                self.update_pbest_with_elitist_selection()
 
                 # Standard gbest update
-                self.update_gbest()
+                self.update_gbest_with_elitist_selection()
 
                 # Check for stagnation
                 if self.gbest_val < previous_gbest_val:
@@ -244,13 +228,43 @@ class PSOSwarm:
 
                 # If the swarm has stagnated, consider selecting a diverse global best
                 if stagnation_counter >= 10:  # Stagnation threshold, adjust as necessary
-                    self.select_diverse_global_best()
+                    self.update_gbest_with_non_elitist_selection()
                     stagnation_counter = 0  # Reset stagnation counter after diversification
 
             self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
             self.pbest_replacement_counts = np.zeros(self.swarm_size)
 
+    def update_pbest_with_non_elitist_selection(self):
+        pbest_change = (self.val - self.pbest_val) / np.abs(self.pbest_val)
+        improved_particles = pbest_change < 0
 
+        # Allow exploitative search, per standard for better solutions
+        self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
+        self.pbest_val = np.where(improved_particles, self.val, self.pbest_val)
+        self.pbest_replacement_counts += improved_particles
+
+        # Promote Exploratory Search allowing for non-elitist selection
+        non_elitist_improvements = np.logical_and(pbest_change >= 0, np.random.uniform(size=self.swarm_size) > self.pbest_replacement_threshold + pbest_change)
+        self.P = np.where(non_elitist_improvements[:, np.newaxis], self.X, self.P)
+        self.pbest_val = np.where(non_elitist_improvements, self.val, self.pbest_val)
+        self.pbest_replacement_counts += non_elitist_improvements
+
+    def update_gbest_with_non_elitist_selection(self):
+        # Perform clustering based on particle positions
+        kmeans = KMeans(n_clusters=self.num_clusters, random_state=42).fit(self.P)
+        labels = kmeans.labels_
+
+        # Calculate cluster fitness: average or best fitness in each cluster
+        cluster_fitness = np.array([self.pbest_val[labels == i].min() for i in range(self.num_clusters)])
+
+        # Select the cluster with the highest potential for exploration. Here, potential is inversely related to the fitness; adjust criterion as needed
+        selected_cluster = np.argmax(cluster_fitness)
+
+        # Update the global best with a particle from the selected cluster
+        candidates_indices = np.where(labels == selected_cluster)[0]
+        best_candidate_index = candidates_indices[np.argmin(self.pbest_val[candidates_indices])]
+        self.gbest_pos = self.P[best_candidate_index]
+        self.gbest_val = self.pbest_val[best_candidate_index]
 
 
 
