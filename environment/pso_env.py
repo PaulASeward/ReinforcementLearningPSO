@@ -114,7 +114,8 @@ class PSOEnv(py_environment.PyEnvironment):
             self._episode_ended = True
 
         # Implementation of the action
-        action_method = self.action_methods.get(action, lambda: None)
+        action_index = action.item()
+        action_method = self.action_methods.get(action_index, lambda: None)
         action_method()
 
         # Execute common operations after action

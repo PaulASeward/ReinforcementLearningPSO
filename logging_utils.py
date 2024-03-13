@@ -86,7 +86,6 @@ class ResultsLogger:
         self.env = env
         self.model = model
         self.logging_strategy: ComputeReturnStrategy = logging_strategy
-        self.plotter = PlotUtils(config)
 
         self.loss = []
         self.returns = []
