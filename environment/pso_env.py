@@ -14,8 +14,10 @@ from tf_agents.typing import types
 import environment.functions as functions
 import os
 
-ACTION_DESCRIPTIONS = ['Do nothing', 'Reset slower half', 'Encourage social learning',
-                                     'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
+# ACTION_DESCRIPTIONS = ['Do nothing', 'Reset slower half', 'Encourage social learning',
+#                                      'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
+
+ACTION_DESCRIPTIONS = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
 
 
 class PSOEnv(py_environment.PyEnvironment):
@@ -55,15 +57,21 @@ class PSOEnv(py_environment.PyEnvironment):
             dimension=dimension, swarm_size=swarm_size)
 
         self.action_methods = {
-            0: lambda: None,  # Do nothing special
-            1: self.swarm.reset_slow_particles,  # Reset slower half
-            2: self.swarm.increase_social_factor,  # Encourage social learning
-            3: self.swarm.decrease_social_factor,  # Discourage social learning
-            4: self.swarm.reset_all_particles,  # Reset all particles. Maybe keep global leader?
-            5: self.swarm.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
-            6: self.swarm.decrease_gbest_replacement_threshold,  # Decrease Threshold for Replacement
-            7: self.swarm.increase_gbest_replacement_threshold  # Increase Threshold for Replacement
+            0: lambda: None,
+            6: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
+            7: self.swarm.increase_pbest_replacement_threshold  # Increase Threshold for Replacement
         }
+
+        # self.action_methods = {
+        #     0: lambda: None,  # Do nothing special
+        #     1: self.swarm.reset_slow_particles,  # Reset slower half
+        #     2: self.swarm.increase_social_factor,  # Encourage social learning
+        #     3: self.swarm.decrease_social_factor,  # Discourage social learning
+        #     4: self.swarm.reset_all_particles,  # Reset all particles. Maybe keep global leader?
+        #     5: self.swarm.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
+        #     6: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
+        #     7: self.swarm.increase_pbest_replacement_threshold  # Increase Threshold for Replacement
+        # }
 
     def action_spec(self):
         return self._action_spec
