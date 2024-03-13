@@ -109,7 +109,7 @@ class ParticleSwarmOptimizer:
             for j, p in enumerate(self.swarm):
                 p.update_velocities(lbest[j]) # the lbest for each particle is the leader.
                 p.update_position()
-                p.update_pbest()
+                p.update_pbest_with_elitist_selection()
 
             # updating lbest
             lbest = []

@@ -1,5 +1,0 @@
-numpy
-tensorflow
-tf-agents
-matplotlib
-dm-reverb
