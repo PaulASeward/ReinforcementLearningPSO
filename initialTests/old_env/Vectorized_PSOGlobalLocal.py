@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.cluster import KMeans
 
 
 class PSOVectorSwarmGlobalLocal:
@@ -182,5 +183,63 @@ class PSOVectorSwarmGlobalLocal:
 
 
 
+    def optimize_with_stagnant_diversification_strategy(self):
+        stagnation_counter = 0
+        previous_gbest_val = np.inf
 
+        for obs_interval_idx in range(self.num_swarm_obs_intervals):
+            for _ in range(self.swarm_obs_interval_length):
+                self.update_velocities(self.gbest_pos)  # Use global leader particle position
+                self.update_position()
+                self.update_pbest_with_elitist_selection()
+
+                # Standard gbest update
+                self.update_gbest_with_elitist_selection()
+
+                # Check for stagnation
+                if self.gbest_val < previous_gbest_val:
+                    previous_gbest_val = self.gbest_val
+                    stagnation_counter = 0
+                else:
+                    stagnation_counter += 1
+
+                # If the swarm has stagnated, consider selecting a diverse global best
+                if stagnation_counter >= 10:  # Stagnation threshold, adjust as necessary
+                    self.update_gbest_with_non_elitist_selection()
+                    stagnation_counter = 0  # Reset stagnation counter after diversification
+
+            self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
+            self.pbest_replacement_counts = np.zeros(self.swarm_size)
+
+    def update_pbest_with_non_elitist_selection(self):
+        pbest_change = (self.val - self.pbest_val) / np.abs(self.pbest_val)
+        improved_particles = pbest_change < 0
+
+        # Allow exploitative search, per standard for better solutions
+        self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
+        self.pbest_val = np.where(improved_particles, self.val, self.pbest_val)
+        self.pbest_replacement_counts += improved_particles
+
+        # Promote Exploratory Search allowing for non-elitist selection
+        non_elitist_improvements = np.logical_and(pbest_change >= 0, np.random.uniform(size=self.swarm_size) > self.pbest_replacement_threshold + pbest_change)
+        self.P = np.where(non_elitist_improvements[:, np.newaxis], self.X, self.P)
+        self.pbest_val = np.where(non_elitist_improvements, self.val, self.pbest_val)
+        self.pbest_replacement_counts += non_elitist_improvements
+
+    def update_gbest_with_non_elitist_selection(self):
+        # Perform clustering based on particle positions
+        kmeans = KMeans(n_clusters=self.num_clusters, random_state=42).fit(self.P)
+        labels = kmeans.labels_
+
+        # Calculate cluster fitness: average or best fitness in each cluster
+        cluster_fitness = np.array([self.pbest_val[labels == i].min() for i in range(self.num_clusters)])
+
+        # Select the cluster with the highest potential for exploration. Here, potential is inversely related to the fitness; adjust criterion as needed
+        selected_cluster = np.argmax(cluster_fitness)
+
+        # Update the global best with a particle from the selected cluster
+        candidates_indices = np.where(labels == selected_cluster)[0]
+        best_candidate_index = candidates_indices[np.argmin(self.pbest_val[candidates_indices])]
+        self.gbest_pos = self.P[best_candidate_index]
+        self.gbest_val = self.pbest_val[best_candidate_index]
 
