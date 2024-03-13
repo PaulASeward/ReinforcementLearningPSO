@@ -16,8 +16,6 @@ import os
 
 
 class PSOEnv(py_environment.PyEnvironment):
-    # def __init__(self, func_num, minimum, actions_filename, values_filename, num_actions=5, max_episodes=10,
-    #              num_swarm_obs_intervals=10, swarm_obs_interval_length=60, swarm_size=50, dimension=30):
     def __init__(self, config):
         super().__init__()
         self._func_num = config.func_num
@@ -46,7 +44,7 @@ class PSOEnv(py_environment.PyEnvironment):
         self._best_fitness = None
         self.current_best_f = None
 
-        obj_f = functions.CEC_functions(config.dim, fun_num=config.func_num)
+        obj_f = functions.CEC_functions(dim=config.dim, fun_num=config.func_num)
 
         self.swarm = PSOSwarm(
             objective_function=obj_f,
