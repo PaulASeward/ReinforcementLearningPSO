@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.cluster import KMeans
+
 
 class PSOSwarm:
 
@@ -157,7 +157,6 @@ class PSOSwarm:
         self.pbest_replacement_threshold *= 1.10
         self.pbest_replacement_threshold = np.clip(self.pbest_replacement_threshold, self.pbest_replacement_threshold_min, self.pbest_replacement_threshold_max)
 
-
     def eval(self, X):
         return self.function.Y_matrix(np.array(X).astype(float))
 
@@ -201,7 +200,7 @@ class PSOSwarm:
                 self.update_velocities(self.gbest_pos)  # Input global leader particle position
                 self.update_position()
                 # self.update_pbest_with_elitist_selection()
-                self.update_pbest_with_non_elitist_selection()
+                self.update_pbest_with_non_elitist_selection_random()
                 self.update_gbest_with_elitist_selection()
 
             self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
