@@ -21,25 +21,28 @@ ACTION_DESCRIPTIONS = ['Do nothing', 'Decrease Threshold for Replacement', 'Incr
 
 
 class PSOEnv(py_environment.PyEnvironment):
-    def __init__(self, func_num, minimum, actions_filename, values_filename, num_actions=5, max_episodes=10,
-                 num_swarm_obs_intervals=10, swarm_obs_interval_length=60, swarm_size=50, dimension=30):
+    # def __init__(self, func_num, minimum, actions_filename, values_filename, num_actions=5, max_episodes=10,
+    #              num_swarm_obs_intervals=10, swarm_obs_interval_length=60, swarm_size=50, dimension=30):
+    def __init__(self, config):
         super().__init__()
-        self._func_num = func_num
-        self._minimum = minimum
-        self.actions_filename = actions_filename
-        self.values_filename = values_filename
+        self._func_num = config.func_num
+        self._num_actions = config.num_actions
+        self.actions_descriptions = config.action_names[:self._num_actions]
 
-        self._max_episodes = max_episodes
-        self._num_swarm_obs_intervals = num_swarm_obs_intervals
-        self._swarm_obs_interval_length = swarm_obs_interval_length
-        self._swarm_size = swarm_size
-        self._dim = dimension
+        self._minimum = config.fDeltas[config.func_num - 1]
+        self.actions_filename = config.env_action_counts
+        self.values_filename = config.env_action_values
 
-        self._observ_size = swarm_size * 3  # [0-49]: Velocities, [50-99]: Relative Fitness, [100-149]: Average Replacement Rate
-        self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=num_actions-1, name='action')
+        self._max_episodes = config.num_episodes
+        self._num_swarm_obs_intervals = config.num_swarm_obs_intervals
+        self._swarm_obs_interval_length = config.swarm_obs_interval_length
+        self._swarm_size = config.swarm_size
+        self._dim = config.dim
+
+        self._observ_size = config.swarm_size * 3  # [0-49]: Velocities, [50-99]: Relative Fitness, [100-149]: Average Replacement Rate
+        self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=config.num_actions-1, name='action')
         self._observation_spec = array_spec.BoundedArraySpec(shape=(self._observ_size,), dtype=np.float64,
                                                              name='observation')
-        self.actions_descriptions = ACTION_DESCRIPTIONS[:num_actions]
 
         self._actions_count = 0
         self._episode_ended = False
@@ -48,18 +51,18 @@ class PSOEnv(py_environment.PyEnvironment):
         self._best_fitness = None
         self.current_best_f = None
 
-        obj_f = functions.CEC_functions(dimension, fun_num=func_num)
+        obj_f = functions.CEC_functions(config.dim, fun_num=config.func_num)
 
         self.swarm = PSOSwarm(
             objective_function=obj_f,
-            num_swarm_obs_intervals=num_swarm_obs_intervals,
-            swarm_obs_interval_length=swarm_obs_interval_length,
-            dimension=dimension, swarm_size=swarm_size)
+            num_swarm_obs_intervals=config.num_swarm_obs_intervals,
+            swarm_obs_interval_length=config.swarm_obs_interval_length,
+            dimension=config.dim, swarm_size=config.swarm_size)
 
         self.action_methods = {
             0: lambda: None,
-            6: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
-            7: self.swarm.increase_pbest_replacement_threshold  # Increase Threshold for Replacement
+            1: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
+            2: self.swarm.increase_pbest_replacement_threshold  # Increase Threshold for Replacement
         }
 
         # self.action_methods = {
