@@ -6,6 +6,7 @@ from environment.pso_env import PSOEnv
 from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 from policy import *
 
+
 class BaseAgent:
     def __init__(self, config):
         self.replay_buffer = None
@@ -51,23 +52,10 @@ class BaseAgent:
         return losses
 
     def build_environment(self):
-        minimum = self.config.fDeltas[self.config.func_num - 1]
-        environment = PSOEnv(self.config.func_num,
-                             minimum=minimum,
-                             actions_filename=self.config.env_action_counts,
-                             values_filename=self.config.env_action_values,
-                             num_actions=self.config.num_actions,
-                             max_episodes=self.config.num_episodes,
-                             num_swarm_obs_intervals=self.config.num_swarm_obs_intervals,
-                             swarm_obs_interval_length=self.config.swarm_obs_interval_length,
-                             swarm_size=self.config.swarm_size,
-                             dimension=self.config.dim)
+        self.raw_env = PSOEnv(self.config)  # Raw environment
+        self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
 
-        self.raw_env = environment
-        train_environment = tf_py_environment.TFPyEnvironment(environment)
-        self.env = train_environment
-
-        return train_environment
+        return self.env
 
     def get_actions(self):
         print(f"num_actions: {self.config.num_actions}")
