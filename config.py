@@ -14,6 +14,9 @@ class Config(object):
 
     observation_length = 150
     num_actions = 5
+    action_names = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
+
+    # action_names = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
 
     train_steps = 20000
     log_interval = 200
@@ -99,9 +102,12 @@ class Config(object):
         self.iterations = None
         self.policy = None
 
-    def update_properties(self, network_type=None, func_num=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
+    def update_properties(self, network_type=None, func_num=None, num_actions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
+
+        if num_actions is not None:
+            self.num_actions = num_actions
 
         if num_episodes is not None:
             self.num_episodes = num_episodes

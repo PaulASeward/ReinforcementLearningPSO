@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import os
 import csv
-from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
+from plot_utils import *
 
 
 class ComputeReturnStrategy(ABC):
@@ -86,6 +86,7 @@ class ResultsLogger:
         self.env = env
         self.model = model
         self.logging_strategy: ComputeReturnStrategy = logging_strategy
+        self.plotter = PlotUtils(config)
 
         self.loss = []
         self.returns = []
@@ -130,8 +131,8 @@ class ResultsLogger:
         plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration', self.config.eval_interval)
         plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
         plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
-        plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals)
-        plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, num_intervals=9, num_actions=self.config.num_actions)
+        plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.config.action_names)
+        plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, num_actions=self.config.num_actions, action_names=self.config.action_names)
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
 
     def get_returns(self):
