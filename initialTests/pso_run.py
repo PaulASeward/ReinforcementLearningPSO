@@ -14,10 +14,10 @@ def run_experiment(runs, dimensions, evals_per_dim, swarm_size, global_topology,
     topology_label = 'Global' if global_topology else 'Local'
     comp_label = 'Vectorized' if vectorized else 'Iterative'
 
-    # Save run results to a CSV file
+    # Save run f19_drqn_10_10_60_results to a CSV file
     with open(f'{topology_label}{comp_label}runresults.csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['Function Number', 'Run Number', 'Error', 'Time'])  # Header for run results
+        writer.writerow(['Function Number', 'Run Number', 'Error', 'Time'])  # Header for run f19_drqn_10_10_60_results
 
     with open(f'{topology_label}{comp_label}functionresults.csv', 'w', newline='') as file:
         writer = csv.writer(file)
