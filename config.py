@@ -14,9 +14,8 @@ class Config(object):
 
     observation_length = 150
     num_actions = 5
-    action_names = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
-
-    # action_names = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
+    # action_names = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
+    action_names = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
 
     train_steps = 20000
     log_interval = 200
