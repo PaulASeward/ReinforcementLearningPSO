@@ -21,6 +21,17 @@ def plot_actions_over_iteration_intervals(file_name, x_label, y_label, title, it
     action_counts = np.genfromtxt(file_name, delimiter=',')
     output_file_name = os.path.splitext(file_name)[0] + '_plot.png'
     num_actions = action_counts.shape[1]
+    print("Number of Actions Being Plotted: ", num_actions)
+    print("Number of Iteration Intervals: ", len(iteration_intervals))
+    print("Number of Labels for Iteration Intervals: ", len(label_iteration_intervals))
+    print("Number of Action Counts Rows: ", action_counts.shape[0])
+
+    if len(iteration_intervals) != action_counts.shape[0]:
+        print(f"Warning: Mismatch between iteration intervals ({len(iteration_intervals)}) and action counts rows ({action_counts.shape[0]}). Adjusting to the minimum size.")
+        min_length = min(len(iteration_intervals), action_counts.shape[0])
+        iteration_intervals = iteration_intervals[:min_length]
+        action_counts = action_counts[:min_length, :]
+        label_iteration_intervals = label_iteration_intervals[:min_length]
 
     # Create a bar plot for each action
     bar_width = 0.8 * (iteration_intervals[1] - iteration_intervals[0])
