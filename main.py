@@ -16,8 +16,8 @@ class Main:
         self.agent.get_actions()
         self.agent.train()
 
-    # def plot(self):
-    #     self.agent.build_plots()
+    def plot(self):
+        self.agent.build_plots()
 
     # def evaluate(self, num_episodes, checkpoint_dir):
     #     self.agent.play(num_episodes, checkpoint_dir)
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     parser.add_argument("--network_type", type=str, default="DRQN", help="Type of the network to build, can either be 'DQN' or 'DRQN'")
     parser.add_argument("--algorithm", type=str, default="PSO", help="The metaheuristic algorithm to use. Currently only pso is supported")
     parser.add_argument("--func_num", type=int, default=19, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
-    parser.add_argument("--num_actions", type=int, default=3, help="The number of actions to choose from in the action space. Default is 5.")
+    parser.add_argument("--num_actions", type=int, default=6, help="The number of actions to choose from in the action space. Default is 5.")
     parser.add_argument("--num_episodes", type=int, default=20, help="The number of episodes in each Reinforcement Learning Iterations before terminating.")
     parser.add_argument("--num_swarm_obs_intervals", type=int, default=10, help="The number of swarm observation intervals. Ex) At 10 evenly spaced observation intervals, observations in the swarm will be collected.")
     parser.add_argument("--swarm_obs_interval_length", type=int, default=30, help="The number of observations per episode conducted in the swarm. Ex) Particle Best Replacement Counts are averaged over the last 60 observations before an episode terminates and action is decided.")
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     assert args.network_type in ["DQN", "DRQN"], "Please specify a network_type of either DQN or DRQN"
     assert args.func_num in list(range(1, 29)), "Please specify a func_num from 1-28"
 
-    config.update_properties(network_type=args.network_type, func_num=args.func_num, num_episodes=args.num_episodes, num_swarm_obs_intervals=args.num_swarm_obs_intervals, swarm_obs_interval_length=args.swarm_obs_interval_length, train_steps=args.steps)
+    config.update_properties(network_type=args.network_type, func_num=args.func_num, num_actions=args.num_actions, num_episodes=args.num_episodes, num_swarm_obs_intervals=args.num_swarm_obs_intervals, swarm_obs_interval_length=args.swarm_obs_interval_length, train_steps=args.steps)
     config.train = args.train
 
     print("==== Experiment: ", config.experiment)
@@ -80,7 +80,7 @@ if __name__ == "__main__":
         main.train()
     else:
         print("Making Plots")
-        # main.plot()
+        main.plot()
         # print(">> Evaluation mode. Number of Episodes to Evaluate:", config.train_steps)
         # main.evaluate(config.number_evaluations, config.checkpoint_dir)
 

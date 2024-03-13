@@ -4,8 +4,6 @@ from matplotlib.patches import Patch
 import os
 import tensorflow as tf
 
-action_names = ['Do Nothing', 'Reset Slower Half', 'Encourage Social Learning', 'Discourage Social Learning', 'Reset All', 'Reset All and Keep Global Best']
-
 
 def plot_data_over_iterations(file_name, y_label, x_label, iteration_interval_scale):
     y_data = np.genfromtxt(file_name, delimiter=',')
@@ -19,7 +17,7 @@ def plot_data_over_iterations(file_name, y_label, x_label, iteration_interval_sc
     plt.close()
 
 
-def plot_actions_over_iteration_intervals(file_name, x_label, y_label, title, iteration_intervals, label_iteration_intervals):
+def plot_actions_over_iteration_intervals(file_name, x_label, y_label, title, iteration_intervals, label_iteration_intervals, action_names):
     action_counts = np.genfromtxt(file_name, delimiter=',')
     output_file_name = os.path.splitext(file_name)[0] + '_plot.png'
     num_actions = action_counts.shape[1]
@@ -42,7 +40,7 @@ def plot_actions_over_iteration_intervals(file_name, x_label, y_label, title, it
     plt.close()
 
 
-def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_file_values, num_intervals, num_actions=5):
+def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_file_values, num_actions, action_names, num_intervals=9):
     output_file_name = os.path.splitext(input_file_actions)[0] + '.png'
     action_counts = np.genfromtxt(input_file_actions, delimiter=',')
     action_values = np.genfromtxt(input_file_values, delimiter=',')
