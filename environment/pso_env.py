@@ -14,11 +14,6 @@ from tf_agents.typing import types
 import environment.functions as functions
 import os
 
-# ACTION_DESCRIPTIONS = ['Do nothing', 'Reset slower half', 'Encourage social learning',
-#                                      'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
-
-ACTION_DESCRIPTIONS = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
-
 
 class PSOEnv(py_environment.PyEnvironment):
     # def __init__(self, func_num, minimum, actions_filename, values_filename, num_actions=5, max_episodes=10,
