@@ -44,10 +44,6 @@ class DQNAgent(BaseAgent):
                     observation = next_observation
                     episode_reward += reward
 
-                # # Mock Data:
-                # actions = [0,1,2,3,4,0,1,2,3,4]
-                # losses = [1,2,3,4,5,6,7,8,9,10]
-
                 losses = None
                 if self.replay_buffer.size() >= self.config.batch_size:
                     losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
