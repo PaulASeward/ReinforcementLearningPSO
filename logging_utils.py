@@ -5,9 +5,12 @@ import numpy as np
 import os
 import csv
 from plot_utils import *
-
+from policy import *
 
 class ComputeReturnStrategy(ABC):
+    def __init__(self):
+        self.policy = GreedyPolicy()
+
     @abstractmethod
     def compute_average_return(self, env, model, num_episodes):
         pass
@@ -24,8 +27,10 @@ class ComputeDqnReturn(ComputeReturnStrategy):
             episode_return = 0.0
 
             terminal = False
-            while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
-                action = model.get_action_q_values(observation)
+            while not terminal:
+                # action = model.get_action_q_values(observation)
+                q_values = model.get_action_q_values(observation)
+                action = self.policy.select_action(q_values)
                 step_type, reward, discount, observation = env.step(action)
 
                 episode_return += reward.numpy()[0]
@@ -62,7 +67,7 @@ class ComputeDrqnReturn(ComputeReturnStrategy):
             terminal = False
             while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
                 q_values = model.get_action_q_values(np.reshape(states, [1, model.config.trace_length, model.config.observation_length]))
-                action = np.argmax(q_values)
+                action = self.policy.select_action(q_values)
                 step_type, reward, discount, next_state = env.step(action)
 
                 episode_return += reward.numpy()[0]
