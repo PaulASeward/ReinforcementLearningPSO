@@ -4,7 +4,7 @@ import os
 class Config(object):
     network_type = "DQN"
     algorithm = "PSO"
-    use_mock_data = True
+    use_mock_data = False
 
     # PSO PARAMETERS
     dim = 30
