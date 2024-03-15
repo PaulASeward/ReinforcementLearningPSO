@@ -94,9 +94,11 @@ class ResultsLogger:
         self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.num_actions), dtype=np.int32)
         self.eval_interval_count = 0
 
-    def save_log_statements(self, step, actions, train_loss=None):
+    def save_log_statements(self, step, actions, rewards, train_loss=None):
         for action in actions:
             self.action_counts[self.eval_interval_count, action] += 1
+
+        self.store_episode_actions_to_csv(actions, rewards)
 
         if step % self.config.log_interval == 0:
             if train_loss is None:
@@ -125,6 +127,13 @@ class ResultsLogger:
             # saving the results into a TEXT file
             np.savetxt(self.config.average_returns_path, self.returns, delimiter=", ", fmt='% s')
             np.savetxt(self.config.fitness_path, self.fitness, delimiter=", ", fmt='% s')
+
+    def store_episode_actions_to_csv(self, actions_row, values_row):
+        with open(self.config.env_action_counts, mode='a', newline='') as csv_file:
+            csv.writer(csv_file).writerow(actions_row)
+
+        with open(self.config.env_action_values, mode='a', newline='') as csv_file:
+            csv.writer(csv_file).writerow(values_row)
 
     def plot_log_statements(self):
         plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration', self.config.eval_interval)

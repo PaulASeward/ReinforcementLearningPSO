@@ -23,8 +23,6 @@ class PSOEnv(py_environment.PyEnvironment):
         self.actions_descriptions = config.action_names[:self._num_actions]
 
         self._minimum = config.fDeltas[config.func_num - 1]
-        self.actions_filename = config.env_action_counts
-        self.values_filename = config.env_action_values
 
         self._max_episodes = config.num_episodes
         self._num_swarm_obs_intervals = config.num_swarm_obs_intervals
@@ -82,8 +80,6 @@ class PSOEnv(py_environment.PyEnvironment):
         """
         self._actions_count = 0
         self._episode_ended = False
-        self._episode_actions = []
-        self._episode_values = []
         self._best_fitness = None
 
         # Restart the swarm with initializing criteria
@@ -123,9 +119,6 @@ class PSOEnv(py_environment.PyEnvironment):
         self._observation = self.swarm.get_observation()
         self.current_best_f = self.swarm.get_current_best_fitness()
 
-        self._episode_actions.append(action)
-        self._episode_values.append(self._minimum - self.current_best_f)
-
         if self._best_fitness is None:
             reward = self._minimum - self.current_best_f
             self._best_fitness = self.current_best_f
@@ -135,18 +128,11 @@ class PSOEnv(py_environment.PyEnvironment):
             self._best_fitness = min(self._best_fitness, self.current_best_f)
 
         if self._episode_ended:
-            self.store_episode_actions_to_csv(self._episode_actions, self._episode_values)
             return ts.termination(self._observation, reward)
         else:
             return ts.transition(self._observation, reward, discount=1.0)
 
     #   returns: TimeStep(step_type, reward, discount, observation)
-    def store_episode_actions_to_csv(self, actions_row, values_row):
-        with open(self.actions_filename, mode='a', newline='') as csv_file:
-            csv.writer(csv_file).writerow(actions_row)
-
-        with open(self.values_filename, mode='a', newline='') as csv_file:
-            csv.writer(csv_file).writerow(values_row)
 
     # supposedly not needed
     def get_info(self) -> types.NestedArray:
