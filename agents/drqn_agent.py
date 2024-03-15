@@ -21,20 +21,20 @@ class DRQNAgent(BaseAgent):
         with self.writer.as_default():
             results_logger = ResultsLogger(self.config, self.env, self.model, ComputeDrqnReturn())
             for ep in range(self.config.train_steps):
-                done, episode_reward = False, 0
+                terminal, episode_reward = False, 0
                 actions, rewards = [], []
 
                 self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
                 current_state = self.env.reset()
                 self.update_states(current_state.observation)  # Check states array update
 
-                while not done:
+                while not terminal:
                     q_values = self.model.get_action_q_values(np.reshape(self.states, [1, self.config.trace_length, self.config.observation_length]))
                     action = self.policy.select_action(q_values)
                     step_type, reward, discount, next_state = self.env.step(action)
 
                     reward = reward.numpy()[0]
-                    done = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
+                    terminal = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
 
                     actions.append(action)
                     rewards.append(reward)
@@ -42,7 +42,7 @@ class DRQNAgent(BaseAgent):
 
                     self.update_states(next_state)  # Updates the states array removing oldest when adding newest for sliding window
 
-                    self.replay_buffer.add([prev_states, action, reward * self.config.discount_factor, self.states, done])
+                    self.replay_buffer.add([prev_states, action, reward * self.config.discount_factor, self.states, terminal])
 
                     episode_reward += reward
 

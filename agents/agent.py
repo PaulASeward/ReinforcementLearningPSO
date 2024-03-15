@@ -44,8 +44,7 @@ class BaseAgent:
             targets = self.target_model.predict(states)
 
             next_q_values = self.target_model.predict(next_states).max(axis=1)
-            targets[range(self.config.batch_size), actions] = (
-                        rewards + (1 - done) * next_q_values * self.config.gamma)
+            targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
 
             loss = self.model.train(states, targets)
             losses.append(loss)
