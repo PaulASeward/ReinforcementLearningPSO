@@ -21,7 +21,7 @@ class DRQNAgent(BaseAgent):
         with self.writer.as_default():
             results_logger = ResultsLogger(self.config, self.env, self.model, ComputeDrqnReturn())
             for ep in range(self.config.train_steps):
-                done, episode_reward, actions = False, 0, []
+                done, episode_reward = False, 0
                 actions, rewards = [], []
 
                 self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
@@ -52,7 +52,7 @@ class DRQNAgent(BaseAgent):
 
                 self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
-                results_logger.save_log_statements(step=ep+1, actions=actions, train_loss=losses)
+                results_logger.save_log_statements(step=ep+1, actions=actions, rewards=rewards, train_loss=losses)
                 print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")
                 # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
