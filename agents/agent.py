@@ -2,6 +2,7 @@ import tensorflow as tf
 from tf_agents.environments import tf_py_environment
 import os
 from datetime import datetime
+from environment.MockPSOEnv import MockPSOEnv
 from environment.pso_env import PSOEnv
 from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 from policy import *
@@ -52,7 +53,10 @@ class BaseAgent:
         return losses
 
     def build_environment(self):
-        self.raw_env = PSOEnv(self.config)  # Raw environment
+        if self.config.use_mock_data:
+            self.raw_env = MockPSOEnv(self.config)
+        else:
+            self.raw_env = PSOEnv(self.config)  # Raw environment
         self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
 
         return self.env
