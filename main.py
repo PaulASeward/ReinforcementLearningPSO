@@ -25,7 +25,7 @@ class Main:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run DQN Agent on PSO Algorithm")
-    parser.add_argument("--network_type", type=str, default="DRQN", help="Type of the network to build, can either be 'DQN' or 'DRQN'")
+    parser.add_argument("--network_type", type=str, default="DQN", help="Type of the network to build, can either be 'DQN' or 'DRQN'")
     parser.add_argument("--algorithm", type=str, default="PSO", help="The metaheuristic algorithm to use. Currently only pso is supported")
     parser.add_argument("--func_num", type=int, default=6, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
     parser.add_argument("--num_actions", type=int, default=3, help="The number of actions to choose from in the action space. Default is 3.")

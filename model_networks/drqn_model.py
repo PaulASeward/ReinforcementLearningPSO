@@ -29,21 +29,21 @@ class DRQNModel(BaseModel):
             ]
         )
 
-    def predict(self, state):
-        return self.model.predict(state)
-
-    def get_action_q_values(self, state):
-        q_value_array = self.predict(state)
-        return q_value_array[0]
-
-        # Could use policies here
-        self.epsilon *= self.config.epsilon_decay
-        self.epsilon = max(self.epsilon, self.config.epsilon_end)
-
-        if np.random.random() < self.epsilon:
-            return np.random.randint(0, self.config.num_actions - 1)
-
-        return np.argmax(q_value)
+    # def predict(self, state):
+    #     return self.model.predict(state)
+    #
+    # def get_action_q_values(self, state):
+    #     q_value_array = self.predict(state)
+    #     return q_value_array[0]
+    #
+    #     # Could use policies here
+    #     self.epsilon *= self.config.epsilon_decay
+    #     self.epsilon = max(self.epsilon, self.config.epsilon_end)
+    #
+    #     if np.random.random() < self.epsilon:
+    #         return np.random.randint(0, self.config.num_actions - 1)
+    #
+    #     return np.argmax(q_value)
 
     def train(self, states, targets):
         targets = tf.stop_gradient(targets)
