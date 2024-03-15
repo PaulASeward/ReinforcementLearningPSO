@@ -29,6 +29,7 @@ class MockPSOEnv(py_environment.PyEnvironment):
         self._max_episodes = config.num_episodes
         self._episode_ended = False
         self._actions_count = 0
+        self._best_fitness = None
 
     def action_spec(self):
         return self._action_spec
@@ -39,6 +40,7 @@ class MockPSOEnv(py_environment.PyEnvironment):
     def _reset(self):
         self._episode_ended = False
         self._actions_count = 0
+        self._best_fitness = None
         # Generate a random initial observation
         initial_observation = np.random.rand(self._observ_size)
         return ts.restart(initial_observation)
@@ -55,6 +57,7 @@ class MockPSOEnv(py_environment.PyEnvironment):
         observation = np.random.rand(self._observ_size)
         # Generate a mock reward
         reward = np.random.rand() - 0.5  # Random reward between -0.5 and 0.5
+        self._best_fitness = np.random.rand() * 100 + 400
 
         if self._episode_ended:
             return ts.termination(observation, reward)

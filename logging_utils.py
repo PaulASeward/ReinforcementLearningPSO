@@ -50,14 +50,13 @@ class ComputeDrqnReturn(ComputeReturnStrategy):
         total_return = 0.0
         total_fitness = 0.0
 
-        # Temporary Solution
         def update_states(states, next_state):
             states = np.roll(states, -1, axis=0)
             states[-1] = next_state
             return states
 
         for _ in range(num_episodes):
-            states = np.zeros([10, 150])  # Make Dynamic
+            states = np.zeros([model.config.trace_length, model.config.observation_length])  # Make Dynamic
 
             current_state = env.reset()
             states = update_states(states, current_state.observation)

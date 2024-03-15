@@ -22,7 +22,7 @@ class DQNAgent(BaseAgent):
             results_logger = ResultsLogger(self.config, self.env, self.model, ComputeDqnReturn())
 
             for ep in range(self.config.train_steps):
-                done, episode_reward = False, 0.0
+                terminal, episode_reward = False, 0.0
                 actions, rewards = [], []
 
                 self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
@@ -30,7 +30,7 @@ class DQNAgent(BaseAgent):
                 observation = self.env.reset()
                 observation = observation.observation
 
-                while not done:
+                while not terminal:
                     q_values = self.model.get_action_q_values(observation)
                     action = self.policy.select_action(q_values)
                     actions.append(action)
@@ -38,9 +38,9 @@ class DQNAgent(BaseAgent):
 
                     reward = reward.numpy()[0]
                     rewards.append(reward)
-                    done = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
+                    terminal = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
 
-                    self.replay_buffer.add([observation, action, reward * self.config.discount_factor, next_observation, done])
+                    self.replay_buffer.add([observation, action, reward * self.config.discount_factor, next_observation, terminal])
                     observation = next_observation
                     episode_reward += reward
 
