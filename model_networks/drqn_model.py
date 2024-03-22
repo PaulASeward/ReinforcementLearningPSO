@@ -8,10 +8,6 @@ from model_networks.base_model import BaseModel
 class DRQNModel(BaseModel):
     def __init__(self, config):
         super(DRQNModel, self).__init__(config, "drqn")
-        self.epsilon = config.epsilon_start
-        self.add_optimizer(config.lr_method, config.learning_rate)
-        self.compute_loss = tf.keras.losses.MeanSquaredError()
-        self.model = self.nn_model()
 
         self.num_lstm_layers = config.num_lstm_layers
         self.lstm_size = config.lstm_size
