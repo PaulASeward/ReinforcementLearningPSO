@@ -36,7 +36,7 @@ class BaseModel:
         self.train_steps = 0
         self.is_training = False
 
-    def add_optimizer(self, lr_method, learning_rate, loss, clip=-1):
+    def add_optimizer(self, lr_method, learning_rate, clip=-1):
         lr_method = lr_method.lower()  # lower to make sure
 
         if lr_method == 'adam':  # sgd method
