@@ -11,7 +11,7 @@ class DQNModel(BaseModel):
         super(DQNModel, self).__init__(config, "dqn")
         self.epsilon = config.epsilon_start
 
-        self.optimizer = Adam(self.config.learning_rate)
+        self.add_optimizer(config.lr_method, config.learning_rate)
         self.compute_loss = tf.keras.losses.MeanSquaredError()
         self.model = self.nn_model()
 

@@ -9,8 +9,7 @@ class DRQNModel(BaseModel):
     def __init__(self, config):
         super(DRQNModel, self).__init__(config, "drqn")
         self.epsilon = config.epsilon_start
-
-        self.optimizer = Adam(self.config.learning_rate)
+        self.add_optimizer(config.lr_method, config.learning_rate)
         self.compute_loss = tf.keras.losses.MeanSquaredError()
         self.model = self.nn_model()
 
