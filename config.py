@@ -5,6 +5,7 @@ class Config(object):
     network_type = "DQN"
     algorithm = "PSO"
     use_mock_data = False
+    track_locations = False
 
     # PSO PARAMETERS
     dim = 5
