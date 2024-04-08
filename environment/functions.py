@@ -18,13 +18,14 @@ import os
 class CEC_functions:
     def __init__(self, dim, fun_num):
         self.fun_num = fun_num
-        csv_file_path = os.path.join('environment/extdata', 'M_D' + str(dim) + '.txt')
-        csv_file = open(csv_file_path)
+        data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'environment/extdata'))
+        csv_file = open(os.path.join(data_dir, 'M_D' + str(dim) + '.txt'))
         # csv_file = open('environment/extdata/M_D' + str(dim) + '.txt')
         csv_data = csv.reader(csv_file, delimiter=' ')
         csv_data_not_null = [[float(data) for data in row if len(data) > 0] for row in csv_data]
         self.rotate_data = np.array(csv_data_not_null)
-        csv_file = open('environment/extdata/shift_data.txt')
+        csv_file = open(os.path.join(data_dir, 'shift_data.txt'))
+        # csv_file = open('environment/extdata/shift_data.txt')
         csv_data = csv.reader(csv_file, delimiter=' ')
         self.sd = []
         for row in csv_data:

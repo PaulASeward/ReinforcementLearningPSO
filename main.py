@@ -45,9 +45,9 @@ if __name__ == "__main__":
                         help="The number of observations per episode conducted in the swarm. Ex) Particle Best Replacement Counts are averaged over the last 30 observations before an episode terminates and action is decided. Default is 30.")
     parser.add_argument("--policy", type=str, default="ExponentialDecayGreedyEpsilon",
                         help="The policy to use for action selection. Default is ExponentialDecayGreedyEpsilon")
-    parser.add_argument("--train", type=bool, default=True,
+    parser.add_argument("--train", type=bool, default=False,
                         help="Whether to train a network or to examine a given network")
-    parser.add_argument("--track_locations", type=bool, default=True,
+    parser.add_argument("--track_locations", type=bool, default=False,
                         help="Whether to track the locations of the particles in the swarm. Default is False.")
     parser.add_argument("--steps", type=int, default=2000, help="number of iterations to train")
     args, remaining = parser.parse_known_args()
@@ -89,12 +89,9 @@ if __name__ == "__main__":
 
         func_eval_budget = config.dim * 10000
         max_func_eval = config.swarm_size * config.num_episodes * config.obs_per_episode
-        print(
-            f"=== Function Evaluation Budget: {config.dim} dimensions x 10 000/dim = {func_eval_budget} Function Evaluations")
-        print(
-            f"=== Observations Per Episode: {config.num_swarm_obs_intervals} Number of Swarm Observation Intervals per Episode x {config.swarm_obs_interval_length} Number of Observations in each Interval  = {config.obs_per_episode}  Observations per Episode")
-        print(
-            f"=== Function Evaluation Allocation: {config.swarm_size} Swarm Size (# Particles) x {config.num_episodes} Episodes x {config.obs_per_episode} Observations per Episode  = {max_func_eval} Function Evaluations")
+        print(f"=== Function Evaluation Budget: {config.dim} dimensions x 10 000/dim = {func_eval_budget} Function Evaluations")
+        print(f"=== Observations Per Episode: {config.num_swarm_obs_intervals} Number of Swarm Observation Intervals per Episode x {config.swarm_obs_interval_length} Number of Observations in each Interval  = {config.obs_per_episode}  Observations per Episode")
+        print(f"=== Function Evaluation Allocation: {config.swarm_size} Swarm Size (# Particles) x {config.num_episodes} Episodes x {config.obs_per_episode} Observations per Episode  = {max_func_eval} Function Evaluations")
         print()
 
         if func_eval_budget != max_func_eval:
