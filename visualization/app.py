@@ -16,8 +16,37 @@ valuations = valuations[0]  # Shape is (time_steps, particles)
 
 # Evaluation function (adjust as necessary)
 obj_f = functions.CEC_functions(dim=2, fun_num=6)
+
+
 def eval(X):
     return obj_f.Y_matrix(np.array(X).astype(float))
+
+
+def calculate_current_min_explored(positions, valuations):
+    # Calculate the minimum value explored by the swarm and store the position and value at each time step.
+    X1_min = None
+    X2_min = None
+    min_valuation = None
+
+    min_explored = []
+
+    for t in range(len(valuations)):
+        current_positions = positions[t]
+        current_valuations = valuations[t]
+        min_valuation_t = np.min(current_valuations)
+
+        if min_valuation is None or min_valuation_t < min_valuation:
+            min_valuation = min_valuation_t
+            min_valuation_index = np.argmin(current_valuations)
+            X1_min = current_positions[min_valuation_index, 0]
+            X2_min = current_positions[min_valuation_index, 1]
+
+        min_explored.append([X1_min, X2_min, min_valuation])
+
+    return min_explored
+
+
+min_explored = calculate_current_min_explored(positions, valuations)
 
 
 # Create a meshgrid for the background surface
@@ -44,6 +73,12 @@ app.layout = html.Div([
         value=0,
         marks={i: str(i) for i in range(0, len(positions), 10)},
         step=1,
+    ),
+    dcc.Checklist(
+        id='particle-selector',
+        options=[{'label': f'Particle {i + 1}', 'value': i} for i in range(positions.shape[1])],
+        value=list(range(positions.shape[1])),  # Default all particles selected
+        inline=True
     ),
     dcc.Interval(
         id='auto-stepper',
@@ -104,14 +139,15 @@ def control_auto_stepper(btn_play, btn_stop, is_disabled):
 
 @app.callback(
     Output('3d-swarm-visualization', 'figure'),
-    [Input('timestep-slider', 'value')]
+    [Input('timestep-slider', 'value')],
+    [State('particle-selector', 'value')]  # Include the state of the particle selector
 )
-def update_figure(selected_timestep):
+def update_figure(selected_timestep, selected_particles):
     fig = go.Figure()
 
     # Color particles
     color_scale = px.colors.qualitative.Plotly
-    for i in range(positions.shape[1]):  # Loop over particles
+    for i in selected_particles:  # Loop over particles
         current_positions = positions[selected_timestep, i, :]
         x = [current_positions[0]]
         y = [current_positions[1]]
@@ -124,6 +160,15 @@ def update_figure(selected_timestep):
             marker=dict(size=3, color=color_scale[i % len(color_scale)]),
             name=f'Particle {i + 1}'
         ))
+
+    # Add Current Minimum Explored
+    min_explored_t_x1, min_explored_t_x2, min_explored_t_z = min_explored[selected_timestep]
+    fig.add_trace(go.Scatter3d(
+        x=[min_explored_t_x1], y=[min_explored_t_x2], z=[min_explored_t_z],
+        mode='markers',
+        marker=dict(size=5, color='black'),
+        name='Current Minimum Explored'
+    ))
 
     fig.add_trace(go.Surface(z=Z, x=X, y=Y, colorscale='Viridis', opacity=0.7, cmin=np.min(Z), cmax=1000))
 
