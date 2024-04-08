@@ -14,20 +14,16 @@ class ComputeReturnStrategy(ABC):
         self.policy = GreedyPolicy()  # Policy for Evaluating the Average Return of the Current Model
 
     @abstractmethod
-    def compute_average_return(self, env, raw_env: PSOEnv, model, num_returns_to_average):
+    def compute_average_return(self, env, model, num_returns_to_average):
         pass
 
 
 class ComputeDqnReturn(ComputeReturnStrategy):
-    def compute_average_return(self, env, raw_env, model, num_returns_to_average=4):
+    def compute_average_return(self, env, model, num_returns_to_average=4):
         total_return = 0.0
         total_fitness = 0.0
 
-        for i in range(num_returns_to_average):
-            if i == 0:
-                if raw_env.track_locations:
-                    raw_env.store_locations_and_valuations(True) # Store the locations and valuations for the first run
-
+        for _ in range(num_returns_to_average):
             time_step = env.reset()
             observation = time_step.observation
             episode_return = 0.0
@@ -52,7 +48,7 @@ class ComputeDqnReturn(ComputeReturnStrategy):
 
 
 class ComputeDrqnReturn(ComputeReturnStrategy):
-    def compute_average_return(self, env, raw_env, model, num_returns_to_average=4):
+    def compute_average_return(self, env, model, num_returns_to_average=4):
         total_return = 0.0
         total_fitness = 0.0
 
@@ -61,11 +57,7 @@ class ComputeDrqnReturn(ComputeReturnStrategy):
             states[-1] = next_state
             return states
 
-        for i in range(num_returns_to_average):
-            if i == 0:
-                if raw_env.track_locations:
-                    raw_env.store_locations_and_valuations(True) # Store the locations and valuations for the first run
-
+        for _ in range(num_returns_to_average):
             states = np.zeros([model.config.trace_length, model.config.observation_length])  # Make Dynamic
 
             current_state = env.reset()
@@ -125,7 +117,17 @@ class ResultsLogger:
             np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
 
         if step % self.config.eval_interval == 0:
-            avg_return, avg_fitness = self.logging_strategy.compute_average_return(self.env, self.raw_env, self.model, 4)
+
+            # Save the locations and valuations to each directory
+            if self.config.track_locations:
+                locations_new_dir = os.path.join(self.config.swarm_locations_dir, f"locations_at_step_{step}")
+                os.makedirs(locations_new_dir, exist_ok=True)
+
+                env_swarm_locations_path = os.path.join(locations_new_dir, self.config.env_swarm_locations_name)
+                env_swarm_evaluations_path = os.path.join(locations_new_dir, self.config.env_swarm_evaluations_name)
+                self.raw_env.store_locations_and_valuations(True, env_swarm_locations_path, env_swarm_evaluations_path)
+
+            avg_return, avg_fitness = self.logging_strategy.compute_average_return(self.env, self.model, 4)
 
             print('step = {0}: Average Return = {1}'.format(step, avg_return))
             self.returns.append(float(avg_return))

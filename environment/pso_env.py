@@ -41,8 +41,8 @@ class PSOEnv(py_environment.PyEnvironment):
         if self.track_locations:
             self.tracked_locations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size, self._dim))
             self.tracked_valuations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size))
-            self.env_swarm_locations_path = config.env_swarm_locations_path
-            self.env_swarm_evaluations_path = config.env_swarm_evaluations_path
+            self.env_swarm_locations_path = None
+            self.env_swarm_evaluations_path = None
 
         self._actions_count = 0
         self._episode_ended = False
@@ -155,8 +155,14 @@ class PSOEnv(py_environment.PyEnvironment):
 
     #   returns: TimeStep(step_type, reward, discount, observation)
 
-    def store_locations_and_valuations(self, store: bool):
+    def store_locations_and_valuations(self, store: bool, env_swarm_locations_path=None, env_swarm_evaluations_path=None):
+        """
+        This setter-like method acts as a toggle with automatic save, turn off, and reset at the end of a terminating episode.
+        """
         self._store_locations_and_valuations = store
+        if store:
+            self.env_swarm_locations_path = env_swarm_locations_path
+            self.env_swarm_evaluations_path = env_swarm_evaluations_path
 
     # supposedly not needed
     def get_info(self) -> types.NestedArray:
