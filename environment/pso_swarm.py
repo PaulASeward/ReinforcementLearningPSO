@@ -3,41 +3,42 @@ import numpy as np
 
 class PSOSwarm:
 
-    def __init__(self, objective_function, num_swarm_obs_intervals, swarm_obs_interval_length, dimension=30, swarm_size=50, RangeF=100):
+    def __init__(self, objective_function, config):
         self.X = None  # Current Position of particles
         self.V = None  # Current Velocity of particles
         self.P = None  # Best Position of particles
 
-        # Store Function Evaluator and current evaluation column vector for each particle's best.
-        self.w = 0.729844  # Inertia weight to prevent velocities becoming too large
-        self.c1 = 2.05 * self.w  # Social component Learning Factor
-        self.c2 = 2.05 * self.w  # Cognitive component Learning Factor
-        self.c_min = 0.88  # Min of 5 actions of decreasing 10%
-        self.c_max = 2.41  # Max of 5 actions of increasing 10%
+        # PSO Parameters
+        self.w = config.w  # Inertia weight to prevent velocities becoming too large
+        self.c1 = config.c1  # Social component Learning Factor
+        self.c2 = config.c2  # Cognitive component Learning Factor
+        self.c_min = config.c_min  # Min of 5 decreases of 10%
+        self.c_max = config.c_max  # Max of 5 increases of 10%
+        self.function = objective_function
+        self.dimension = config.dim
+        self.swarm_size = config.swarm_size
+        self.rangeF = config.rangeF
 
         # Threshold Params
-        self.gbest_replacement_threshold_min = 0.5
-        self.gbest_replacement_threshold_max = 1.0
-        self.gbest_replacement_threshold = 1.0
-        self.gbest_replacement_threshold_decay = 0.95
-        self.num_clusters = 10
+        self.gbest_replacement_threshold_min, self.pbest_replacement_threshold_min = config.replacement_threshold_min, config.replacement_threshold_min
+        self.gbest_replacement_threshold_max, self.pbest_replacement_threshold_max = config.replacement_threshold_max, config.replacement_threshold_max
+        self.gbest_replacement_threshold, self.pbest_replacement_threshold = config.replacement_threshold, config.replacement_threshold
+        self.gbest_replacement_threshold_decay, self.pbest_replacement_threshold_decay = config.replacement_threshold_decay, config.replacement_threshold_decay
 
-        self.pbest_replacement_threshold_min = 0.5
-        self.pbest_replacement_threshold_max = 1.0
-        self.pbest_replacement_threshold = 1.0
-        self.pbest_replacement_threshold_decay = 0.95
+        # Observation Parameters
+        self.num_swarm_obs_intervals = config.num_swarm_obs_intervals
+        self.swarm_obs_interval_length = config.swarm_obs_interval_length
+        self.iterations = self.num_swarm_obs_intervals * self.swarm_obs_interval_length
 
-        self.function = objective_function
-        self.dimension = dimension
-        self.swarm_size = swarm_size
-        self.rangeF = RangeF
-        self.num_swarm_obs_intervals = num_swarm_obs_intervals
-        self.swarm_obs_interval_length = swarm_obs_interval_length
-        self.iterations = num_swarm_obs_intervals * swarm_obs_interval_length
+        # Track Locations
+        self.track_locations = config.track_locations
+        if self.track_locations:
+            self.tracked_locations = np.zeros((self.iterations, self.swarm_size, self.dimension))
+            self.tracked_valuations = np.zeros((self.iterations, self.swarm_size))
 
         # Set Constraints for clamping position and limiting velocity
-        self.Vmin, self.Vmax = -1 * RangeF, RangeF
-        self.Xmin, self.Xmax = -1 * RangeF, RangeF
+        self.Vmin, self.Vmax = -1 * self.rangeF, self.rangeF
+        self.Xmin, self.Xmax = -1 * self.rangeF, self.rangeF
 
         self.velocity_magnitudes = None
         self.relative_fitness = None
@@ -94,6 +95,9 @@ class PSOSwarm:
         self.update_batch_counts()
 
         return np.concatenate([self.velocity_magnitudes, self.relative_fitness, self.average_batch_counts], axis=0)
+
+    def get_tracked_locations_and_valuations(self):
+        return self.tracked_locations, self.tracked_valuations
 
     def get_current_best_fitness(self):
         return self.gbest_val
@@ -196,12 +200,16 @@ class PSOSwarm:
 
     def optimize(self):
         for obs_interval_idx in range(self.num_swarm_obs_intervals):
-            for _ in range(self.swarm_obs_interval_length):
+            for i in range(self.swarm_obs_interval_length):
                 self.update_velocities(self.gbest_pos)  # Input global leader particle position
                 self.update_position()
                 # self.update_pbest_with_elitist_selection()
                 self.update_pbest_with_elitist_selection()
                 self.update_gbest_with_elitist_selection()
+
+                if self.track_locations:
+                    self.tracked_locations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.X
+                    self.tracked_valuations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.val
 
             self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
             self.pbest_replacement_counts = np.zeros(self.swarm_size)

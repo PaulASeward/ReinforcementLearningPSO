@@ -21,6 +21,12 @@ class PSOEnv(py_environment.PyEnvironment):
         self._func_num = config.func_num
         self._num_actions = config.num_actions
         self.actions_descriptions = config.action_names[:self._num_actions]
+        self.track_locations = config.track_locations
+        if self.track_locations:
+            self.tracked_locations = np.zeros((config.num_episodes, config.obs_per_episode, config.swarm_size, config.dim))
+            self.tracked_valuations = np.zeros((config.num_episodes, config.obs_per_episode, config.swarm_size))
+            self.env_swarm_locations_path = config.env_swarm_locations_path
+            self.env_swarm_evaluations_path = config.env_swarm_evaluations_path
 
         self._minimum = config.fDeltas[config.func_num - 1]
 
@@ -43,11 +49,7 @@ class PSOEnv(py_environment.PyEnvironment):
 
         obj_f = functions.CEC_functions(dim=config.dim, fun_num=config.func_num)
 
-        self.swarm = PSOSwarm(
-            objective_function=obj_f,
-            num_swarm_obs_intervals=config.num_swarm_obs_intervals,
-            swarm_obs_interval_length=config.swarm_obs_interval_length,
-            dimension=config.dim, swarm_size=config.swarm_size)
+        self.swarm = PSOSwarm(objective_function=obj_f, config=config)
 
         # self.action_methods = {
         #     0: lambda: None,
@@ -114,6 +116,13 @@ class PSOEnv(py_environment.PyEnvironment):
         # Execute common operations after action
         self.swarm.optimize()
         self._observation = self.swarm.get_observation()
+
+        # Save Locations and Valuations
+        if self.track_locations:
+            eps_tracked_locations, eps_tracked_valuations = self.swarm.get_tracked_locations_and_valuations()
+            self.tracked_locations[self._actions_count - 1] = eps_tracked_locations
+            self.tracked_valuations[self._actions_count - 1] = eps_tracked_valuations
+
         self.current_best_f = self.swarm.get_current_best_fitness()
 
         if self._best_fitness is None:
@@ -125,7 +134,13 @@ class PSOEnv(py_environment.PyEnvironment):
             self._best_fitness = min(self._best_fitness, self.current_best_f)
 
         if self._episode_ended:
+            # Save Locations and Valuations
+            if self.track_locations:
+                np.save(self.env_swarm_locations_path, self.tracked_locations)
+                np.save(self.env_swarm_evaluations_path, self.tracked_valuations)
+
             return ts.termination(self._observation, reward)
+
         else:
             return ts.transition(self._observation, reward, discount=1.0)
 
