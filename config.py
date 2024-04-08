@@ -7,7 +7,7 @@ class Config(object):
     use_mock_data = False
 
     # PSO PARAMETERS
-    dim = 30
+    dim = 5
     swarm_size = 50
     num_episodes = 10
     num_swarm_obs_intervals = 10
@@ -83,19 +83,14 @@ class Config(object):
 
     def __init__(self):
         self.func_num = None
-        self.env_action_counts = None
-        self.env_action_values = None
+        self.action_counts = None
+        self.action_values = None
         self.fitness_plot_path = None
         self.average_returns_plot_path = None
         self.fitness_path = None
         self.average_returns_path = None
         self.loss_file = None
-        self.figure_file_right_action = None
-        self.figure_file_left_action = None
-        self.interval_actions_plot_path = None
-        self.results_left_actions = None
         self.interval_actions_counts_path = None
-        self.results_right_actions = None
         self.experiment = None
         self.num_eval_intervals = None
         self.label_iterations_intervals = None
@@ -140,9 +135,8 @@ class Config(object):
             # self.average_returns_plot_path = os.path.join(self.results_dir, f"average_returns_plot.png")
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
             # self.fitness_plot_path = os.path.join(self.results_dir, f"average_fitness_plot.png")
-            self.env_action_values = os.path.join(self.results_dir, f"env_actions_values.csv")
-            self.env_action_counts = os.path.join(self.results_dir, f"env_actions_counts.csv")
-
+            self.action_values = os.path.join(self.results_dir, f"env_actions_values.csv")
+            self.action_counts = os.path.join(self.results_dir, f"env_actions_counts.csv")
 
 class PSOConfig(Config):
     algorithm = "PSO"
