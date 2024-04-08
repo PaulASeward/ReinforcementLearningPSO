@@ -46,6 +46,7 @@ if __name__ == "__main__":
         config.algorithm = args.algorithm
         config.policy = args.policy
         config.num_actions = args.num_actions
+        config.track_locations = args.track_locations
     else:
         print("Unsupported algorithm type: ", args.algorithm)
         sys.exit(1)
