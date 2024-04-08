@@ -32,6 +32,10 @@ class Config(object):
     # Output files
     results_dir = "results"
     os.makedirs(results_dir, exist_ok=True)
+    swarm_locations_dir = os.path.join(results_dir, "swarm_locations")
+    os.makedirs(swarm_locations_dir, exist_ok=True)
+    env_swarm_locations_name = "swarm_locations.npy"
+    env_swarm_evaluations_name = "swarm_evaluations.npy"
 
     # Model/Checkpoint Files
     model_dir = os.path.join(results_dir, "saved_session", "network_models")
@@ -91,8 +95,6 @@ class Config(object):
         self.average_returns_plot_path = None
         self.fitness_path = None
         self.average_returns_path = None
-        self.env_swarm_locations_path = None
-        self.env_swarm_evaluations_path = None
         self.loss_file = None
         self.interval_actions_counts_path = None
         self.experiment = None
@@ -148,8 +150,6 @@ class Config(object):
             # self.fitness_plot_path = os.path.join(self.results_dir, f"average_fitness_plot.png")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
-            self.env_swarm_locations_path = os.path.join(self.results_dir, f"swarm_locations.npy")
-            self.env_swarm_evaluations_path = os.path.join(self.results_dir, f"swarm_evaluations.npy")
 
 
 class PSOConfig(Config):
