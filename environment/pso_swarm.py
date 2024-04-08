@@ -35,6 +35,7 @@ class PSOSwarm:
         if self.track_locations:
             self.tracked_locations = np.zeros((self.iterations, self.swarm_size, self.dimension))
             self.tracked_valuations = np.zeros((self.iterations, self.swarm_size))
+            self.track_locations = False
 
         # Set Constraints for clamping position and limiting velocity
         self.Vmin, self.Vmax = -1 * self.rangeF, self.rangeF

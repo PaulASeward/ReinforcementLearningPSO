@@ -160,6 +160,7 @@ class PSOEnv(py_environment.PyEnvironment):
         This setter-like method acts as a toggle with automatic save, turn off, and reset at the end of a terminating episode.
         """
         self._store_locations_and_valuations = store
+        self.swarm.track_locations = store
         if store:
             self.env_swarm_locations_path = env_swarm_locations_path
             self.env_swarm_evaluations_path = env_swarm_evaluations_path
