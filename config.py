@@ -10,17 +10,6 @@ class Config(object):
     # PSO ENVIRONMENT PARAMETERS
     dim = 30
     swarm_size = 50
-    w = 0.729844   # Inertia weight
-    c1 = 2.05 * w  # Social component Learning Factor
-    c2 = 2.05 * w  # Cognitive component Learning Factor
-    c_min = 0.88  # Min of 5 decreases of 10%
-    c_max = 2.41  # Max of 5 increases of 10%
-    rangeF = 100
-    replacement_threshold = 1.0
-    replacement_threshold_min = 0.5
-    replacement_threshold_max = 1.0
-    replacement_threshold_decay = 0.95
-
 
     # AGENT PARAMETERS
     num_episodes = 20
@@ -166,6 +155,17 @@ class Config(object):
 class PSOConfig(Config):
     algorithm = "PSO"
     topology = 'global'
+
+    w = 0.729844  # Inertia weight
+    c1 = 2.05 * w  # Social component Learning Factor
+    c2 = 2.05 * w  # Cognitive component Learning Factor
+    c_min = 0.88  # Min of 5 decreases of 10%
+    c_max = 2.41  # Max of 5 increases of 10%
+    rangeF = 100
+    replacement_threshold = 1.0
+    replacement_threshold_min = 0.5
+    replacement_threshold_max = 1.0
+    replacement_threshold_decay = 0.95
 
 # def save_config(config_file, config_dict):
 #     with open(config_file, 'w') as fp:

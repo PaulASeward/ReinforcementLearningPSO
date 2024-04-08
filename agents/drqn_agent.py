@@ -19,7 +19,7 @@ class DRQNAgent(BaseAgent):
 
     def train(self):
         with self.writer.as_default():
-            results_logger = ResultsLogger(self.config, self.env, self.model, ComputeDrqnReturn())
+            results_logger = ResultsLogger(self.config, self.env, self.raw_env, self.model, ComputeDrqnReturn())
             for ep in range(self.config.train_steps):
                 terminal, episode_reward = False, 0
                 actions, rewards = [], []

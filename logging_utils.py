@@ -6,21 +6,27 @@ import os
 import csv
 from plot_utils import *
 from policy import *
+from environment.pso_env import PSOEnv
+
 
 class ComputeReturnStrategy(ABC):
     def __init__(self):
-        self.policy = GreedyPolicy()
+        self.policy = GreedyPolicy()  # Policy for Evaluating the Average Return of the Current Model
 
     @abstractmethod
-    def compute_average_return(self, env, model, num_returns_to_average):
+    def compute_average_return(self, env, raw_env: PSOEnv, model, num_returns_to_average):
         pass
 
 
 class ComputeDqnReturn(ComputeReturnStrategy):
-    def compute_average_return(self, env, model, num_returns_to_average=4):
+    def compute_average_return(self, env, raw_env, model, num_returns_to_average=4):
         total_return = 0.0
         total_fitness = 0.0
-        for _ in range(num_returns_to_average):
+
+        for i in range(num_returns_to_average):
+            if i == 0:
+                if raw_env.track_locations:
+                    raw_env.store_locations_and_valuations(True) # Store the locations and valuations for the first run
 
             time_step = env.reset()
             observation = time_step.observation
@@ -46,7 +52,7 @@ class ComputeDqnReturn(ComputeReturnStrategy):
 
 
 class ComputeDrqnReturn(ComputeReturnStrategy):
-    def compute_average_return(self, env, model, num_returns_to_average=4):
+    def compute_average_return(self, env, raw_env, model, num_returns_to_average=4):
         total_return = 0.0
         total_fitness = 0.0
 
@@ -55,7 +61,11 @@ class ComputeDrqnReturn(ComputeReturnStrategy):
             states[-1] = next_state
             return states
 
-        for _ in range(num_returns_to_average):
+        for i in range(num_returns_to_average):
+            if i == 0:
+                if raw_env.track_locations:
+                    raw_env.store_locations_and_valuations(True) # Store the locations and valuations for the first run
+
             states = np.zeros([model.config.trace_length, model.config.observation_length])  # Make Dynamic
 
             current_state = env.reset()
@@ -64,7 +74,7 @@ class ComputeDrqnReturn(ComputeReturnStrategy):
             episode_return = 0.0
 
             terminal = False
-            while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate 100 episodes.
+            while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate X episodes.
                 q_values = model.get_action_q_values(np.reshape(states, [1, model.config.trace_length, model.config.observation_length]))
                 action = self.policy.select_action(q_values)
                 step_type, reward, discount, next_state = env.step(action)
@@ -84,10 +94,11 @@ class ComputeDrqnReturn(ComputeReturnStrategy):
 
 
 class ResultsLogger:
-    def __init__(self, config, env, model, logging_strategy: ComputeReturnStrategy):
+    def __init__(self, config, env, raw_env, model, logging_strategy: ComputeReturnStrategy):
         self.config = config
         self.start_time = time.time()
         self.env = env
+        self.raw_env = raw_env
         self.model = model
         self.logging_strategy: ComputeReturnStrategy = logging_strategy
 
@@ -114,9 +125,7 @@ class ResultsLogger:
             np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
 
         if step % self.config.eval_interval == 0:
-            avg_return, avg_fitness = self.logging_strategy.compute_average_return(self.env, self.model, 4)
-            # # Mock Data:
-            # avg_return, avg_fitness = 2.6, 3.2
+            avg_return, avg_fitness = self.logging_strategy.compute_average_return(self.env, self.raw_env, self.model, 4)
 
             print('step = {0}: Average Return = {1}'.format(step, avg_return))
             self.returns.append(float(avg_return))
@@ -145,6 +154,11 @@ class ResultsLogger:
         plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
         plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.config.action_names)
         plot_actions_with_values_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, num_actions=self.config.num_actions, action_names=self.config.action_names)
+
+        if self.config.track_locations:
+            # Plot the Swarm Locations and Valuations
+            x=1
+
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
 
     def get_returns(self):

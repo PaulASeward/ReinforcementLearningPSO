@@ -21,24 +21,28 @@ class PSOEnv(py_environment.PyEnvironment):
         self._func_num = config.func_num
         self._num_actions = config.num_actions
         self.actions_descriptions = config.action_names[:self._num_actions]
-        self.track_locations = config.track_locations
-        if self.track_locations:
-            self.tracked_locations = np.zeros((config.num_episodes, config.obs_per_episode, config.swarm_size, config.dim))
-            self.tracked_valuations = np.zeros((config.num_episodes, config.obs_per_episode, config.swarm_size))
-            self.env_swarm_locations_path = config.env_swarm_locations_path
-            self.env_swarm_evaluations_path = config.env_swarm_evaluations_path
 
         self._minimum = config.fDeltas[config.func_num - 1]
 
         self._max_episodes = config.num_episodes
         self._num_swarm_obs_intervals = config.num_swarm_obs_intervals
         self._swarm_obs_interval_length = config.swarm_obs_interval_length
+        self._obs_per_episode = config.obs_per_episode
         self._swarm_size = config.swarm_size
         self._dim = config.dim
 
         self._observ_size = config.swarm_size * 3  # [0-49]: Velocities, [50-99]: Relative Fitness, [100-149]: Average Replacement Rate
         self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=config.num_actions-1, name='action')
         self._observation_spec = array_spec.BoundedArraySpec(shape=(self._observ_size,), dtype=np.float64, name='observation')
+
+        # Track Locations and Valuations
+        self.track_locations = config.track_locations
+        self._store_locations_and_valuations = False
+        if self.track_locations:
+            self.tracked_locations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size, self._dim))
+            self.tracked_valuations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size))
+            self.env_swarm_locations_path = config.env_swarm_locations_path
+            self.env_swarm_evaluations_path = config.env_swarm_evaluations_path
 
         self._actions_count = 0
         self._episode_ended = False
@@ -118,7 +122,7 @@ class PSOEnv(py_environment.PyEnvironment):
         self._observation = self.swarm.get_observation()
 
         # Save Locations and Valuations
-        if self.track_locations:
+        if self._store_locations_and_valuations:
             eps_tracked_locations, eps_tracked_valuations = self.swarm.get_tracked_locations_and_valuations()
             self.tracked_locations[self._actions_count - 1] = eps_tracked_locations
             self.tracked_valuations[self._actions_count - 1] = eps_tracked_valuations
@@ -135,9 +139,14 @@ class PSOEnv(py_environment.PyEnvironment):
 
         if self._episode_ended:
             # Save Locations and Valuations
-            if self.track_locations:
+            if self._store_locations_and_valuations:
                 np.save(self.env_swarm_locations_path, self.tracked_locations)
                 np.save(self.env_swarm_evaluations_path, self.tracked_valuations)
+
+                # Reset the arrays
+                self.tracked_locations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size, self._dim))
+                self.tracked_valuations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size))
+                self._store_locations_and_valuations = False
 
             return ts.termination(self._observation, reward)
 
@@ -145,6 +154,9 @@ class PSOEnv(py_environment.PyEnvironment):
             return ts.transition(self._observation, reward, discount=1.0)
 
     #   returns: TimeStep(step_type, reward, discount, observation)
+
+    def store_locations_and_valuations(self, store: bool):
+        self._store_locations_and_valuations = store
 
     # supposedly not needed
     def get_info(self) -> types.NestedArray:
