@@ -7,13 +7,25 @@ class Config(object):
     use_mock_data = False
     track_locations = False
 
-    # PSO PARAMETERS
-    dim = 5
+    # PSO ENVIRONMENT PARAMETERS
+    dim = 30
     swarm_size = 50
-    num_episodes = 10
-    num_swarm_obs_intervals = 10
-    swarm_obs_interval_length = 60
+    w = 0.729844   # Inertia weight
+    c1 = 2.05 * w  # Social component Learning Factor
+    c2 = 2.05 * w  # Cognitive component Learning Factor
+    c_min = 0.88  # Min of 5 decreases of 10%
+    c_max = 2.41  # Max of 5 increases of 10%
+    rangeF = 100
+    replacement_threshold = 1.0
+    replacement_threshold_min = 0.5
+    replacement_threshold_max = 1.0
+    replacement_threshold_decay = 0.95
 
+
+    # AGENT PARAMETERS
+    num_episodes = 20
+    num_swarm_obs_intervals = 10
+    swarm_obs_interval_length = 30
     observation_length = 150
     num_actions = 5
     action_names = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best']
@@ -98,6 +110,7 @@ class Config(object):
         self.num_eval_intervals = None
         self.label_iterations_intervals = None
         self.iteration_intervals = None
+        self.obs_per_episode = None
         self.iterations = None
         self.policy = None
 
@@ -122,6 +135,8 @@ class Config(object):
         if swarm_obs_interval_length is not None:
             self.swarm_obs_interval_length = swarm_obs_interval_length
 
+        self.obs_per_episode = self.swarm_obs_interval_length * self.num_swarm_obs_intervals
+
         if train_steps is not None:
             self.train_steps = train_steps
             self.log_interval = train_steps // 100  # normal is 100
@@ -144,8 +159,8 @@ class Config(object):
             # self.fitness_plot_path = os.path.join(self.results_dir, f"average_fitness_plot.png")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
-            self.env_swarm_locations_path = os.path.join(self.results_dir, f"swarm_locations.csv")
-            self.env_swarm_evaluations_path = os.path.join(self.results_dir, f"swarm_evaluations.csv")
+            self.env_swarm_locations_path = os.path.join(self.results_dir, f"swarm_locations.npy")
+            self.env_swarm_evaluations_path = os.path.join(self.results_dir, f"swarm_evaluations.npy")
 
 
 class PSOConfig(Config):
