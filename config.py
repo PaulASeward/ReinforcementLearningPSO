@@ -98,12 +98,16 @@ class Config(object):
         self.iterations = None
         self.policy = None
 
-    def update_properties(self, network_type=None, func_num=None, num_actions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
+    def update_properties(self, network_type=None, func_num=None, num_actions=None, swarm_size=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
 
         if num_actions is not None:
             self.num_actions = num_actions
+
+        if swarm_size is not None:
+            self.swarm_size = swarm_size
+            self.observation_length = self.swarm_size * 3
 
         if num_episodes is not None:
             self.num_episodes = num_episodes
@@ -135,8 +139,9 @@ class Config(object):
             # self.average_returns_plot_path = os.path.join(self.results_dir, f"average_returns_plot.png")
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
             # self.fitness_plot_path = os.path.join(self.results_dir, f"average_fitness_plot.png")
-            self.action_values = os.path.join(self.results_dir, f"env_actions_values.csv")
-            self.action_counts = os.path.join(self.results_dir, f"env_actions_counts.csv")
+            self.action_values = os.path.join(self.results_dir, f"actions_values.csv")
+            self.action_counts = os.path.join(self.results_dir, f"actions_counts.csv")
+
 
 class PSOConfig(Config):
     algorithm = "PSO"
