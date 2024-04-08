@@ -15,8 +15,6 @@ import environment.functions as functions
 # We will use the first episode for this example
 positions = np.load('data/swarm_locations.npy')  # Shape is  (episodes, time_steps, particles, dimensions)
 positions = positions[0]  # Shape is (time_steps, particles, dimensions)
-
-# We technically don't need this, since we can evaluate through the eval() below.
 valuations = np.load('data/swarm_evaluations.npy')  # Shape is (time_steps, particles)
 valuations = valuations[0]  # Shape is (time_steps, particles)
 
