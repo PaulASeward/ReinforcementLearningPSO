@@ -74,4 +74,4 @@ class BaseAgent:
         plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
         plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
         plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.config.action_names)
-        plot_actions_with_values_over_iteration_intervals(self.config.action_counts, self.config.action_values, num_actions=self.config.num_actions, action_names=self.config.action_names)
+        plot_actions_with_values_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, num_actions=self.config.num_actions, action_names=self.config.action_names)

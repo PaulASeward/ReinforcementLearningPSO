@@ -83,12 +83,14 @@ class Config(object):
 
     def __init__(self):
         self.func_num = None
-        self.action_counts = None
-        self.action_values = None
+        self.action_counts_path = None
+        self.action_values_path = None
         self.fitness_plot_path = None
         self.average_returns_plot_path = None
         self.fitness_path = None
         self.average_returns_path = None
+        self.env_swarm_locations_path = None
+        self.env_swarm_evaluations_path = None
         self.loss_file = None
         self.interval_actions_counts_path = None
         self.experiment = None
@@ -139,8 +141,10 @@ class Config(object):
             # self.average_returns_plot_path = os.path.join(self.results_dir, f"average_returns_plot.png")
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
             # self.fitness_plot_path = os.path.join(self.results_dir, f"average_fitness_plot.png")
-            self.action_values = os.path.join(self.results_dir, f"actions_values.csv")
-            self.action_counts = os.path.join(self.results_dir, f"actions_counts.csv")
+            self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
+            self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
+            self.env_swarm_locations_path = os.path.join(self.results_dir, f"swarm_locations.csv")
+            self.env_swarm_evaluations_path = os.path.join(self.results_dir, f"swarm_evaluations.csv")
 
 
 class PSOConfig(Config):
