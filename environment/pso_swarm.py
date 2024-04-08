@@ -163,6 +163,7 @@ class PSOSwarm:
         self.pbest_replacement_threshold = np.clip(self.pbest_replacement_threshold, self.pbest_replacement_threshold_min, self.pbest_replacement_threshold_max)
 
     def eval(self, X):
+        x=1
         return self.function.Y_matrix(np.array(X).astype(float))
 
     def update_velocities(self, leader):
