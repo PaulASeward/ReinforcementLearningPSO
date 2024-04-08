@@ -12,15 +12,15 @@ class ComputeReturnStrategy(ABC):
         self.policy = GreedyPolicy()
 
     @abstractmethod
-    def compute_average_return(self, env, model, num_episodes):
+    def compute_average_return(self, env, model, num_returns_to_average):
         pass
 
 
 class ComputeDqnReturn(ComputeReturnStrategy):
-    def compute_average_return(self, env, model, num_episodes=4):
+    def compute_average_return(self, env, model, num_returns_to_average=4):
         total_return = 0.0
         total_fitness = 0.0
-        for _ in range(num_episodes):
+        for _ in range(num_returns_to_average):
 
             time_step = env.reset()
             observation = time_step.observation
@@ -39,14 +39,14 @@ class ComputeDqnReturn(ComputeReturnStrategy):
             total_return += episode_return
             total_fitness += env.pyenv.envs[0]._best_fitness
 
-        avg_return = total_return / num_episodes
-        avg_fitness = total_fitness / num_episodes
+        avg_return = total_return / num_returns_to_average
+        avg_fitness = total_fitness / num_returns_to_average
 
         return avg_return, avg_fitness
 
 
 class ComputeDrqnReturn(ComputeReturnStrategy):
-    def compute_average_return(self, env, model, num_episodes=4):
+    def compute_average_return(self, env, model, num_returns_to_average=4):
         total_return = 0.0
         total_fitness = 0.0
 
@@ -55,7 +55,7 @@ class ComputeDrqnReturn(ComputeReturnStrategy):
             states[-1] = next_state
             return states
 
-        for _ in range(num_episodes):
+        for _ in range(num_returns_to_average):
             states = np.zeros([model.config.trace_length, model.config.observation_length])  # Make Dynamic
 
             current_state = env.reset()
@@ -77,8 +77,8 @@ class ComputeDrqnReturn(ComputeReturnStrategy):
             total_return += episode_return
             total_fitness += env.pyenv.envs[0]._best_fitness
 
-        avg_return = total_return / num_episodes
-        avg_fitness = total_fitness / num_episodes
+        avg_return = total_return / num_returns_to_average
+        avg_fitness = total_fitness / num_returns_to_average
 
         return avg_return, avg_fitness
 
