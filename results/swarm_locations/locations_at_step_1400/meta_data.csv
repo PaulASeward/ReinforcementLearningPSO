@@ -1,21 +1,21 @@
 Action,Action Name,Replacement Threshold,Global Best Gravity,Individual Best Gravity
-3,Encourage social learning,1.0,1.64579822,1.34656218
-3,Encourage social learning,1.0,1.8103780420000002,1.2119059620000001
-3,Encourage social learning,1.0,1.9914158462000005,1.0907153658000002
-3,Encourage social learning,1.0,2.1905574308200007,0.9816438292200002
-3,Encourage social learning,1.0,2.409613173902001,0.8834794462980001
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
+4,Encourage individual learning,1.0,1.34656218,1.64579822
+4,Encourage individual learning,1.0,1.2119059620000001,1.8103780420000002
+0,Do nothing,1.0,1.2119059620000001,1.8103780420000002
+0,Do nothing,1.0,1.2119059620000001,1.8103780420000002
+4,Encourage individual learning,1.0,1.0907153658000002,1.9914158462000005
+4,Encourage individual learning,1.0,0.9816438292200002,2.1905574308200007
+4,Encourage individual learning,1.0,0.8834794462980001,2.409613173902001
+4,Encourage individual learning,1.0,0.88,2.41
+4,Encourage individual learning,1.0,0.88,2.41
+3,Encourage social learning,1.0,0.9680000000000001,2.169
+4,Encourage individual learning,1.0,0.88,2.3859000000000004
+3,Encourage social learning,1.0,0.9680000000000001,2.1473100000000005
+3,Encourage social learning,1.0,1.0648000000000002,1.9325790000000005
+4,Encourage individual learning,1.0,0.9583200000000002,2.125836900000001
+3,Encourage social learning,1.0,1.0541520000000002,1.9132532100000008
+3,Encourage social learning,1.0,1.1595672000000004,1.7219278890000007
+3,Encourage social learning,1.0,1.2755239200000006,1.5497351001000006
+3,Encourage social learning,1.0,1.4030763120000007,1.3947615900900006
+3,Encourage social learning,1.0,1.543383943200001,1.2552854310810004
+3,Encourage social learning,1.0,1.6977223375200012,1.1297568879729005

@@ -1,21 +1,21 @@
 Action,Action Name,Replacement Threshold,Global Best Gravity,Individual Best Gravity
-0,Do nothing,1.0,1.4961802,1.4961802
-1,Decrease Threshold for Replacement,0.95,1.4961802,1.4961802
-1,Decrease Threshold for Replacement,0.9025,1.4961802,1.4961802
-0,Do nothing,0.9025,1.4961802,1.4961802
-0,Do nothing,0.9025,1.4961802,1.4961802
-0,Do nothing,0.9025,1.4961802,1.4961802
-1,Decrease Threshold for Replacement,0.8573749999999999,1.4961802,1.4961802
-0,Do nothing,0.8573749999999999,1.4961802,1.4961802
-0,Do nothing,0.8573749999999999,1.4961802,1.4961802
-0,Do nothing,0.8573749999999999,1.4961802,1.4961802
-0,Do nothing,0.8573749999999999,1.4961802,1.4961802
-0,Do nothing,0.8573749999999999,1.4961802,1.4961802
-0,Do nothing,0.8573749999999999,1.4961802,1.4961802
-0,Do nothing,0.8573749999999999,1.4961802,1.4961802
-0,Do nothing,0.8573749999999999,1.4961802,1.4961802
-0,Do nothing,0.8573749999999999,1.4961802,1.4961802
-0,Do nothing,0.8573749999999999,1.4961802,1.4961802
-2,Increase Threshold for Replacement,0.9431124999999999,1.4961802,1.4961802
-0,Do nothing,0.9431124999999999,1.4961802,1.4961802
-1,Decrease Threshold for Replacement,0.8959568749999999,1.4961802,1.4961802
+3,Encourage social learning,1.0,1.64579822,1.34656218
+3,Encourage social learning,1.0,1.8103780420000002,1.2119059620000001
+3,Encourage social learning,1.0,1.9914158462000005,1.0907153658000002
+3,Encourage social learning,1.0,2.1905574308200007,0.9816438292200002
+3,Encourage social learning,1.0,2.409613173902001,0.8834794462980001
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
+3,Encourage social learning,1.0,2.41,0.88
