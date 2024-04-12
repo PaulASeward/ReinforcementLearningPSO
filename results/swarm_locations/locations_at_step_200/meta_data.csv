@@ -1,21 +1,21 @@
 Action,Action Name,Replacement Threshold,Global Best Gravity,Individual Best Gravity
-0,Do nothing,1.0,2.41,0.88
-4,Encourage individual learning,1.0,2.169,0.9680000000000001
-4,Encourage individual learning,1.0,1.9521000000000002,1.0648000000000002
-3,Encourage social learning,1.0,2.1473100000000005,0.9583200000000002
-3,Encourage social learning,1.0,2.362041000000001,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-2,Increase Threshold for Replacement,1.0,2.41,0.88
-2,Increase Threshold for Replacement,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-0,Do nothing,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
-3,Encourage social learning,1.0,2.41,0.88
+2,Increase Threshold for Replacement,1.0,1.4961802,1.4961802
+2,Increase Threshold for Replacement,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
+2,Increase Threshold for Replacement,1.0,1.4961802,1.4961802
+2,Increase Threshold for Replacement,1.0,1.4961802,1.4961802
+2,Increase Threshold for Replacement,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
+2,Increase Threshold for Replacement,1.0,1.4961802,1.4961802
+2,Increase Threshold for Replacement,1.0,1.4961802,1.4961802
+2,Increase Threshold for Replacement,1.0,1.4961802,1.4961802
+2,Increase Threshold for Replacement,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
+0,Do nothing,1.0,1.4961802,1.4961802
