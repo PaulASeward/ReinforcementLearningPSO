@@ -229,7 +229,7 @@ class PSOSwarm:
                 self.update_velocities(self.gbest_pos)  # Input global leader particle position
                 self.update_position()
                 # self.update_pbest_with_elitist_selection()
-                self.update_pbest_with_elitist_selection()
+                self.update_pbest_with_non_elitist_selection()
                 self.update_gbest_with_elitist_selection()
 
                 if self.track_locations:
