@@ -17,8 +17,8 @@ class Config(object):
     swarm_obs_interval_length = 30
     observation_length = 150
     num_actions = 5
-    action_names = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best']
-    # action_names = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
+    # action_names = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best']
+    action_names = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement',  'Encourage social learning', 'Encourage individual learning']
 
     train_steps = 20000
     log_interval = 200
@@ -35,7 +35,10 @@ class Config(object):
     swarm_locations_dir = os.path.join(results_dir, "swarm_locations")
     os.makedirs(swarm_locations_dir, exist_ok=True)
     env_swarm_locations_name = "swarm_locations.npy"
+    env_swarm_velocities_name = "swarm_velocities.npy"
+    env_swarm_best_locations_name = "swarm_best_locations.npy"
     env_swarm_evaluations_name = "swarm_evaluations.npy"
+    env_meta_data_name = "meta_data.csv"
 
     # Model/Checkpoint Files
     model_dir = os.path.join(results_dir, "saved_session", "network_models")

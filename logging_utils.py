@@ -124,8 +124,11 @@ class ResultsLogger:
                 os.makedirs(locations_new_dir, exist_ok=True)
 
                 env_swarm_locations_path = os.path.join(locations_new_dir, self.config.env_swarm_locations_name)
+                emv_swarm_velocities_path = os.path.join(locations_new_dir, self.config.env_swarm_velocities_name)
+                env_swarm_best_locations_path = os.path.join(locations_new_dir, self.config.env_swarm_best_locations_name)
                 env_swarm_evaluations_path = os.path.join(locations_new_dir, self.config.env_swarm_evaluations_name)
-                self.raw_env.store_locations_and_valuations(True, env_swarm_locations_path, env_swarm_evaluations_path)
+                env_meta_data_path = os.path.join(locations_new_dir, self.config.env_meta_data_name)
+                self.raw_env.store_locations_and_valuations(True, env_swarm_locations_path, emv_swarm_velocities_path, env_swarm_best_locations_path, env_swarm_evaluations_path, env_meta_data_path)
 
             avg_return, avg_fitness = self.logging_strategy.compute_average_return(self.env, self.model, 4)
 
