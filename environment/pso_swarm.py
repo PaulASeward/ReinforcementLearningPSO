@@ -9,6 +9,7 @@ class PSOSwarm:
         self.P = None  # Best Position of particles
 
         # PSO Parameters
+        self.config = config
         self.w = config.w  # Inertia weight to prevent velocities becoming too large
         self.c1 = config.c1  # Social component Learning Factor
         self.c2 = config.c2  # Cognitive component Learning Factor
@@ -64,6 +65,24 @@ class PSOSwarm:
         self.X = np.random.uniform(low=-1 * self.rangeF, high=self.rangeF, size=(self.swarm_size, self.dimension))
         self.V = np.full((self.swarm_size, self.dimension), 0)
         self.P = self.X
+
+        # Reset the adjustable parameters to starting values
+        self.w = self.config.w
+        self.c1 = self.config.c1
+        self.c2 = self.config.c2
+        self.gbest_replacement_threshold, self.pbest_replacement_threshold = self.config.replacement_threshold, self.config.replacement_threshold
+        self.Vmin, self.Vmax = -1 * self.rangeF, self.rangeF
+        self.Xmin, self.Xmax = -1 * self.rangeF, self.rangeF
+
+        self.velocity_magnitudes = None
+        self.relative_fitness = None
+        self.average_batch_counts = None
+        self.pbest_replacement_counts = None
+
+        self.val = None
+        self.gbest_val = None
+        self.gbest_pos = None
+        self.pbest_val = None
 
         # Static class variable to track pbest_val replacements
         self.pbest_replacement_counts = np.zeros(self.swarm_size)
