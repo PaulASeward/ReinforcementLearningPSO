@@ -34,6 +34,8 @@ class PSOSwarm:
         self.track_locations = config.track_locations
         if self.track_locations:
             self.tracked_locations = np.zeros((self.iterations, self.swarm_size, self.dimension))
+            self.tracked_velocities = np.zeros((self.iterations, self.swarm_size, self.dimension))
+            self.tracked_best_locations = np.zeros((self.iterations, self.swarm_size, self.dimension))
             self.tracked_valuations = np.zeros((self.iterations, self.swarm_size))
             self.track_locations = False
 
@@ -98,10 +100,13 @@ class PSOSwarm:
         return np.concatenate([self.velocity_magnitudes, self.relative_fitness, self.average_batch_counts], axis=0)
 
     def get_tracked_locations_and_valuations(self):
-        return self.tracked_locations, self.tracked_valuations
+        return self.tracked_locations, self.tracked_velocities, self.tracked_best_locations, self.tracked_valuations
 
     def get_current_best_fitness(self):
         return self.gbest_val
+
+    def get_meta_data(self):
+        return self.pbest_replacement_threshold, self.c1, self.c2
 
     def reset_all_particles(self):
         self._initialize()
@@ -163,7 +168,6 @@ class PSOSwarm:
         self.pbest_replacement_threshold = np.clip(self.pbest_replacement_threshold, self.pbest_replacement_threshold_min, self.pbest_replacement_threshold_max)
 
     def eval(self, X):
-        x=1
         return self.function.Y_matrix(np.array(X).astype(float))
 
     def update_velocities(self, leader):
@@ -211,6 +215,8 @@ class PSOSwarm:
 
                 if self.track_locations:
                     self.tracked_locations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.X
+                    self.tracked_velocities[obs_interval_idx * self.swarm_obs_interval_length + i] = self.V
+                    self.tracked_best_locations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.P
                     self.tracked_valuations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.val
 
             self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
