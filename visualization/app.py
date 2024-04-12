@@ -4,50 +4,29 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import plotly.express as px
 import numpy as np
-import environment.functions as functions
+from calculation_utils import eval, calculate_current_min_explored
 
 # Load data
 # There is typically 20 episodes with 100 timesteps, 10 particles, and 2 dimensions
 # We will use the first episode for this example
-positions = np.load('data/swarm_locations.npy')  # Shape is  (episodes, time_steps, particles, dimensions)
-positions = positions[0]  # Shape is (time_steps, particles, dimensions)
-valuations = np.load('data/swarm_evaluations.npy')  # Shape is (time_steps, particles)
-valuations = valuations[0]  # Shape is (time_steps, particles)
+data_dir_f6 = 'data/f6/locations_at_step_250/'
+data_dir_f19 = 'data/f19/locations_at_step_250/'
+positions = np.load(data_dir + 'swarm_locations.npy')  # Shape is  (episodes, time_steps, particles, dimensions)
+positions1 = positions[0]  # Shape is (time_steps, particles, dimensions)
 
-# Evaluation function (adjust as necessary)
-obj_f = functions.CEC_functions(dim=2, fun_num=6)
+velocities = np.load(data_dir + 'swarm_velocities.npy')  # Shape is (time_steps, particles, dimensions)
+velocities1 = velocities[0]  # Shape is (time_steps, particles, dimensions)
 
+swarm_best_positions = np.load(data_dir + 'swarm_best_locations.npy')  # Shape is (time_steps, particles, dimensions)
+swarm_best_positions1 = swarm_best_positions[0]  # Shape is (time_steps, particles, dimensions)
 
-def eval(X):
-    return obj_f.Y_matrix(np.array(X).astype(float))
+valuations = np.load(data_dir + 'swarm_evaluations.npy')  # Shape is (time_steps, particles)
+valuations1 = valuations[0]  # Shape is (time_steps, particles)
 
+meta_data = np.genfromtxt(data_dir + 'meta_data.csv', delimiter=',', dtype=None, names=True, encoding='utf-8')
+meta_data1 = meta_data[0]  # Meta data for the first episode
 
-def calculate_current_min_explored(positions, valuations):
-    # Calculate the minimum value explored by the swarm and store the position and value at each time step.
-    X1_min = None
-    X2_min = None
-    min_valuation = None
-
-    min_explored = []
-
-    for t in range(len(valuations)):
-        current_positions = positions[t]
-        current_valuations = valuations[t]
-        min_valuation_t = np.min(current_valuations)
-
-        if min_valuation is None or min_valuation_t < min_valuation:
-            min_valuation = min_valuation_t
-            min_valuation_index = np.argmin(current_valuations)
-            X1_min = current_positions[min_valuation_index, 0]
-            X2_min = current_positions[min_valuation_index, 1]
-
-        min_explored.append([X1_min, X2_min, min_valuation])
-
-    return min_explored
-
-
-min_explored = calculate_current_min_explored(positions, valuations)
-
+min_explored = calculate_current_min_explored(positions1, valuations1)
 
 # Create a meshgrid for the background surface
 x = np.linspace(-100, 100, 100)
@@ -66,23 +45,36 @@ app.layout = html.Div([
     html.Button('Next', id='btn-next', n_clicks=0),
     html.Button('Play', id='btn-play', n_clicks=0),
     html.Button('Stop', id='btn-stop', n_clicks=0),
+    dcc.Dropdown(
+        id='speed-selector',
+        options=[
+            {'label': '1x Speed', 'value': 500},
+            {'label': '2x Speed', 'value': 250},
+            {'label': '5x Speed', 'value': 100},
+            {'label': '10x Speed', 'value': 50}
+        ],
+        value=1000,  # Default to 1x speed
+        clearable=False,
+        placeholder="Select Playback Speed"
+    ),
     dcc.Slider(
         id='timestep-slider',
         min=0,
-        max=len(positions) - 1,
+        max=len(positions1) - 1,
         value=0,
-        marks={i: str(i) for i in range(0, len(positions), 10)},
+        marks={i: str(i) for i in range(0, len(positions1), 10)},
         step=1,
     ),
-    dcc.Checklist(
+    dcc.Dropdown(
         id='particle-selector',
-        options=[{'label': f'Particle {i + 1}', 'value': i} for i in range(positions.shape[1])],
-        value=list(range(positions.shape[1])),  # Default all particles selected
-        inline=True
+        options=[{'label': f'Particle {i + 1}', 'value': i} for i in range(positions1.shape[1])],
+        placeholder="Focus on Single Particle Behavior",
+        multi=True,
+        value=[i for i in range(positions1.shape[1])]
     ),
     dcc.Interval(
         id='auto-stepper',
-        interval=1000, # in milliseconds
+        interval=50, # in milliseconds
         n_intervals=0,
         disabled=True, # Start disabled
     )
@@ -106,10 +98,10 @@ def update_slider(btn_previous, btn_next, btn_play, btn_stop, n_intervals, curre
 
     if button_id == 'btn-previous' and current_value > 0:
         return current_value - 1
-    elif button_id == 'btn-next' and current_value < len(positions) - 1:
+    elif button_id == 'btn-next' and current_value < len(positions1) - 1:
         return current_value + 1
     elif button_id == 'auto-stepper':
-        if current_value < len(positions) - 1:
+        if current_value < len(positions1) - 1:
             return current_value + 1
         else:
             return 0  # Loop back to start, adjust as needed
@@ -138,6 +130,14 @@ def control_auto_stepper(btn_play, btn_stop, is_disabled):
 
 
 @app.callback(
+    Output('auto-stepper', 'interval'),
+    [Input('speed-selector', 'value')]
+)
+def update_interval(speed):
+    return speed
+
+
+@app.callback(
     Output('3d-swarm-visualization', 'figure'),
     [Input('timestep-slider', 'value')],
     [State('particle-selector', 'value')]  # Include the state of the particle selector
@@ -148,10 +148,10 @@ def update_figure(selected_timestep, selected_particles):
     # Color particles
     color_scale = px.colors.qualitative.Plotly
     for i in selected_particles:  # Loop over particles
-        current_positions = positions[selected_timestep, i, :]
+        current_positions = positions1[selected_timestep, i, :]
         x = [current_positions[0]]
         y = [current_positions[1]]
-        z = [valuations[selected_timestep, i]]
+        z = [valuations1[selected_timestep, i]]
 
         # Add trace for each particle
         fig.add_trace(go.Scatter3d(
