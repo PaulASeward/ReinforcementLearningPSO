@@ -60,28 +60,26 @@ class SwarmSimulator:
             return []
 
         data_directories = os.listdir(self.data_dir)
-        print("Data Directories ",data_directories)
         steps = sorted([int(directory.split('_')[-1]) for directory in data_directories])
-        print("Steps ",steps)
-
-        step_labels = [{'label': f'Step {i}', 'value': i} for i in steps]
-
-        # print("Step Labels ",step_labels)
-        return step_labels
+        return [{'label': f'Step {i}', 'value': i} for i in steps]
 
     def get_available_episodes(self, step):
         if not os.path.exists(self.step_data_dir):
-            print(f'No data exists for function {self.fun_num}.')
+            print(f'No data path exists to function {self.fun_num}.')
             return []
 
         if self.ep_positions is None:
             print(f'No data exists for function {self.fun_num}.')
             return []
 
-        # print("Episode Length ",self.ep_positions.shape[0])
-        episodes = [{'label': f'Episode {i + 1}', 'value': i} for i in range(self.positions.shape[0])]
-        # print("Episode Labels: ", episodes)
-        return episodes
+        # return [{'label': f'Episode {i + 1}', 'value': i} for i in range(self.positions.shape[0])]
+        metadata = self.meta_data
+        options = []
+        for i in range(self.positions.shape[0]):
+            label = 'Episode {} - Action: {}'.format(i + 1, metadata[i]['Action_Name'])
+            options.append({'label': label, 'value': i})
+
+        return options
 
     def eval(self, X):
         return self.obj_f.Y_matrix(np.array(X).astype(float))
