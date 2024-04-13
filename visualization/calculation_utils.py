@@ -1,11 +1,37 @@
 import environment.functions as functions
 import numpy as np
+import matplotlib.colors as mcolors  # Import matplotlib colors
+import math
+import plotly.express as px
 
 
-# Evaluation function (adjust as necessary)
-obj_f = functions.CEC_functions(dim=2, fun_num=6)
-def eval(X):
-    return obj_f.Y_matrix(np.array(X).astype(float))
+class EvaluationFunction:
+    def __init__(self, fun_num, dim=2):
+        self.obj_f = functions.CEC_functions(dim=dim, fun_num=fun_num)
+        self.data_dir = f'data/f{fun_num}/'
+
+    def eval(self, X):
+        return self.obj_f.Y_matrix(np.array(X).astype(float))
+
+    def get_swarm_data(self, step=250, episode=0):
+        data_dir = self.data_dir + f'locations_at_step_{step}/'
+
+        positions = np.load(data_dir + 'swarm_locations.npy')  # Shape is  (episodes, time_steps, particles, dimensions)
+        ep_positions = positions[episode]  # Shape is (time_steps, particles, dimensions)
+
+        velocities = np.load(data_dir + 'swarm_velocities.npy')  # Shape is (time_steps, particles, dimensions)
+        ep_velocities = velocities[episode]  # Shape is (time_steps, particles, dimensions)
+
+        swarm_best_positions = np.load(data_dir + 'swarm_best_locations.npy')  # Shape is (time_steps, particles, dim)
+        ep_swarm_best_positions = swarm_best_positions[episode]  # Shape is (time_steps, particles, dimensions)
+
+        valuations = np.load(data_dir + 'swarm_evaluations.npy')  # Shape is (time_steps, particles)
+        ep_valuations = valuations[episode]  # Shape is (time_steps, particles)
+
+        meta_data = np.genfromtxt(data_dir + 'meta_data.csv', delimiter=',', dtype=None, names=True, encoding='utf-8')
+        ep_meta_data = meta_data[episode]  # Meta data for the first episode
+
+        return ep_positions, ep_velocities, ep_swarm_best_positions, ep_valuations, ep_meta_data
 
 
 def calculate_current_min_explored(positions, valuations):
@@ -31,120 +57,50 @@ def calculate_current_min_explored(positions, valuations):
 
     return min_explored
 
-
-def generate_exponential_marks2(z_min, z_max):
-    marks = {}
-    num_marks = 10  # Target number of marks
-
-    if z_min < 0:
-        # Handle cases where z_min is negative and z_max is positive
-        start_power = np.ceil(np.log2(abs(z_min)))
-        end_power = np.ceil(np.log2(z_max))
+def get_distinct_colors(n):
+    """Generate n distinct colors, using a cycling method if n exceeds the base palette size."""
+    base_colors = px.colors.qualitative.Dark24  # This is a palette of dark colors
+    if n <= len(base_colors):
+        return base_colors[:n]
     else:
-        # Both z_min and z_max are non-negative
-        start_power = np.ceil(np.log2(max(1, z_min)))  # Avoid log2(0)
-        end_power = np.ceil(np.log2(z_max))
+        # Extend the color palette by repeating and modifying slightly
+        colors = []
+        cycle_count = int(np.ceil(n / len(base_colors)))
+        for i in range(cycle_count):
+            for color in base_colors:
+                modified_color = lighten_color(color, amount=0.1 * i)
+                colors.append(modified_color)
+                if len(colors) == n:
+                    return colors
+    return colors
 
-    # Determine the appropriate step size to achieve approximately 'num_marks' marks
-    step_size = (end_power - start_power) / (num_marks - 1)
-
-    # Generate exponential marks
-    current_power = start_power
-    while current_power <= end_power:
-        current_value = 2 ** current_power
-        marks[int(current_value)] = f'{int(current_value)}'
-        current_power += step_size
-
-    # Always include the maximum value if it's not already included
-    max_mark = 2 ** end_power
-    if int(max_mark) not in marks:
-        marks[int(max_mark)] = f'{int(max_mark)}'
-
-    # Include z_min if it is negative
-    if z_min < 0:
-        marks[int(z_min)] = f'{int(z_min)}'
-
-    return marks
-
-def generate_exponential_marks(z_min, z_max):
-    marks = {}
-    num_marks = 10  # Target number of marks
-
-    # To avoid log(0) or log(negative) issues, shift the range if necessary
-    epsilon = 1e-10
-    shift = abs(min(z_min, 0)) + epsilon
-    adj_z_min = z_min + shift
-    adj_z_max = z_max + shift
-
-    # Generate logarithmic steps
-    log_min = np.log(adj_z_min)
-    log_max = np.log(adj_z_max)
-    step_size = (log_max - log_min) / (num_marks - 1)
-
-    # Populate marks using the logarithmic scale converted back to the original scale
-    for i in range(num_marks):
-        log_value = log_min + i * step_size
-        raw_value = np.exp(log_value)
-        mark_value = int(raw_value - shift)  # Adjusting back to the original scale
-        marks[mark_value] = f'{mark_value}'
-
-    # Ensure the maximum value is included
-    if z_max not in marks:
-        marks[z_max] = f'{z_max}'
-
-    print("Marks: ", marks)
-    return marks
+def lighten_color(color, amount=0.5):
+    """Lighten color by a given amount. Amount > 0 to lighten, < 0 to darken."""
+    try:
+        c = mcolors.to_rgb(color)
+        c = mcolors.rgb_to_hsv(c)
+        c = (c[0], c[1], max(0, min(1, c[2] * (1 + amount))))
+        c = mcolors.hsv_to_rgb(c)
+        return mcolors.to_hex(c)
+    except:
+        print('Error: Invalid color: ', color)
+        return color
 
 
-def generate_geometric_marks(z_min, z_max):
-    marks = {}
-    num_marks = 10  # Target number of marks
-    factor = 5  # This is the multiplication factor for each step
-    z_min, z_max = int(z_min), int(z_max)
-    # Shift the range if necessary to avoid negative values
-    shift = abs(min(z_min, 0)) if z_min <= 0 else - abs(max(z_min, 0))
+def generate_nonlinear_marks(shift, z_range):
+    nonlinear_marks = {}
+    exponential_ceiling = math.ceil(math.log10(z_range))
+    linear_steps = list(range(0, (exponential_ceiling+1)*100, 100))  # Linear steps for the slider ex) [0,100,200,300,400]
 
-    adj_z_min = z_min + shift + 1
-    adj_z_max = z_max + shift
-
-    # Initialize the first mark
-    current_mark = int(adj_z_min)
-    marks[current_mark - shift] = f'{current_mark - shift}'
-
-    # Generate marks by multiplying the previous mark by the factor
-    while current_mark * factor <= adj_z_max:
-        current_mark *= factor
-        mark_value = int(current_mark - shift)  # Adjusting back to the original scale
-        marks[mark_value] = f'{mark_value}'
-
-    # Ensure the last mark is z_max if it's not close to the last computed value
-    if current_mark != adj_z_max:
-        marks[adj_z_max-shift] = f'{adj_z_max-shift}'
-
-    return marks
-
-
-def generate_dynamic_geometric_marks(linear_steps , z_min_shifted, z_max_shifted, shift, factor, num_marks=10):
-    linear_marks = {}
-    nonlinear_marks = []
-
-    # Initialize the first mark
-    current_mark = z_min_shifted
-    nonlinear_marks.append(int(current_mark - shift))
-
-    for i in range(1, num_marks):
-        current_mark *= factor
-
-        if current_mark < z_max_shifted:  # Ensure the last mark is z_max if it's not close to the last computed value
-            nonlinear_marks.append(int(current_mark - shift))
-        else:
-            nonlinear_marks.append(int(z_max_shifted - shift))
-            break
-
-    print("Created Nonlinear Marks")
     for i, val in enumerate(linear_steps):
-        log_label = nonlinear_marks[i]
-        linear_marks[val] = f'{log_label}'
-        print(f'Linear Step, {i}: Linear Value: {val}, Nonlinear Value: {log_label}')
+        nonlinear_label = (10 ** i) - shift
+        nonlinear_marks[val] = f'{nonlinear_label}'
 
-    return linear_marks
+    return nonlinear_marks
+
+
+def linear_to_nonlinear_value(linear_value, shift):
+    # Convert linear value to the original scale
+    exponent = int(linear_value) / 100
+    nonlinear_value = (10 ** exponent) - shift
+    return int(nonlinear_value)
