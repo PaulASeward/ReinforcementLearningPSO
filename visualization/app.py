@@ -96,7 +96,8 @@ app.layout = html.Div([
         Output('step-selector', 'options'),
         Output('episode-selector', 'options'),
         Output('z-max-slider', 'marks',),
-        Output('z-max-slider', 'value')
+        Output('z-max-slider', 'value'),
+        Output('episode-metadata-display', 'children'),
     ],
     [
         Input('function-selector', 'value'),
@@ -113,16 +114,33 @@ def update_swarm(fun_num_input, step_input, ep_input, current_step):
 
     if triggered_id == 'function-selector':
         swarm.set_function_number(fun_num_input)
-        return swarm.get_available_steps(), dash.no_update, dash.no_update, dash.no_update
+        marks = swarm.surface.marks
+        swarm.surface.clear_traces()
+        swarm.surface.generate_surface()
+        return swarm.get_available_steps(), [], marks, int(marks[200]), dash.no_update
 
     if triggered_id == 'step-selector':
         swarm.load_swarm_data_for_step(step=step_input)
-        return dash.no_update, swarm.get_available_episodes(step_input), dash.no_update, dash.no_update
+        return dash.no_update, swarm.get_available_episodes(step_input), dash.no_update, dash.no_update, dash.no_update
 
     if triggered_id == 'episode-selector':
         swarm.load_swarm_data_for_episode(episode=ep_input)
-        marks = swarm.surface.marks
-        return dash.no_update, dash.no_update, marks, int(marks[200])
+
+        if ep_input is None:
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update, "Select an episode to view metadata."
+
+        metadata = swarm.meta_data
+        episode_row = metadata[ep_input]
+
+        if metadata is None:
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update, "No metadata is available for the selected episode."
+
+        # Create a HTML table with metadata
+        table_header = html.Thead(html.Tr([html.Th(col) for col in metadata.dtype.names]))
+        table_body = html.Tbody([html.Tr([html.Td(episode_row[col]) for col in metadata.dtype.names])])
+        table = html.Table([table_header, table_body], style={'width': '100%'})
+
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, table
 
 
 @app.callback(
@@ -148,30 +166,6 @@ def update_figure(selected_timestep, slider_value):
     return fig
 
 
-@app.callback(
-    Output('episode-metadata-display', 'children'),
-    [Input('episode-selector', 'value')],
-    [State('step-selector', 'value')]  # Assuming you might also need to know the step to fetch the correct metadata
-)
-def update_metadata_display(episode, step):
-    if episode is None or step is None:
-        return "Select an episode to view metadata."
-
-    try:
-        # Load the metadata. This assumes you have a method in your simulator to fetch this data
-        metadata = swarm.load_episode_metadata(step, episode)
-        if metadata is None:
-            return "No metadata available for the selected episode."
-
-        # Format the metadata as a table or any other user-friendly format
-        table_header = html.Thead(html.Tr([html.Th(col) for col in metadata.dtype.names]))
-        table_body = html.Tbody([html.Tr([html.Td(metadata[col][0]) for col in metadata.dtype.names])])
-        table = html.Table([table_header, table_body], style={'width': '100%'})
-
-        return table
-
-    except Exception as e:
-        return f"Error loading metadata: {str(e)}"
 
 
 @app.callback(
