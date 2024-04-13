@@ -1,8 +1,6 @@
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
-import plotly.graph_objs as go
-import plotly.express as px
 from swarm_simulator import SwarmSimulator
 
 # Load data
@@ -131,6 +129,7 @@ def update_figure(selected_timestep, show_p_best, slider_value, selected_particl
 
     fig = swarm.surface.plot_particles(fig, selected_particles, show_p_best, selected_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.min_explored, swarm.dark_colors, swarm.light_colors)
 
+    # return dict(data=fig.data, layout={'legend': {'uirevision': True}})
     return fig
 
 
