@@ -102,11 +102,11 @@ app.layout = html.Div([
 @app.callback(
     Output('3d-swarm-visualization', 'figure'),
     [Input('timestep-slider', 'value'),
-     Input('particle-best-position', 'value'),
      Input('z-max-slider', 'value'),
+    Input('particle-best-position', 'value'),
      Input('particle-selector', 'value')],
 )
-def update_figure(selected_timestep, show_p_best, slider_value, selected_particles):
+def update_figure(selected_timestep, slider_value, show_p_best, selected_particles):
     ctx = dash.callback_context
     if not ctx.triggered:
         return dash.no_update
