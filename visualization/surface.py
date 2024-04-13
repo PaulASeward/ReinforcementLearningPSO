@@ -104,11 +104,6 @@ class Surface:
         # Add Previous Current Minimum Explored
         fig = self.plot_current_swarm_best(fig, timestep, min_explored)
 
-        # fig.update_layout(scene_camera=dict(
-        #     eye=dict(x=1.2, y=1.2, z=0.6),
-        #     center=dict(x=1, y=0, z=0),
-        #     up=dict(x=0, y=0, z=1)))
-
         self.fig = fig
 
         return fig
@@ -155,7 +150,8 @@ class Surface:
                 ),
                 bgcolor="LightSteelBlue",
                 bordercolor="Black",
-                borderwidth=2
+                borderwidth=2,
+                uirevision='constant'
             ),
             scene=dict(
                 xaxis=dict(nticks=4, range=[-100, 100]),
