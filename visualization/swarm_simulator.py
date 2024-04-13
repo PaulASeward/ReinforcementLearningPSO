@@ -12,8 +12,8 @@ class SwarmSimulator:
         self.obj_f = None
         self.data_dir = None
         self.step_data_dir = None
-
-        self.set_function_number(fun_num)
+        self.step = None
+        self.ep = None
 
         self.positions = None
         self.ep_positions = None
@@ -31,17 +31,28 @@ class SwarmSimulator:
         self.light_colors = None
 
         self.min_explored = None
-        self.surface = Surface(eval_function=self.eval)
+        self.surface = None
 
-        self.load_completed_swarm_data(step=250, episode=0)
+        self.set_function_number(fun_num)
+        self.load_swarm_data_for_step(step=250)
+        self.load_swarm_data_for_episode(episode=0)
 
     def set_function_number(self, fun_num):
         self.fun_num = fun_num
         self.data_dir = f'data/f{fun_num}/'
         self.obj_f = functions.CEC_functions(dim=self.dim, fun_num=fun_num)
+        self.surface = Surface(eval_function=self.eval)
 
     def get_available_functions(self):
-        return [{'label': f'Function {i + 1}', 'value': i+1} for i in range(28)]
+        # Mark the functions that have data available
+        available_functions = []
+        for i in range(1, 29):
+            if os.path.exists(f'data/f{i}/'):
+                available_functions.append({'label': f'Function {i} (Data Available)', 'value': i})
+            else:
+                available_functions.append({'label': f'Function {i}', 'value': i})
+
+        return available_functions
 
     def get_available_steps(self):
         if not os.path.exists(self.data_dir):
@@ -50,9 +61,13 @@ class SwarmSimulator:
 
         data_directories = os.listdir(self.data_dir)
         print("Data Directories ",data_directories)
-        episodes = [int(directory.split('_')[-1]) for directory in data_directories]
-        print("Episodes ",episodes)
-        return [{'label': f'Step {i}', 'value': i} for i in episodes]
+        steps = sorted([int(directory.split('_')[-1]) for directory in data_directories])
+        print("Steps ",steps)
+
+        step_labels = [{'label': f'Step {i}', 'value': i} for i in steps]
+
+        # print("Step Labels ",step_labels)
+        return step_labels
 
     def get_available_episodes(self, step):
         if not os.path.exists(self.step_data_dir):
@@ -63,8 +78,10 @@ class SwarmSimulator:
             print(f'No data exists for function {self.fun_num}.')
             return []
 
-        return [{'label': f'Episode {i + 1}', 'value': i} for i in range(self.ep_positions.shape[0])],
-
+        # print("Episode Length ",self.ep_positions.shape[0])
+        episodes = [{'label': f'Episode {i + 1}', 'value': i} for i in range(self.positions.shape[0])]
+        # print("Episode Labels: ", episodes)
+        return episodes
 
     def eval(self, X):
         return self.obj_f.Y_matrix(np.array(X).astype(float))
@@ -72,43 +89,44 @@ class SwarmSimulator:
     def create_simulated_swarm_data(self, episodes=20):
         pass
 
+    def load_swarm_data_for_step(self, step=250):
+        # There is typically 20 episodes with 100 timesteps, 10 particles, and 2 dimensions
+        self.step_data_dir = self.data_dir + f'locations_at_step_{step}/'
+        self.step = step
+
+        # Verify that the data exists for the given step
+        if not os.path.exists(self.step_data_dir):
+            raise ValueError(f'No data exists for step {step}.')
+
+        self.positions = np.load(self.step_data_dir + 'swarm_locations.npy')  # Shape is  (episodes, time_steps, particles, dimensions)
+        self.velocities = np.load(self.step_data_dir + 'swarm_velocities.npy')  # Shape is (time_steps, particles, dimensions)
+        self.swarm_best_positions = np.load(self.step_data_dir + 'swarm_best_locations.npy')  # Shape is (time_steps, particles, dim)
+        self.valuations = np.load(self.step_data_dir + 'swarm_evaluations.npy')  # Shape is (time_steps, particles)
+        self.meta_data = np.genfromtxt(self.step_data_dir + 'meta_data.csv', delimiter=',', dtype=None, names=True, encoding='utf-8')
+
+        return self.positions, self.velocities, self.swarm_best_positions, self.valuations, self.meta_data
+
+    def load_swarm_data_for_episode(self, episode=0):
+        self.ep = episode
+        # Verify that enough data exists for the requested episode
+        if episode >= len(self.positions):
+            raise ValueError(f'No data exists for episode {episode}.')
+        self.ep_positions = self.positions[episode]  # Shape is (time_steps, particles, dimensions)
+        self.ep_velocities = self.velocities[episode]  # Shape is (time_steps, particles, dimensions)
+        self.ep_swarm_best_positions = self.swarm_best_positions[episode]  # Shape is (time_steps, particles, dimensions)
+        self.ep_valuations = self.valuations[episode]  # Shape is (time_steps, particles)
+        self.ep_meta_data = self.meta_data[episode]  # Meta data for the first episode
+
+        self.load_particle_data_for_episode()
+
+        return self.ep_positions, self.ep_velocities, self.ep_swarm_best_positions, self.ep_valuations, self.ep_meta_data
+
     def load_particle_data_for_episode(self):
         self.calculate_current_min_explored()
         self.num_particles = self.ep_positions.shape[1]
 
         self.dark_colors = get_distinct_colors(self.num_particles)
         self.light_colors = [lighten_color(color, amount=0.5) for color in self.dark_colors]
-
-    def load_completed_swarm_data(self, step=250, episode=0):
-        # There is typically 20 episodes with 100 timesteps, 10 particles, and 2 dimensions
-        self.step_data_dir = self.data_dir + f'locations_at_step_{step}/'
-
-        # Verify that the data exists for the given step
-        if not os.path.exists(self.step_data_dir):
-            raise ValueError(f'No data exists for step {step} and episode {episode}.')
-
-        self.positions = np.load(self.step_data_dir + 'swarm_locations.npy')  # Shape is  (episodes, time_steps, particles, dimensions)
-
-        # Verify that the data exists for the given episode
-        if episode >= len(self.positions):
-            raise ValueError(f'No data exists for episode {episode}.')
-        self.ep_positions = self.positions[episode]  # Shape is (time_steps, particles, dimensions)
-
-        self.velocities = np.load(self.step_data_dir + 'swarm_velocities.npy')  # Shape is (time_steps, particles, dimensions)
-        self.ep_velocities = self.velocities[episode]  # Shape is (time_steps, particles, dimensions)
-
-        self.swarm_best_positions = np.load(self.step_data_dir + 'swarm_best_locations.npy')  # Shape is (time_steps, particles, dim)
-        self.ep_swarm_best_positions = self.swarm_best_positions[episode]  # Shape is (time_steps, particles, dimensions)
-
-        self.valuations = np.load(self.step_data_dir + 'swarm_evaluations.npy')  # Shape is (time_steps, particles)
-        self.ep_valuations = self.valuations[episode]  # Shape is (time_steps, particles)
-
-        self.meta_data = np.genfromtxt(self.step_data_dir + 'meta_data.csv', delimiter=',', dtype=None, names=True, encoding='utf-8')
-        self.ep_meta_data = self.meta_data[episode]  # Meta data for the first episode
-
-        self.load_particle_data_for_episode()
-
-        return self.ep_positions, self.ep_velocities, self.ep_swarm_best_positions, self.ep_valuations, self.ep_meta_data
 
     def calculate_current_min_explored(self):
         # Calculate the minimum value explored by the swarm and store the position and value at each time step.
