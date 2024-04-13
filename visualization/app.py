@@ -3,38 +3,30 @@ from dash import dcc, html
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import plotly.express as px
-import numpy as np
-from calculation_utils import calculate_current_min_explored, get_distinct_colors, lighten_color, generate_nonlinear_marks, linear_to_nonlinear_value, EvaluationFunction
+from swarm_simulator import SwarmSimulator
 
 # Load data
-# There is typically 20 episodes with 100 timesteps, 10 particles, and 2 dimensions
-# We will use the first episode for this example
-data_dir_f6 = 'data/f6/locations_at_step_250/'
-data_dir = 'data/f6/locations_at_step_250/'
-obj_function = EvaluationFunction(fun_num=6)
+swarm = SwarmSimulator(fun_num=6)
 
-positions, velocities, swarm_best_positions, valuations, meta_data = obj_function.get_swarm_data(step=250)
-
-min_explored = calculate_current_min_explored(positions, valuations)
-
-# Create a meshgrid for the background surface
-x = np.linspace(-100, 100, 100)
-y = np.linspace(-100, 100, 100)
-X, Y = np.meshgrid(x, y)
-points = np.stack([X.ravel(), Y.ravel()], axis=-1)
-Z = obj_function.eval(points).reshape(X.shape)
-
-# Calculate the z range, and shift the scale to positive values starting from 1
-z_min, z_max = np.min(Z), np.max(Z)
-z_min, z_max = int(z_min), int(z_max)
-z_range = z_max - z_min
-shift = abs(min(z_min, 0)) if z_min <= 0 else - abs(max(z_min, 0))  # Shift the scale to positive values starting from 1 so we can use non-linear scaling
-non_linear_marks = generate_nonlinear_marks(shift, z_range)
 
 app = dash.Dash(__name__)
 
 # App layout
 app.layout = html.Div([
+    dcc.Dropdown(
+        id='function-selector',
+        options=[{'label': f'Function {i + 1}', 'value': i} for i in range(29)],
+        value=6,
+        clearable=False,
+        placeholder="Select Function"
+    ),
+    dcc.Dropdown(
+        id='episode-selector',
+        options=[{'label': f'Episode {i + 1}', 'value': i} for i in range(swarm.ep_positions.shape[0])],
+        value=0,
+        clearable=False,
+        placeholder="Select Episode"
+    ),
     html.Div([
         html.Div([
             dcc.Graph(id='3d-swarm-visualization'),
@@ -45,8 +37,8 @@ app.layout = html.Div([
                 min=0,
                 max=500,
                 step=1,
-                value=int(non_linear_marks[200]),
-                marks=non_linear_marks,
+                value=int(swarm.surface.marks[200]),
+                marks=swarm.surface.marks,
                 vertical=True,
                 verticalHeight=400
             ),
@@ -71,24 +63,33 @@ app.layout = html.Div([
         clearable=False,
         placeholder="Select Playback Speed"
     ),
-    html.Button('Toggle Best Positions', id='btn-toggle-best', n_clicks=0),
+    dcc.Dropdown(
+        id='particle-best-position',
+        options=[
+            {'label': 'Yes', 'value': True},
+            {'label': 'No', 'value': False},
+        ],
+        value=False,
+        clearable=False,
+        placeholder="Display a Particle's Best Positions"
+    ),
     html.Div([
         dcc.Slider(
                 id='timestep-slider',
                 min=0,
-                max=len(positions) - 1,
+                max=len(swarm.ep_positions) - 1,
                 value=0,
-                marks={i: str(i) for i in range(0, len(positions), 10)},
+                marks={i: str(i) for i in range(0, len(swarm.ep_positions), 10)},
                 step=1,
             ),
     ], style={'width': '15%', 'display': 'inline-block', 'verticalAlign': 'top'}),
     html.Div([
         dcc.Dropdown(
             id='particle-selector',
-            options=[{'label': f'Particle {i + 1}', 'value': i} for i in range(positions.shape[1])],
+            options=[{'label': f'Particle {i + 1}', 'value': i} for i in range(swarm.ep_positions.shape[1])],
             placeholder="Focus on Single Particle Behavior",
             multi=True,
-            value=[i for i in range(positions.shape[1])]
+            value=[i for i in range(swarm.ep_positions.shape[1])]
         ),
     ], style={'width': '15%', 'display': 'inline-block', 'verticalAlign': 'top'}),
     dcc.Interval(
@@ -100,89 +101,38 @@ app.layout = html.Div([
 ])
 
 
-
-
 @app.callback(
     Output('3d-swarm-visualization', 'figure'),
     [Input('timestep-slider', 'value'),
-     Input('btn-toggle-best', 'n_clicks'),
-     Input('z-max-slider', 'value')],
-    [State('particle-selector', 'value')]  # Include the state of the particle selector
+     Input('particle-best-position', 'value'),
+     Input('z-max-slider', 'value'),
+     Input('particle-selector', 'value')],
 )
-def update_figure(selected_timestep, toggle_best, slider_value, selected_particles):
-    fig = go.Figure()
+def update_figure(selected_timestep, show_p_best, slider_value, selected_particles):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update
 
-    # # Adjust z_max to the original scale
-    z_max_value = linear_to_nonlinear_value(slider_value, shift)
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if button_id == 'z-max-slider':
+        swarm.surface.update_z_visible_max(slider_value)
+        swarm.surface.clear_traces()
+        fig = swarm.surface.generate_surface()
+    elif button_id == 'particle-best-position':
+        print("Particle best position changed")
+        swarm.surface.clear_traces()
+        fig = swarm.surface.generate_surface()
+    elif button_id == 'particle-selector':
+        print("Particle selector changed")
+        swarm.surface.clear_traces()
+        fig = swarm.surface.generate_surface()
+    else:
+        fig = swarm.surface.get_surface()
 
-    # Color particles
-    show_best_positions = toggle_best % 2 == 1  # Toggle visibility based on odd/even number of clicks
-    num_particles = positions.shape[1]
-    dark_colors = get_distinct_colors(num_particles)
-    light_colors = [lighten_color(color, amount=0.5) for color in dark_colors]
+    fig = swarm.surface.plot_particles(fig, selected_particles, show_p_best, selected_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.min_explored, swarm.dark_colors, swarm.light_colors)
 
-    for i in selected_particles:  # Loop over particles
-        current_positions = positions[selected_timestep, i, :]
-        best_positions = swarm_best_positions[selected_timestep, i, :]
-
-        color = dark_colors[i % len(dark_colors)]
-        lighter_color = light_colors[i % len(light_colors)]
-
-        x = [current_positions[0]]
-        y = [current_positions[1]]
-        z = [valuations[selected_timestep, i]]
-
-        # Add trace for each particle
-        fig.add_trace(go.Scatter3d(
-            x=x, y=y, z=z,
-            mode='markers',
-            marker=dict(size=3, color=color),
-            name=f'Particle {i + 1}'
-        ))
-
-        if show_best_positions:
-            fig.add_trace(go.Scatter3d(
-                x=[best_positions[0]], y=[best_positions[1]], z=obj_function.eval([best_positions]),
-                mode='markers', marker=dict(size=5, color=lighter_color), name=f'Particle {i + 1} Best'
-            ))
-
-    # Add Previous Current Minimum Explored
-    if selected_timestep >= 1:
-        min_explored_t_x1, min_explored_t_x2, min_explored_t_z = min_explored[selected_timestep-1]
-        fig.add_trace(go.Scatter3d(
-            x=[min_explored_t_x1], y=[min_explored_t_x2], z=[min_explored_t_z],
-            mode='markers',
-            marker=dict(size=5, color='black'),
-            name='Current Swarm Min'
-        ))
-
-    fig.add_trace(go.Surface(z=Z, x=X, y=Y, colorscale='Viridis', opacity=0.7, cmin=np.min(Z), cmax=z_max_value))
-
-    # Layout adjustments
-    fig.update_layout(
-        legend=dict(
-            x=0,
-            y=1,
-            traceorder="normal",
-            font=dict(
-                family="sans-serif",
-                size=12,
-                color="black"
-            ),
-            bgcolor="LightSteelBlue",
-            bordercolor="Black",
-            borderwidth=2
-        ),
-        scene=dict(
-            xaxis=dict(nticks=4, range=[-100, 100]),
-            yaxis=dict(nticks=4, range=[-100, 100]),
-            zaxis=dict(nticks=4, range=[np.min(Z), z_max_value]),
-        ),
-        autosize=False,
-        width=1200,
-        height=800
-    )
     return fig
+
 
 @app.callback(
     Output('timestep-slider', 'value'),
@@ -202,10 +152,10 @@ def update_slider(btn_previous, btn_next, btn_play, btn_stop, n_intervals, curre
 
     if button_id == 'btn-previous' and current_value > 0:
         return current_value - 1
-    elif button_id == 'btn-next' and current_value < len(positions) - 1:
+    elif button_id == 'btn-next' and current_value < len(swarm.ep_positions) - 1:
         return current_value + 1
     elif button_id == 'auto-stepper':
-        if current_value < len(positions) - 1:
+        if current_value < len(swarm.ep_positions) - 1:
             return current_value + 1
         else:
             return 0  # Loop back to start, adjust as needed
