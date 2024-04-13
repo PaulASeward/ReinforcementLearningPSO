@@ -6,7 +6,7 @@ import plotly.express as px
 import numpy as np
 import matplotlib.colors as mcolors  # Import matplotlib colors
 import environment.functions as functions
-
+import math
 
 # Evaluation function (adjust as necessary)
 obj_f = functions.CEC_functions(dim=2, fun_num=6)
@@ -36,39 +36,6 @@ def calculate_current_min_explored(positions, valuations):
         min_explored.append([X1_min, X2_min, min_valuation])
 
     return min_explored
-
-def generate_dynamic_geometric_marks(linear_steps , z_min_shifted, z_max_shifted, shift, factor, num_marks=10):
-    linear_marks = {}
-    nonlinear_marks = []
-
-
-    # Initialize the first mark
-    current_mark = z_min_shifted
-    nonlinear_marks.append(int(current_mark - shift))
-
-    for i in range(1, num_marks):
-        current_mark *= factor
-
-        if current_mark < z_max_shifted:  # Ensure the last mark is z_max if it's not close to the last computed value
-            nonlinear_marks.append(int(current_mark - shift))
-        else:
-            nonlinear_marks.append(int(z_max_shifted - shift))
-            break
-
-    for i, val in enumerate(linear_steps):
-        log_label = nonlinear_marks[i]
-        linear_marks[val] = f'{log_label}'
-
-    return linear_marks
-
-
-def linear_to_nonlinear_value(linear_value, shift, factor, z_min_shifted, z_max_shifted):
-    # Convert linear value to the original scale using geometric progression
-    geometric_value = z_min_shifted * (factor ** np.floor(np.log(linear_value+shift / z_min_shifted) / np.log(factor)))
-    geometric_value = int(min(z_max_shifted, geometric_value)-shift)  # Adjust back the shift
-    print('Linear Value:', linear_value)
-    print('Geometric Value:', geometric_value)
-    return geometric_value
 
 
 def get_distinct_colors(n):
@@ -100,6 +67,30 @@ def lighten_color(color, amount=0.5):
         print('Error: Invalid color: ', color)
         return color
 
+
+def generate_nonlinear_marks(shift, range):
+    linear_marks = {}
+    exponential_ceiling = math.ceil(math.log10(range))
+    linear_steps = (0, exponential_ceiling*100, 100)  # Linear steps for the slider ex) [0,100,200,300,400]
+
+    print("Created Nonlinear Marks with Linear Steps: ", exponential_ceiling)
+    for i, val in enumerate(linear_steps):
+        nonlinear_label = (10 ** i) - shift
+        linear_marks[val] = f'{nonlinear_label}'
+        print(f'Linear Step, {i}: Linear Value: {val}, Nonlinear Label Value: {nonlinear_label}')
+
+    return linear_marks
+
+
+def linear_to_nonlinear_value(linear_value, shift):
+    # Convert linear value to the original scale
+    print(f"Converting Linear Value, {linear_value} to Nonlinear Value with Shift: ", shift)
+    exponent = linear_value / 100
+    nonlinear_value = (10 ** exponent) - shift
+    print("Nonlinear Value: ", nonlinear_value)
+    return int(nonlinear_value)
+
+
 # Load data
 # There is typically 20 episodes with 100 timesteps, 10 particles, and 2 dimensions
 # We will use the first episode for this example
@@ -128,16 +119,12 @@ y = np.linspace(-100, 100, 100)
 X, Y = np.meshgrid(x, y)
 points = np.stack([X.ravel(), Y.ravel()], axis=-1)
 Z = eval(points).reshape(X.shape)
-z_min, z_max = np.min(Z), np.max(Z)
 
+# Calculate the z range, and shift the scale to positive values starting from 1
+z_min, z_max = np.min(Z), np.max(Z)
 z_min, z_max = int(z_min), int(z_max)
-shift = abs(min(z_min, 0)) if z_min <= 0 else - abs(max(z_min, 0))
-z_min_shifted = z_min + shift + 1
-z_max_shifted = z_max + shift
-num_marks = 10
-linear_steps = np.linspace(z_min, z_max, num_marks)
-factor = (z_max_shifted / z_min_shifted) ** (1 / (num_marks - 1))  # Calculate the factor that results in num_marks within the range z_min to z_max
-marks = generate_dynamic_geometric_marks(linear_steps, z_min_shifted, z_max_shifted, shift, factor, num_marks)
+range = z_max - z_min
+shift = abs(min(z_min, 0)) if z_min <= 0 else - abs(max(z_min, 0))  # Shift the scale to positive values starting from 1 so we can use non-linear scaling
 
 app = dash.Dash(__name__)
 
@@ -153,8 +140,8 @@ app.layout = html.Div([
                 min=z_min,
                 max=z_max,
                 step=1,
-                value=max(1000, z_min + 1),
-                marks=generate_dynamic_geometric_marks(linear_steps, z_min_shifted, z_max_shifted, shift, factor, num_marks),
+                value=z_min+1000,
+                marks=generate_nonlinear_marks(shift, range),
                 vertical=True,
                 verticalHeight=400
             ),
@@ -206,6 +193,91 @@ app.layout = html.Div([
         disabled=True, # Start disabled
     )
 ])
+
+
+
+
+@app.callback(
+    Output('3d-swarm-visualization', 'figure'),
+    [Input('timestep-slider', 'value'),
+     Input('btn-toggle-best', 'n_clicks'),
+     Input('z-max-slider', 'value')],
+    [State('particle-selector', 'value')]  # Include the state of the particle selector
+)
+def update_figure(selected_timestep, toggle_best, slider_value, selected_particles):
+    fig = go.Figure()
+
+    # # Adjust z_max to the original scale
+    z_max_value = linear_to_nonlinear_value(slider_value, shift)
+
+    # Color particles
+    show_best_positions = toggle_best % 2 == 1  # Toggle visibility based on odd/even number of clicks
+    num_particles = positions1.shape[1]
+    dark_colors = get_distinct_colors(num_particles)
+    light_colors = [lighten_color(color, amount=0.5) for color in dark_colors]
+
+    for i in selected_particles:  # Loop over particles
+        current_positions = positions1[selected_timestep, i, :]
+        best_positions = swarm_best_positions1[selected_timestep, i, :]
+
+        color = dark_colors[i % len(dark_colors)]
+        lighter_color = light_colors[i % len(light_colors)]
+
+        x = [current_positions[0]]
+        y = [current_positions[1]]
+        z = [valuations1[selected_timestep, i]]
+
+        # Add trace for each particle
+        fig.add_trace(go.Scatter3d(
+            x=x, y=y, z=z,
+            mode='markers',
+            marker=dict(size=3, color=color),
+            name=f'Particle {i + 1}'
+        ))
+
+        if show_best_positions:
+            fig.add_trace(go.Scatter3d(
+                x=[best_positions[0]], y=[best_positions[1]], z=eval([best_positions]),
+                mode='markers', marker=dict(size=5, color=lighter_color), name=f'Particle {i + 1} Best'
+            ))
+
+    # Add Previous Current Minimum Explored
+    if selected_timestep >= 1:
+        min_explored_t_x1, min_explored_t_x2, min_explored_t_z = min_explored[selected_timestep-1]
+        fig.add_trace(go.Scatter3d(
+            x=[min_explored_t_x1], y=[min_explored_t_x2], z=[min_explored_t_z],
+            mode='markers',
+            marker=dict(size=5, color='black'),
+            name='Current Swarm Min'
+        ))
+
+    fig.add_trace(go.Surface(z=Z, x=X, y=Y, colorscale='Viridis', opacity=0.7, cmin=np.min(Z), cmax=z_max_value))
+
+    # Layout adjustments
+    fig.update_layout(
+        legend=dict(
+            x=0,
+            y=1,
+            traceorder="normal",
+            font=dict(
+                family="sans-serif",
+                size=12,
+                color="black"
+            ),
+            bgcolor="LightSteelBlue",
+            bordercolor="Black",
+            borderwidth=2
+        ),
+        scene=dict(
+            xaxis=dict(nticks=4, range=[-100, 100]),
+            yaxis=dict(nticks=4, range=[-100, 100]),
+            zaxis=dict(nticks=4, range=[np.min(Z), z_max_value]),
+        ),
+        autosize=False,
+        width=1200,
+        height=800
+    )
+    return fig
 
 @app.callback(
     Output('timestep-slider', 'value'),
@@ -262,92 +334,6 @@ def control_auto_stepper(btn_play, btn_stop, is_disabled):
 )
 def update_interval(speed):
     return speed
-
-
-@app.callback(
-    Output('3d-swarm-visualization', 'figure'),
-    [Input('timestep-slider', 'value'),
-     Input('btn-toggle-best', 'n_clicks'),
-     Input('z-max-slider', 'value')],
-    [State('particle-selector', 'value')]  # Include the state of the particle selector
-)
-def update_figure(selected_timestep, toggle_best, slider_value, selected_particles):
-    fig = go.Figure()
-
-    # # Adjust z_max to the original scale
-
-    # index of linear step
-    # linear_steps_idx = np.where(linear_steps == slider_value)[0]
-    z_max_value = linear_to_nonlinear_value(slider_value, shift, factor, z_min_shifted, z_max_shifted)
-
-    # Color particles
-    show_best_positions = toggle_best % 2 == 1  # Toggle visibility based on odd/even number of clicks
-    num_particles = positions1.shape[1]
-    dark_colors = get_distinct_colors(num_particles)
-    light_colors = [lighten_color(color, amount=0.5) for color in dark_colors]
-
-    for i in selected_particles:  # Loop over particles
-        current_positions = positions1[selected_timestep, i, :]
-        best_positions = swarm_best_positions1[selected_timestep, i, :]
-
-        color = dark_colors[i % len(dark_colors)]
-        lighter_color = light_colors[i % len(light_colors)]
-
-        x = [current_positions[0]]
-        y = [current_positions[1]]
-        z = [valuations1[selected_timestep, i]]
-
-        # Add trace for each particle
-        fig.add_trace(go.Scatter3d(
-            x=x, y=y, z=z,
-            mode='markers',
-            marker=dict(size=3, color=color),
-            name=f'Particle {i + 1}'
-        ))
-
-        if show_best_positions:
-            fig.add_trace(go.Scatter3d(
-                x=[best_positions[0]], y=[best_positions[1]], z=eval([best_positions]),
-                mode='markers', marker=dict(size=5, color=lighter_color), name=f'Particle {i + 1} Best'
-            ))
-
-    # Add Current Minimum Explored
-    min_explored_t_x1, min_explored_t_x2, min_explored_t_z = min_explored[selected_timestep]
-    fig.add_trace(go.Scatter3d(
-        x=[min_explored_t_x1], y=[min_explored_t_x2], z=[min_explored_t_z],
-        mode='markers',
-        marker=dict(size=5, color='black'),
-        name='Current Swarm Min'
-    ))
-
-    fig.add_trace(go.Surface(z=Z, x=X, y=Y, colorscale='Viridis', opacity=0.7, cmin=np.min(Z), cmax=z_max_value))
-
-    # Layout adjustments
-    fig.update_layout(
-        legend=dict(
-            x=0,
-            y=1,
-            traceorder="normal",
-            font=dict(
-                family="sans-serif",
-                size=12,
-                color="black"
-            ),
-            bgcolor="LightSteelBlue",
-            bordercolor="Black",
-            borderwidth=2
-        ),
-        scene=dict(
-            xaxis=dict(nticks=4, range=[-100, 100]),
-            yaxis=dict(nticks=4, range=[-100, 100]),
-            zaxis=dict(nticks=4, range=[np.min(Z), z_max_value]),
-        ),
-        autosize=False,
-        width=1200,
-        height=800
-    )
-    return fig
-
 
 if __name__ == '__main__':
     app.run_server(debug=True)

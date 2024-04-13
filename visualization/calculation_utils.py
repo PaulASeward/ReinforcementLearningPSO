@@ -122,3 +122,29 @@ def generate_geometric_marks(z_min, z_max):
         marks[adj_z_max-shift] = f'{adj_z_max-shift}'
 
     return marks
+
+
+def generate_dynamic_geometric_marks(linear_steps , z_min_shifted, z_max_shifted, shift, factor, num_marks=10):
+    linear_marks = {}
+    nonlinear_marks = []
+
+    # Initialize the first mark
+    current_mark = z_min_shifted
+    nonlinear_marks.append(int(current_mark - shift))
+
+    for i in range(1, num_marks):
+        current_mark *= factor
+
+        if current_mark < z_max_shifted:  # Ensure the last mark is z_max if it's not close to the last computed value
+            nonlinear_marks.append(int(current_mark - shift))
+        else:
+            nonlinear_marks.append(int(z_max_shifted - shift))
+            break
+
+    print("Created Nonlinear Marks")
+    for i, val in enumerate(linear_steps):
+        log_label = nonlinear_marks[i]
+        linear_marks[val] = f'{log_label}'
+        print(f'Linear Step, {i}: Linear Value: {val}, Nonlinear Value: {log_label}')
+
+    return linear_marks
