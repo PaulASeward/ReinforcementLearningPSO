@@ -6,25 +6,37 @@ from swarm_simulator import SwarmSimulator
 # Load data
 swarm = SwarmSimulator(fun_num=6)
 
-
 app = dash.Dash(__name__)
 
 # App layout
 app.layout = html.Div([
-    dcc.Dropdown(
-        id='function-selector',
-        options=[{'label': f'Function {i + 1}', 'value': i} for i in range(29)],
-        value=6,
-        clearable=False,
-        placeholder="Select Function"
-    ),
-    dcc.Dropdown(
-        id='episode-selector',
-        options=[{'label': f'Episode {i + 1}', 'value': i} for i in range(swarm.ep_positions.shape[0])],
-        value=0,
-        clearable=False,
-        placeholder="Select Episode"
-    ),
+    html.Div([
+        dcc.Dropdown(
+            id='function-selector',
+            options=swarm.get_available_functions(),
+            value=6,
+            clearable=False,
+            placeholder="Select Function"
+        ),
+    ], style={'margin-bottom': '20px'}),
+    html.Div([
+        dcc.Dropdown(
+            id='step-selector',
+            options=[],
+            clearable=False,
+            placeholder="Select Step in Experiment"
+        ),
+    ], style={'margin-bottom': '20px'}),
+    html.Div([
+        dcc.Dropdown(
+            id='episode-selector',
+            options=[],
+            value=0,
+            clearable=False,
+            placeholder="Select Episode"
+        ),
+    ], style={'margin-bottom': '20px'}),
+
     html.Div([
         html.Div([
             dcc.Graph(id='3d-swarm-visualization'),
@@ -61,16 +73,6 @@ app.layout = html.Div([
         clearable=False,
         placeholder="Select Playback Speed"
     ),
-    dcc.Dropdown(
-        id='particle-best-position',
-        options=[
-            {'label': 'Yes', 'value': True},
-            {'label': 'No', 'value': False},
-        ],
-        value=False,
-        clearable=False,
-        placeholder="Display a Particle's Best Positions"
-    ),
     html.Div([
         dcc.Slider(
                 id='timestep-slider',
@@ -80,16 +82,7 @@ app.layout = html.Div([
                 marks={i: str(i) for i in range(0, len(swarm.ep_positions), 10)},
                 step=1,
             ),
-    ], style={'width': '15%', 'display': 'inline-block', 'verticalAlign': 'top'}),
-    html.Div([
-        dcc.Dropdown(
-            id='particle-selector',
-            options=[{'label': f'Particle {i + 1}', 'value': i} for i in range(swarm.ep_positions.shape[1])],
-            placeholder="Focus on Single Particle Behavior",
-            multi=True,
-            value=[i for i in range(swarm.ep_positions.shape[1])]
-        ),
-    ], style={'width': '15%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+    ], style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top'}),
     dcc.Interval(
         id='auto-stepper',
         interval=500, # in milliseconds
@@ -100,38 +93,135 @@ app.layout = html.Div([
 
 
 @app.callback(
-    Output('3d-swarm-visualization', 'figure'),
-    [Input('timestep-slider', 'value'),
-     Input('z-max-slider', 'value'),
-    Input('particle-best-position', 'value'),
-     Input('particle-selector', 'value')],
+    [
+        Output('3d-swarm-visualization', 'figure'),
+        Output('step-selector', 'options'),
+        Output('episode-selector', 'options'),
+        Output('timestep-slider', 'max'),
+        Output('timestep-slider', 'marks')
+    ],
+    [
+        Input('function-selector', 'value'),
+        Input('step-selector', 'value'),
+        Input('episode-selector', 'value'),
+        Input('timestep-slider', 'value'),
+        Input('z-max-slider', 'value')
+    ],
+    [
+        State('function-selector', 'value'),
+        State('step-selector', 'value'),
+        State('episode-selector', 'value'),
+        State('3d-swarm-visualization', 'figure'),
+        State('timestep-slider', 'value')
+    ]
 )
-def update_figure(selected_timestep, slider_value, show_p_best, selected_particles):
+def update_figure(fun_num_input, step_input, ep_input, timestep_slider_value_input, z_max_slider_value_input, current_fun_num, current_step, current_ep, current_figure, current_timestep):
     ctx = dash.callback_context
-    if not ctx.triggered:
-        return dash.no_update
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    if button_id == 'z-max-slider':
-        swarm.surface.update_z_visible_max(slider_value)
-        swarm.surface.clear_traces()
+    if triggered_id in ['function-selector', 'step-selector', 'episode-selector']:
+        print(f"Function: {fun_num_input}, Step: {step_input}, Episode: {ep_input}")
+        swarm.set_function_number(fun_num_input)
+        return dash.no_update, swarm.get_available_steps(), dash.no_update, dash.no_update, dash.no_update
+    elif triggered_id in ['step-selector', 'episode-selector']:
+
+        print(f"Function: {current_fun_num}, Step: {step_input}, Episode: {ep_input}")
+        # Reload data for new function or step number
+        swarm.load_completed_swarm_data(step=step_input, episode=0)
+
+        # Check and reset the timestep if it is out of bounds
+        max_timestep = len(swarm.ep_positions) - 1
+        if current_timestep > max_timestep:
+            current_timestep = 0
+
+        # Update marks for the slider based on new data
+        marks = {i: str(i) for i in range(0, len(swarm.ep_positions), 10)}
+
+        # Regenerate the figure with new data
         fig = swarm.surface.generate_surface()
-    elif button_id == 'particle-best-position':
-        print("Particle best position changed")
-        swarm.surface.clear_traces()
-        fig = swarm.surface.generate_surface()
-    elif button_id == 'particle-selector':
-        print("Particle selector changed")
-        swarm.surface.clear_traces()
-        fig = swarm.surface.generate_surface()
-    else:
-        fig = swarm.surface.get_surface()
+        fig = swarm.surface.plot_particles(fig, swarm.num_particles, current_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.min_explored, swarm.dark_colors, swarm.light_colors)
 
-    fig = swarm.surface.plot_particles(fig, selected_particles, show_p_best, selected_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.min_explored, swarm.dark_colors, swarm.light_colors)
+        available_episodes = swarm.get_available_episodes(step_input) if step_input is not None else []
+        print(f"Available Episodes: {available_episodes}")
 
-    # return dict(data=fig.data, layout={'legend': {'uirevision': True}})
-    return fig
+        return fig, swarm.get_available_steps(), available_episodes, max_timestep, marks
 
+    elif triggered_id in ['timestep-slider', 'z-max-slider']:
+        print(f"Timestep: {timestep_slider_value_input}, Z-Max: {z_max_slider_value_input}")
+        # Update visualization based on slider changes
+        if triggered_id == 'z-max-slider':
+            swarm.surface.update_z_visible_max(z_max_slider_value_input)
+            swarm.surface.clear_traces()
+            fig = swarm.surface.generate_surface()
+        else:
+            fig = swarm.surface.get_surface()
+
+        fig = swarm.surface.plot_particles(fig, swarm.num_particles, timestep_slider_value_input, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.min_explored, swarm.dark_colors, swarm.light_colors)
+
+        return fig, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+    print(f"Unknown trigger: {triggered_id}")
+    return current_figure, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+
+# @app.callback(
+#     Output('3d-swarm-visualization', 'figure'),
+#     [Input('timestep-slider', 'value'),
+#      Input('z-max-slider', 'value'),],
+# )
+# def update_figure(selected_timestep, slider_value):
+#     ctx = dash.callback_context
+#     if not ctx.triggered:
+#         return dash.no_update
+#
+#     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+#     if button_id == 'z-max-slider':
+#         swarm.surface.update_z_visible_max(slider_value)
+#         swarm.surface.clear_traces()
+#         fig = swarm.surface.generate_surface()
+#     else:
+#         fig = swarm.surface.get_surface()
+#
+#     fig = swarm.surface.plot_particles(fig, swarm.num_particles, selected_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.min_explored, swarm.dark_colors, swarm.light_colors)
+#
+#     return fig
+
+
+# @app.callback(
+#     [
+#         Output('3d-swarm-visualization', 'figure'),
+#         Output('timestep-slider', 'max'),
+#         Output('timestep-slider', 'marks')
+#     ],
+#     [
+#         Input('function-selector', 'value'),
+#         Input('step-selector', 'value'),
+#         Input('episode-selector', 'value')
+#     ],
+#     [
+#         State('timestep-slider', 'value')
+#     ]
+# )
+# def update_swarm(fun_num, step_num, ep, current_timestep):
+#     # Update the swarm simulator with the new function number and step
+#     global swarm
+#     swarm = SwarmSimulator(fun_num=fun_num)
+#     swarm.load_completed_swarm_data(step=step_num, episode=0)
+#
+#     # Reset timestep if the current timestep is out of new range
+#     if current_timestep >= len(swarm.ep_positions):
+#         current_timestep = 0
+#
+#     # Update the visualization
+#     fig = swarm.surface.generate_surface()
+#     fig = swarm.surface.plot_particles(fig, swarm.num_particles, current_timestep, swarm.ep_positions,
+#                                        swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.min_explored,
+#                                        swarm.dark_colors, swarm.light_colors)
+#
+#     # Update marks for the new data
+#     marks = {i: str(i) for i in range(0, len(swarm.ep_positions), 10)}
+#
+#     return fig, len(swarm.ep_positions) - 1, marks
 
 @app.callback(
     Output('timestep-slider', 'value'),

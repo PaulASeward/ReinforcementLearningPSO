@@ -7,9 +7,13 @@ from calculation_utils import get_distinct_colors, lighten_color
 
 class SwarmSimulator:
     def __init__(self, fun_num, dim=2):
-        self.obj_f = functions.CEC_functions(dim=dim, fun_num=fun_num)
-        self.data_dir = f'data/f{fun_num}/'
+        self.fun_num = fun_num
+        self.dim = dim
+        self.obj_f = None
+        self.data_dir = None
         self.step_data_dir = None
+
+        self.set_function_number(fun_num)
 
         self.positions = None
         self.ep_positions = None
@@ -31,6 +35,37 @@ class SwarmSimulator:
 
         self.load_completed_swarm_data(step=250, episode=0)
 
+    def set_function_number(self, fun_num):
+        self.fun_num = fun_num
+        self.data_dir = f'data/f{fun_num}/'
+        self.obj_f = functions.CEC_functions(dim=self.dim, fun_num=fun_num)
+
+    def get_available_functions(self):
+        return [{'label': f'Function {i + 1}', 'value': i+1} for i in range(28)]
+
+    def get_available_steps(self):
+        if not os.path.exists(self.data_dir):
+            print(f'No data exists for Function {self.fun_num}.')
+            return []
+
+        data_directories = os.listdir(self.data_dir)
+        print("Data Directories ",data_directories)
+        episodes = [int(directory.split('_')[-1]) for directory in data_directories]
+        print("Episodes ",episodes)
+        return [{'label': f'Step {i}', 'value': i} for i in episodes]
+
+    def get_available_episodes(self, step):
+        if not os.path.exists(self.step_data_dir):
+            print(f'No data exists for function {self.fun_num}.')
+            return []
+
+        if self.ep_positions is None:
+            print(f'No data exists for function {self.fun_num}.')
+            return []
+
+        return [{'label': f'Episode {i + 1}', 'value': i} for i in range(self.ep_positions.shape[0])],
+
+
     def eval(self, X):
         return self.obj_f.Y_matrix(np.array(X).astype(float))
 
@@ -44,16 +79,19 @@ class SwarmSimulator:
         self.dark_colors = get_distinct_colors(self.num_particles)
         self.light_colors = [lighten_color(color, amount=0.5) for color in self.dark_colors]
 
-    def get_available_episodes(self):
-        data_directories = os.listdir(self.data_dir)
-        episodes = [int(directory.split('_')[-1]) for directory in data_directories]
-        return episodes
-
     def load_completed_swarm_data(self, step=250, episode=0):
         # There is typically 20 episodes with 100 timesteps, 10 particles, and 2 dimensions
         self.step_data_dir = self.data_dir + f'locations_at_step_{step}/'
 
+        # Verify that the data exists for the given step
+        if not os.path.exists(self.step_data_dir):
+            raise ValueError(f'No data exists for step {step} and episode {episode}.')
+
         self.positions = np.load(self.step_data_dir + 'swarm_locations.npy')  # Shape is  (episodes, time_steps, particles, dimensions)
+
+        # Verify that the data exists for the given episode
+        if episode >= len(self.positions):
+            raise ValueError(f'No data exists for episode {episode}.')
         self.ep_positions = self.positions[episode]  # Shape is (time_steps, particles, dimensions)
 
         self.velocities = np.load(self.step_data_dir + 'swarm_velocities.npy')  # Shape is (time_steps, particles, dimensions)

@@ -66,7 +66,6 @@ class Surface:
                 trace.marker.color = color
                 break
         if not trace_found:
-            print("Adding new trace: ", name)
             # Add a new trace if not found
             fig.add_trace(go.Scatter3d(
                 x=x, y=y, z=z,
@@ -92,14 +91,12 @@ class Surface:
 
         return self.fig
 
-    def plot_particles(self, fig, selected_particles, show_p_best, timestep, positions, valuations, swarm_best_positions, min_explored, dark_colors, light_colors):
-        for i in selected_particles:   # Add trace for each particle
+    def plot_particles(self, fig, num_particles, timestep, positions, valuations, swarm_best_positions, min_explored, dark_colors, light_colors):
+        for i in range(num_particles):   # Add trace for each particle
             current_positions = positions[timestep, i, :]
 
             fig = self.update_or_add_trace(fig, f'Particle {i + 1}', [current_positions[0]], [current_positions[1]],[valuations[timestep, i]], 'markers', 3, dark_colors[i % len(dark_colors)])
-
-            if show_p_best:
-                fig = self.plot_particle_bests(fig, timestep, i, swarm_best_positions, light_colors)
+            fig = self.plot_particle_bests(fig, timestep, i, swarm_best_positions, light_colors)
 
         # Add Previous Current Minimum Explored
         fig = self.plot_current_swarm_best(fig, timestep, min_explored)
