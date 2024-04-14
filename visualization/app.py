@@ -236,8 +236,6 @@ def update_swarm(fun_num_input, step_input, ep_input, btn_n_clicks, current_func
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
     if triggered_id == 'btn-generate':
-        print(f'Generating simulated data for Function {current_function}...')
-        print(f'Inertia Weight: {w}, Cognitive Component: {c1}, Social Component: {c2}, RangeF: {rangeF}, Threshold: {threshold}')
         swarm.generate_simulated_swarm_data(c1=c1, c2=c2, w=w, rangeF=rangeF, threshold=threshold)
         return swarm.get_available_steps(), swarm.get_available_episodes(0), dash.no_update, dash.no_update, f"Simulated data has been generated for Function {current_function}."
 
