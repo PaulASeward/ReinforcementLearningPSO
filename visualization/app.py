@@ -41,6 +41,7 @@ app.layout = html.Div([
             dcc.Graph(id='3d-swarm-visualization'),
         ], style={'width': '85%', 'display': 'inline-block'}),
         html.Div([
+            html.Label('Max Z Value:', style={'margin-right': '10px'}),
             dcc.Slider(
                 id='z-max-slider',
                 min=0,
@@ -52,28 +53,48 @@ app.layout = html.Div([
                 verticalHeight=400
             ),
         ], style={'width': '15%', 'display': 'inline-block', 'verticalAlign': 'top'}),
-    ], style={'display': 'flex', 'flex-direction': 'row'}),
-    html.Button('Previous', id='btn-previous', n_clicks=0),
-    html.Button('Next', id='btn-next', n_clicks=0),
-    html.Button('Play', id='btn-play', n_clicks=0),
-    html.Button('Stop', id='btn-stop', n_clicks=0),
-    dcc.Dropdown(
-        id='speed-selector',
-        options=[
-            {'label': '1x Speed', 'value': 500},
-            {'label': '1.25x Speed', 'value': 400},
-            {'label': '1.5x Speed', 'value': 333},
-            {'label': '1.75x Speed', 'value': 285},
-            {'label': '2x Speed', 'value': 250},
-            {'label': '5x Speed', 'value': 100},
-            {'label': '10x Speed', 'value': 50}
-        ],
-        value=500,  # Default to 1x speed
-        clearable=False,
-        placeholder="Select Playback Speed"
-    ),
+    ], style={'display': 'flex', 'flex-direction': 'row', 'margin-bottom': '20px'}),
     html.Div([
-        dcc.Slider(
+        html.Div([
+            html.Label('Display a Particle\'s Best Positions:', style={'margin-right': '10px'}),
+            dcc.Dropdown(
+                id='particle-best-position',
+                options=[
+                    {'label': 'Yes', 'value': True},
+                    {'label': 'No', 'value': False},
+                ],
+                value=False,
+                clearable=False,
+                placeholder="Display a Particle's Best Positions"
+            ),
+            html.Label('Display a Particle\'s Velocity Trail:', style={'margin-right': '10px', 'margin-top': '10px'}),
+            dcc.Dropdown(
+                id='particle-trail',
+                options=[
+                    {'label': 'Yes', 'value': True},
+                    {'label': 'No', 'value': False},
+                ],
+                value=False,
+                clearable=False,
+                placeholder="Display a Particle's Velocity Trail"
+            ),
+        ], style={'width': '40%', 'display': 'inline-block', 'verticalAlign': 'top', 'margin-bottom': '20px'}),
+        html.Div([
+            html.Label('Particle Selection (Can also select/deselect by clicking on the legend):', style={'margin-right': '10px', 'margin-left': '10px'}),
+            dcc.Dropdown(
+                id='particle-selector',
+                options=[{'label': f'Particle {i + 1}', 'value': i} for i in range(swarm.ep_positions.shape[1])],
+                placeholder="Focus on Single Particle Behavior",
+                multi=True,
+                value=[i for i in range(swarm.ep_positions.shape[1])]
+            ),
+        ], style={'width': '60%', 'display': 'inline-block', 'verticalAlign': 'top', 'margin-bottom': '20px'}),
+    ], style={'display': 'flex', 'flex-direction': 'row', 'margin-bottom': '20px'}),
+    html.Div([
+        html.Div([
+            # Timestep Slider
+            html.Label('Adjust Timestep:', style={'margin-bottom': '10px'}),
+            dcc.Slider(
                 id='timestep-slider',
                 min=0,
                 max=len(swarm.ep_positions) - 1,
@@ -81,13 +102,41 @@ app.layout = html.Div([
                 marks={i: str(i) for i in range(0, len(swarm.ep_positions), 10)},
                 step=1,
             ),
-    ], style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+        ], style={'width': '60%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+
+        # Playback Controls
+        html.Div([
+            html.Div([
+                html.Button('Previous', id='btn-previous', n_clicks=0),
+                html.Button('Next', id='btn-next', n_clicks=0),
+                html.Button('Play', id='btn-play', n_clicks=0),
+                html.Button('Stop', id='btn-stop', n_clicks=0),
+            ], style={'display': 'flex', 'justify-content': 'space-between', 'margin-bottom': '10px'}),
+            dcc.Dropdown(
+                id='speed-selector',
+                options=[
+                    {'label': '1x Speed', 'value': 500},
+                    {'label': '1.25x Speed', 'value': 400},
+                    {'label': '1.5x Speed', 'value': 333},
+                    {'label': '1.75x Speed', 'value': 285},
+                    {'label': '2x Speed', 'value': 250},
+                    {'label': '5x Speed', 'value': 100},
+                    {'label': '10x Speed', 'value': 50}
+                ],
+                value=500,  # Default to 1x speed
+                clearable=False,
+                placeholder="Select Playback Speed"
+            ),
+        ], style={'width': '40%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+    ], style={'display': 'flex'}),
+
+    # Auto-stepper Interval
     dcc.Interval(
         id='auto-stepper',
-        interval=500, # in milliseconds
+        interval=500,  # in milliseconds
         n_intervals=0,
-        disabled=True, # Start disabled
-    )
+        disabled=True  # Start disabled
+    ),
 ])
 
 
@@ -161,7 +210,7 @@ def update_figure(selected_timestep, slider_value):
     else:
         fig = swarm.surface.get_surface()
 
-    fig = swarm.surface.plot_particles(fig, swarm.num_particles, selected_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.min_explored, swarm.dark_colors, swarm.light_colors)
+    fig = swarm.surface.plot_particles(fig, swarm.num_particles, selected_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.ep_velocities, swarm.min_explored, swarm.dark_colors, swarm.light_colors)
 
     return fig
 
