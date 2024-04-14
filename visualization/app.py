@@ -36,8 +36,59 @@ app.layout = html.Div([
     ], style={'margin-bottom': '20px'}),
     html.Div([
         html.Button('Generate Simulated Data', id='btn-generate', n_clicks=0),
-    ]),
-    # Place this where you define your app.layout
+        html.Div([
+            html.Label('Inertia Weight:'),
+            dcc.Input(
+                id='inertia-weight-input',
+                type='number',
+                min=0.1,
+                max=1.0,
+                step=0.01,
+                value=0.729844,  # default value from your PSO implementation
+                style={'margin-right': '20px'}
+            ),
+            html.Label('Gravity to Individual Best (Cognitive):'),
+            dcc.Input(
+                id='cognitive-component-input',
+                type='number',
+                min=0,
+                max=4,
+                step=0.1,
+                value=1.491038,  # default value from your PSO implementation
+                style={'margin-right': '20px'}
+            ),
+            html.Label('Gravity to Swarm Best (Social):'),
+            dcc.Input(
+                id='social-component-input',
+                type='number',
+                min=0,
+                max=4,
+                step=0.1,
+                value=1.491038,  # default value from your PSO implementation
+                style={'margin-right': '20px'}
+            ),
+            html.Label('Velocity Range:'),
+            dcc.Input(
+                id='rangeF-input',
+                type='number',
+                min=10,
+                max=100,
+                step=1,
+                value=100,  # default value from your PSO implementation
+                style={'margin-right': '20px'}
+            ),
+            html.Label('Replacement Threshold:'),
+            dcc.Input(
+                id='threshold-input',
+                type='number',
+                min=0,
+                max=1,
+                step=0.1,
+                value=1.0,  # default value from your PSO implementation
+            )
+        ], style={'display': 'flex', 'justify-content': 'space-between', 'align-items': 'center'}),
+    ], style={'margin-bottom': '20px'}),
+
     html.Div(id='episode-metadata-display', style={'margin-top': '20px'}),
     html.Div([
         html.Div([
@@ -173,30 +224,32 @@ app.layout = html.Div([
     [
         State('function-selector', 'value'),
         State('step-selector', 'value'),
+        State('inertia-weight-input', 'value'),
+        State('cognitive-component-input', 'value'),
+        State('social-component-input', 'value'),
+        State('rangeF-input', 'value'),
+        State('threshold-input', 'value')
     ]
 )
-def update_swarm(fun_num_input, step_input, ep_input, btn_n_clicks, current_function, current_step):
+def update_swarm(fun_num_input, step_input, ep_input, btn_n_clicks, current_function, current_step, w, c1, c2, rangeF, threshold):
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    print(f"Triggered ID: {triggered_id}")
-
     if triggered_id == 'btn-generate':
-        swarm.generate_simulated_swarm_data()
+        print(f'Generating simulated data for Function {current_function}...')
+        print(f'Inertia Weight: {w}, Cognitive Component: {c1}, Social Component: {c2}, RangeF: {rangeF}, Threshold: {threshold}')
+        swarm.generate_simulated_swarm_data(c1=c1, c2=c2, w=w, rangeF=rangeF, threshold=threshold)
         return swarm.get_available_steps(), swarm.get_available_episodes(0), dash.no_update, dash.no_update, f"Simulated data has been generated for Function {current_function}."
 
     if triggered_id == 'function-selector':
         swarm.set_function_number(fun_num_input)
         marks = swarm.surface.marks
-        # TODO: Is below needed?
         swarm.surface.clear_traces()
         swarm.surface.generate_surface()
         return swarm.get_available_steps(), [], marks, int(marks[200]), dash.no_update
 
     if triggered_id == 'step-selector':
         swarm.load_swarm_data_for_step(step=step_input)
-        episodes = swarm.get_available_episodes(step_input)
-        print(f"Episodes: {episodes}")
         return dash.no_update, swarm.get_available_episodes(step_input), dash.no_update, dash.no_update, dash.no_update
 
     if triggered_id == 'episode-selector':
