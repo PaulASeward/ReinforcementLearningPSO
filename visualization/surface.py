@@ -94,7 +94,7 @@ class Surface:
 
         return self.fig
 
-    def plot_particles(self, fig, selected_particles, timestep, positions, valuations, swarm_best_positions, velocities, min_explored, dark_colors, light_colors, show_particle_bests=True, show_velocity_trails=True):
+    def plot_particles(self, fig, selected_particles, timestep, positions, valuations, swarm_best_positions, velocities, min_explored, dark_colors, light_colors, show_particle_bests=True, show_velocity_trails=True, show_prev_position=True):
         for i in selected_particles:   # Add trace for each particle
             current_positions = positions[timestep, i, :]
 
@@ -102,9 +102,12 @@ class Surface:
             if show_particle_bests:
                 fig = self.plot_particle_bests(fig, timestep, i, swarm_best_positions, light_colors)
 
-            # Add Velocity Trails
+            if show_prev_position and timestep > 0:
+                prev_positions = positions[timestep - 1, i, :]
+                fig = self.update_or_add_trace(fig, f'Particle {i + 1} Prev', [prev_positions[0]], [prev_positions[1]], [valuations[timestep - 1, i]], 'markers', 3, light_colors[i % len(light_colors)], 0.50, showlegend=True)
+
             if show_velocity_trails:
-                fig = self.plot_velocity_trails(fig, i, timestep, positions, velocities, valuations, dark_colors)
+                fig = self.plot_velocity_mult_trails(fig, i, timestep, positions, velocities, valuations, dark_colors)
 
         # Add Previous Current Minimum Explored
         fig = self.plot_current_swarm_best(fig, timestep, min_explored)
@@ -121,24 +124,21 @@ class Surface:
 
         return fig
 
-    # def plot_velocity_mult_trails(self, fig, particle_idx, timestep, positions, velocities, valuations, colors):
-    #     trail_length = 5  # Number of trail points to create
-    #     decay_factor = 0.2  # Factor by which the trail decays
-    #
-    #     print("Particle", particle_idx)
-    #     particle_position = positions[timestep, particle_idx, :]
-    #     print("Particle Position: ", particle_position)
-    #     particle_velocity = velocities[timestep, particle_idx, :]
-    #     print("Particle Velocity: ", particle_velocity)
-    #     for j in range(trail_length):
-    #         factor = (trail_length - j) / trail_length
-    #         trail_pos = particle_position - particle_velocity * factor
-    #         print(f"Trail Position {j}: ", trail_pos)
-    #         fig = self.update_or_add_trace(fig, f'Particle {particle_idx + 1} Trail {j}', [trail_pos[0]], [trail_pos[1]], [valuations[timestep, particle_idx]], 'markers', 3 * factor, colors[particle_idx % len(colors)], opacity=max(0.1, 1 - decay_factor * j), showlegend=False)
-    #
-    #     return fig
+    def plot_velocity_mult_trails(self, fig, particle_idx, timestep, positions, velocities, valuations, colors):
+        trail_length = 5  # Number of trail points to create
+        decay_factor = 0.2  # Factor by which the trail decays
 
-    def plot_velocity_trails(self, fig, particle_idx, timestep, positions, velocities, valuations, colors):
+        if timestep > 1:
+            particle_position = positions[timestep, particle_idx, :]
+            particle_velocity = velocities[timestep - 1, particle_idx, :]
+            for j in range(trail_length):
+                factor = (trail_length - j) / trail_length
+                trail_pos = particle_position - particle_velocity * (1 - factor)
+                fig = self.update_or_add_trace(fig, f'Particle {particle_idx + 1} Trail {j}', [trail_pos[0]], [trail_pos[1]], [valuations[timestep, particle_idx]], 'markers', 3 * factor, colors[particle_idx % len(colors)], opacity=max(0.1, 1 - decay_factor * j), showlegend=False)
+
+        return fig
+
+    def plot_velocity_single_trail(self, fig, particle_idx, timestep, positions, velocities, valuations, colors):
         if timestep > 1:
             trail_length = 5  # Number of trail points to create
             decay_factor = 0.2  # Factor by which the trail decays
@@ -151,8 +151,7 @@ class Surface:
 
             for j in range(trail_length):
                 factor = (trail_length - j) / trail_length
-                trail_pos = positions[timestep, particle_idx, :] - velocities[timestep-1, particle_idx, :] * factor
-
+                trail_pos = positions[timestep, particle_idx, :] - velocities[timestep-1, particle_idx, :] * (1 - factor)
                 trail_points_x.append(trail_pos[0])
                 trail_points_y.append(trail_pos[1])
                 trail_points_z.append(valuations[timestep, particle_idx])

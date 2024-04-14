@@ -34,6 +34,9 @@ app.layout = html.Div([
             placeholder="Select Episode"
         ),
     ], style={'margin-bottom': '20px'}),
+    html.Div([
+        html.Button('Generate Simulated Data', id='btn-generate', n_clicks=0),
+    ]),
     # Place this where you define your app.layout
     html.Div(id='episode-metadata-display', style={'margin-top': '20px'}),
     html.Div([
@@ -77,6 +80,17 @@ app.layout = html.Div([
                 value=False,
                 clearable=False,
                 placeholder="Display a Particle's Velocity Trail"
+            ),
+            html.Label('Display a Particle\'s Last Position:', style={'margin-right': '10px', 'margin-top': '10px'}),
+            dcc.Dropdown(
+                id='previous-position',
+                options=[
+                    {'label': 'Yes', 'value': True},
+                    {'label': 'No', 'value': False},
+                ],
+                value=False,
+                clearable=False,
+                placeholder="Display a Particle's Previous Position"
             ),
         ], style={'width': '40%', 'display': 'inline-block', 'verticalAlign': 'top', 'margin-bottom': '20px'}),
         html.Div([
@@ -154,24 +168,35 @@ app.layout = html.Div([
         Input('function-selector', 'value'),
         Input('step-selector', 'value'),
         Input('episode-selector', 'value'),
+        Input('btn-generate', 'n_clicks')
     ],
     [
+        State('function-selector', 'value'),
         State('step-selector', 'value'),
     ]
 )
-def update_swarm(fun_num_input, step_input, ep_input, current_step):
+def update_swarm(fun_num_input, step_input, ep_input, btn_n_clicks, current_function, current_step):
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    print(f"Triggered ID: {triggered_id}")
+
+    if triggered_id == 'btn-generate':
+        swarm.generate_simulated_swarm_data()
+        return swarm.get_available_steps(), swarm.get_available_episodes(0), dash.no_update, dash.no_update, f"Simulated data has been generated for Function {current_function}."
 
     if triggered_id == 'function-selector':
         swarm.set_function_number(fun_num_input)
         marks = swarm.surface.marks
+        # TODO: Is below needed?
         swarm.surface.clear_traces()
         swarm.surface.generate_surface()
         return swarm.get_available_steps(), [], marks, int(marks[200]), dash.no_update
 
     if triggered_id == 'step-selector':
         swarm.load_swarm_data_for_step(step=step_input)
+        episodes = swarm.get_available_episodes(step_input)
+        print(f"Episodes: {episodes}")
         return dash.no_update, swarm.get_available_episodes(step_input), dash.no_update, dash.no_update, dash.no_update
 
     if triggered_id == 'episode-selector':
@@ -200,18 +225,21 @@ def update_swarm(fun_num_input, step_input, ep_input, current_step):
      Input('z-max-slider', 'value'),
      Input('particle-best-position', 'value'),
      Input('particle-trail', 'value'),
+     Input('previous-position', 'value'),
      Input('particle-selector', 'value')],
     [State('particle-best-position', 'value'),
      State('particle-trail', 'value'),
+     State('previous-position', 'value'),
      State('particle-selector', 'value')],
 )
-def update_figure(selected_timestep, slider_value, display_pbest_input, display_trail_input, selected_particles_input, display_best_positions, display_trail, selected_particles):
+def update_figure(selected_timestep, slider_value, display_pbest_input, display_trail_input, display_prev_posn_input, selected_particles_input, display_best_positions, display_trail, display_prev_posn, selected_particles):
     ctx = dash.callback_context
     if not ctx.triggered:
         return dash.no_update
 
     display_best_positions = display_pbest_input if display_pbest_input is not None else display_best_positions
     display_trail = display_trail_input if display_trail_input is not None else display_trail
+    display_prev_posn = display_prev_posn_input if display_prev_posn_input is not None else display_prev_posn
     selected_particles = selected_particles_input if selected_particles_input is not None else selected_particles
 
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
@@ -222,11 +250,9 @@ def update_figure(selected_timestep, slider_value, display_pbest_input, display_
         swarm.surface.clear_traces()
         fig = swarm.surface.generate_surface()
 
-    fig = swarm.surface.plot_particles(fig, selected_particles, selected_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.ep_velocities, swarm.min_explored, swarm.dark_colors, swarm.light_colors, display_best_positions, display_trail)
+    fig = swarm.surface.plot_particles(fig, selected_particles, selected_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.ep_velocities, swarm.min_explored, swarm.dark_colors, swarm.light_colors, display_best_positions, display_trail, display_prev_posn)
 
     return fig
-
-
 
 
 @app.callback(
