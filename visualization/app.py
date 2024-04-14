@@ -111,23 +111,25 @@ app.layout = html.Div([
                 html.Button('Next', id='btn-next', n_clicks=0),
                 html.Button('Play', id='btn-play', n_clicks=0),
                 html.Button('Stop', id='btn-stop', n_clicks=0),
-            ], style={'display': 'flex', 'justify-content': 'space-between', 'margin-bottom': '10px'}),
-            dcc.Dropdown(
-                id='speed-selector',
-                options=[
-                    {'label': '1x Speed', 'value': 500},
-                    {'label': '1.25x Speed', 'value': 400},
-                    {'label': '1.5x Speed', 'value': 333},
-                    {'label': '1.75x Speed', 'value': 285},
-                    {'label': '2x Speed', 'value': 250},
-                    {'label': '5x Speed', 'value': 100},
-                    {'label': '10x Speed', 'value': 50}
-                ],
-                value=500,  # Default to 1x speed
-                clearable=False,
-                placeholder="Select Playback Speed"
-            ),
-        ], style={'width': '40%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+            ], style={'width': '50%', 'display': 'flex', 'margin-bottom': '10px', 'justify-content': 'space-around'}),
+            html.Div([
+                dcc.Dropdown(
+                    id='speed-selector',
+                    options=[
+                        {'label': '1x Speed', 'value': 500},
+                        {'label': '1.25x Speed', 'value': 400},
+                        {'label': '1.5x Speed', 'value': 333},
+                        {'label': '1.75x Speed', 'value': 285},
+                        {'label': '2x Speed', 'value': 250},
+                        {'label': '5x Speed', 'value': 100},
+                        {'label': '10x Speed', 'value': 50}
+                    ],
+                    value=500,  # Default to 1x speed
+                    clearable=False,
+                    placeholder="Select Playback Speed"
+                )
+            ], style={'width': '50%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+        ], style={'width': '50%', 'display': 'inline-block', 'verticalAlign': 'top'}),
     ], style={'display': 'flex'}),
 
     # Auto-stepper Interval
@@ -195,22 +197,32 @@ def update_swarm(fun_num_input, step_input, ep_input, current_step):
 @app.callback(
     Output('3d-swarm-visualization', 'figure'),
     [Input('timestep-slider', 'value'),
-     Input('z-max-slider', 'value'),],
+     Input('z-max-slider', 'value'),
+     Input('particle-best-position', 'value'),
+     Input('particle-trail', 'value'),
+     Input('particle-selector', 'value')],
+    [State('particle-best-position', 'value'),
+     State('particle-trail', 'value'),
+     State('particle-selector', 'value')],
 )
-def update_figure(selected_timestep, slider_value):
+def update_figure(selected_timestep, slider_value, display_pbest_input, display_trail_input, selected_particles_input, display_best_positions, display_trail, selected_particles):
     ctx = dash.callback_context
     if not ctx.triggered:
         return dash.no_update
 
+    display_best_positions = display_pbest_input if display_pbest_input is not None else display_best_positions
+    display_trail = display_trail_input if display_trail_input is not None else display_trail
+    selected_particles = selected_particles_input if selected_particles_input is not None else selected_particles
+
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    if button_id == 'z-max-slider':
+    if button_id == 'timestep-slider':
+        fig = swarm.surface.get_surface()
+    else:
         swarm.surface.update_z_visible_max(slider_value)
         swarm.surface.clear_traces()
         fig = swarm.surface.generate_surface()
-    else:
-        fig = swarm.surface.get_surface()
 
-    fig = swarm.surface.plot_particles(fig, swarm.num_particles, selected_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.ep_velocities, swarm.min_explored, swarm.dark_colors, swarm.light_colors)
+    fig = swarm.surface.plot_particles(fig, selected_particles, selected_timestep, swarm.ep_positions, swarm.ep_valuations, swarm.ep_swarm_best_positions, swarm.ep_velocities, swarm.min_explored, swarm.dark_colors, swarm.light_colors, display_best_positions, display_trail)
 
     return fig
 
