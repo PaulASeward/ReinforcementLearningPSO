@@ -51,7 +51,7 @@ class Surface:
         nonlinear_value = (10 ** exponent) - self.shift
         return int(nonlinear_value)
 
-    def update_or_add_trace(self, fig, name, x, y, z, mode, size, color):
+    def update_or_add_trace(self, fig, name, x, y, z, mode, size, color, opacity=1.0, showlegend=True):
         trace_found = False
         # Check if trace already exists
         for trace in fig.data:
@@ -64,14 +64,17 @@ class Surface:
                 # Update other properties as needed
                 trace.marker.size = size
                 trace.marker.color = color
+                trace.marker.opacity = opacity
+                trace.showlegend = showlegend
                 break
         if not trace_found:
             # Add a new trace if not found
             fig.add_trace(go.Scatter3d(
                 x=x, y=y, z=z,
                 mode=mode,
-                marker=dict(size=size, color=color),
-                name=name
+                marker=dict(size=size, color=color, opacity=opacity),
+                name=name,
+                showlegend=showlegend
             ))
 
         return fig
@@ -91,12 +94,15 @@ class Surface:
 
         return self.fig
 
-    def plot_particles(self, fig, num_particles, timestep, positions, valuations, swarm_best_positions, min_explored, dark_colors, light_colors):
+    def plot_particles(self, fig, num_particles, timestep, positions, valuations, swarm_best_positions, velocities, min_explored, dark_colors, light_colors):
         for i in range(num_particles):   # Add trace for each particle
             current_positions = positions[timestep, i, :]
 
             fig = self.update_or_add_trace(fig, f'Particle {i + 1}', [current_positions[0]], [current_positions[1]],[valuations[timestep, i]], 'markers', 3, dark_colors[i % len(dark_colors)])
             fig = self.plot_particle_bests(fig, timestep, i, swarm_best_positions, light_colors)
+
+        # Add Velocity Trails
+        fig = self.plot_velocity_trails(fig, num_particles, timestep, positions, velocities, valuations, dark_colors)
 
         # Add Previous Current Minimum Explored
         fig = self.plot_current_swarm_best(fig, timestep, min_explored)
@@ -108,9 +114,48 @@ class Surface:
     def plot_particle_bests(self, fig, timestep, particle_idx, swarm_best_positions, light_colors, size=5):
         particles_best_position = swarm_best_positions[timestep, particle_idx, :]
 
-        fig = self.update_or_add_trace(fig, f'Particle {particle_idx + 1} Best', [particles_best_position[0]], [particles_best_position[1]],
-                                 self.eval_function([particles_best_position]), 'markers', size, light_colors[particle_idx % len(light_colors)])
+        fig = self.update_or_add_trace(fig, f'Particle {particle_idx + 1} Best', [particles_best_position[0]], [particles_best_position[1]], self.eval_function([particles_best_position]), 'markers', size, light_colors[particle_idx % len(light_colors)])
 
+        return fig
+
+    def plot_velocity_mult_trails(self, fig, num_particles, timestep, positions, velocities, valuations, colors):
+        trail_length = 5  # Number of trail points to create
+        decay_factor = 0.2  # Factor by which the trail decays
+
+        for i in range(num_particles):
+            print("Particle", i)
+            particle_position = positions[timestep, i, :]
+            print("Particle Position: ", particle_position)
+            particle_velocity = velocities[timestep, i, :]
+            print("Particle Velocity: ", particle_velocity)
+            for j in range(trail_length):
+                factor = (trail_length - j) / trail_length
+                trail_pos = particle_position - particle_velocity * factor
+                print(f"Trail Position {j}: ", trail_pos)
+                fig = self.update_or_add_trace(fig, f'Particle {i + 1} Trail {j}', [trail_pos[0]], [trail_pos[1]], [valuations[timestep, i]], 'markers', 3 * factor, colors[i % len(colors)], opacity=max(0.1, 1 - decay_factor * j), showlegend=False)
+        return fig
+
+    def plot_velocity_trails(self, fig, num_particles, timestep, positions, velocities, valuations, colors):
+        trail_length = 5  # Number of trail points to create
+        decay_factor = 0.2  # Factor by which the trail decays
+
+        for i in range(num_particles):
+            trail_points_x = []
+            trail_points_y = []
+            trail_points_z = []
+            trail_sizes = []
+            trail_opacities = []
+
+            for j in range(trail_length):
+                factor = (trail_length - j) / trail_length
+                trail_pos = positions[timestep, i, :] - velocities[timestep, i, :] * factor
+
+                trail_points_x.append(trail_pos[0])
+                trail_points_y.append(trail_pos[1])
+                trail_points_z.append(valuations[timestep, i])
+                trail_sizes.append(3 * factor)
+                trail_opacities.append(max(0.1, 1 - decay_factor * j))
+                fig = self.update_or_add_trace(fig, f'Particle {i + 1} Trail', trail_points_x, trail_points_y, trail_points_z, 'markers', trail_sizes, colors[i % len(colors)], 0.50, showlegend=True)
         return fig
 
     def plot_current_swarm_best(self, fig, timestep, min_explored, color='black', size=5):
