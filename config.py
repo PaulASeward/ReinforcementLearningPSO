@@ -7,10 +7,6 @@ class Config(object):
     use_mock_data = False
     track_locations = False
 
-    # PSO ENVIRONMENT PARAMETERS
-    dim = 30
-    swarm_size = 50
-
     # AGENT PARAMETERS
     num_episodes = 20
     num_swarm_obs_intervals = 10
@@ -107,6 +103,7 @@ class Config(object):
         self.obs_per_episode = None
         self.iterations = None
         self.policy = None
+        self.swarm_size = None
 
     def update_properties(self, network_type=None, func_num=None, num_actions=None, swarm_size=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
@@ -155,6 +152,8 @@ class Config(object):
 class PSOConfig(Config):
     algorithm = "PSO"
     topology = 'global'
+
+    dim = 30
 
     w = 0.729844  # Inertia weight
     c1 = 2.05 * w  # Social component Learning Factor
