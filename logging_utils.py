@@ -1,12 +1,9 @@
 import time
 from abc import ABC, abstractmethod
 
-import numpy as np
-import os
 import csv
 from plot_utils import *
 from policy import *
-from environment.pso_env import PSOEnv
 
 
 class ComputeReturnStrategy(ABC):
