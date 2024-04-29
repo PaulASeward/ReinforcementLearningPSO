@@ -4,17 +4,16 @@ import os
 class Config(object):
     network_type = "DQN"
     algorithm = "PSO"
+    use_mock_data = False
+    track_locations = False
 
-    # PSO PARAMETERS
-    dim = 30
-    swarm_size = 50
-    num_episodes = 10
+    # AGENT PARAMETERS
+    num_episodes = 20
     num_swarm_obs_intervals = 10
-    swarm_obs_interval_length = 60
-
+    swarm_obs_interval_length = 30
     observation_length = 150
     num_actions = 5
-    # action_names = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
+    # action_names = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best']
     action_names = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
 
     train_steps = 20000
@@ -29,6 +28,13 @@ class Config(object):
     # Output files
     results_dir = "results"
     os.makedirs(results_dir, exist_ok=True)
+    swarm_locations_dir = os.path.join(results_dir, "swarm_locations")
+    os.makedirs(swarm_locations_dir, exist_ok=True)
+    env_swarm_locations_name = "swarm_locations.npy"
+    env_swarm_velocities_name = "swarm_velocities.npy"
+    env_swarm_best_locations_name = "swarm_best_locations.npy"
+    env_swarm_evaluations_name = "swarm_evaluations.npy"
+    env_meta_data_name = "meta_data.csv"
 
     # Model/Checkpoint Files
     model_dir = os.path.join(results_dir, "saved_session", "network_models")
@@ -61,7 +67,8 @@ class Config(object):
     # LEARNING PARAMETERS
     discount_factor = 0.01
     gamma = 0.99
-    learning_rate = 0.00025
+    learning_rate = 0.001
+    # learning_rate = 0.00025
     learning_rate_minimum = 0.00025
     lr_method = "adam"
     lr_decay = 0.97
@@ -81,32 +88,33 @@ class Config(object):
 
     def __init__(self):
         self.func_num = None
-        self.env_action_counts = None
-        self.env_action_values = None
+        self.action_counts_path = None
+        self.action_values_path = None
         self.fitness_plot_path = None
         self.average_returns_plot_path = None
         self.fitness_path = None
         self.average_returns_path = None
         self.loss_file = None
-        self.figure_file_right_action = None
-        self.figure_file_left_action = None
-        self.interval_actions_plot_path = None
-        self.results_left_actions = None
         self.interval_actions_counts_path = None
-        self.results_right_actions = None
         self.experiment = None
         self.num_eval_intervals = None
         self.label_iterations_intervals = None
         self.iteration_intervals = None
+        self.obs_per_episode = None
         self.iterations = None
         self.policy = None
+        self.swarm_size = None
 
-    def update_properties(self, network_type=None, func_num=None, num_actions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
+    def update_properties(self, network_type=None, func_num=None, num_actions=None, swarm_size=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
 
         if num_actions is not None:
             self.num_actions = num_actions
+
+        if swarm_size is not None:
+            self.swarm_size = swarm_size
+            self.observation_length = self.swarm_size * 3
 
         if num_episodes is not None:
             self.num_episodes = num_episodes
@@ -117,6 +125,8 @@ class Config(object):
 
         if swarm_obs_interval_length is not None:
             self.swarm_obs_interval_length = swarm_obs_interval_length
+
+        self.obs_per_episode = self.swarm_obs_interval_length * self.num_swarm_obs_intervals
 
         if train_steps is not None:
             self.train_steps = train_steps
@@ -132,19 +142,29 @@ class Config(object):
             experiment = self.network_type + "_" + self.algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
             self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
-            # self.interval_actions_plot_path = os.path.join(self.results_dir, f"interval_actions_plot.png")
             self.loss_file = os.path.join(self.results_dir, f"average_training_loss.csv")
             self.average_returns_path = os.path.join(self.results_dir, f"average_returns.csv")
-            # self.average_returns_plot_path = os.path.join(self.results_dir, f"average_returns_plot.png")
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
-            # self.fitness_plot_path = os.path.join(self.results_dir, f"average_fitness_plot.png")
-            self.env_action_values = os.path.join(self.results_dir, f"env_actions_values.csv")
-            self.env_action_counts = os.path.join(self.results_dir, f"env_actions_counts.csv")
+            self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
+            self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
 
 
 class PSOConfig(Config):
     algorithm = "PSO"
     topology = 'global'
+
+    dim = 30
+
+    w = 0.729844  # Inertia weight
+    c1 = 2.05 * w  # Social component Learning Factor
+    c2 = 2.05 * w  # Cognitive component Learning Factor
+    c_min = 0.88  # Min of 5 decreases of 10%
+    c_max = 2.41  # Max of 5 increases of 10%
+    rangeF = 100
+    replacement_threshold = 1.0
+    replacement_threshold_min = 0.5
+    replacement_threshold_max = 1.0
+    replacement_threshold_decay = 0.95
 
 # def save_config(config_file, config_dict):
 #     with open(config_file, 'w') as fp:

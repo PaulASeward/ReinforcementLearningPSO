@@ -2,6 +2,8 @@ import tensorflow as tf
 from tf_agents.environments import tf_py_environment
 import os
 from datetime import datetime
+from environment.tracked_locations_pso_env import TrackedLocationsPSOEnv
+from environment.mock_pso_env import MockPSOEnv
 from environment.pso_env import PSOEnv
 from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 from policy import *
@@ -43,8 +45,7 @@ class BaseAgent:
             targets = self.target_model.predict(states)
 
             next_q_values = self.target_model.predict(next_states).max(axis=1)
-            targets[range(self.config.batch_size), actions] = (
-                        rewards + (1 - done) * next_q_values * self.config.gamma)
+            targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
 
             loss = self.model.train(states, targets)
             losses.append(loss)
@@ -52,7 +53,12 @@ class BaseAgent:
         return losses
 
     def build_environment(self):
-        self.raw_env = PSOEnv(self.config)  # Raw environment
+        if self.config.use_mock_data:
+            self.raw_env = MockPSOEnv(self.config)
+        elif self.config.track_locations:
+            self.raw_env = TrackedLocationsPSOEnv(self.config)
+        else:
+            self.raw_env = PSOEnv(self.config)  # Raw environment
         self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
 
         return self.env
@@ -71,4 +77,4 @@ class BaseAgent:
         plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
         plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
         plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.config.action_names)
-        plot_actions_with_values_over_iteration_intervals(self.config.env_action_counts, self.config.env_action_values, num_actions=self.config.num_actions, action_names=self.config.action_names)
+        plot_actions_with_values_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, num_actions=self.config.num_actions, action_names=self.config.action_names)

@@ -8,11 +8,6 @@ from model_networks.base_model import BaseModel
 class DRQNModel(BaseModel):
     def __init__(self, config):
         super(DRQNModel, self).__init__(config, "drqn")
-        self.epsilon = config.epsilon_start
-
-        self.optimizer = Adam(self.config.learning_rate)
-        self.compute_loss = tf.keras.losses.MeanSquaredError()
-        self.model = self.nn_model()
 
         self.num_lstm_layers = config.num_lstm_layers
         self.lstm_size = config.lstm_size
@@ -29,21 +24,21 @@ class DRQNModel(BaseModel):
             ]
         )
 
-    def predict(self, state):
-        return self.model.predict(state)
-
-    def get_action_q_values(self, state):
-        q_value_array = self.predict(state)
-        return q_value_array[0]
-
-        # Could use policies here
-        self.epsilon *= self.config.epsilon_decay
-        self.epsilon = max(self.epsilon, self.config.epsilon_end)
-
-        if np.random.random() < self.epsilon:
-            return np.random.randint(0, self.config.num_actions - 1)
-
-        return np.argmax(q_value)
+    # def predict(self, state):
+    #     return self.model.predict(state)
+    #
+    # def get_action_q_values(self, state):
+    #     q_value_array = self.predict(state)
+    #     return q_value_array[0]
+    #
+    #     # Could use policies here
+    #     self.epsilon *= self.config.epsilon_decay
+    #     self.epsilon = max(self.epsilon, self.config.epsilon_end)
+    #
+    #     if np.random.random() < self.epsilon:
+    #         return np.random.randint(0, self.config.num_actions - 1)
+    #
+    #     return np.argmax(q_value)
 
     def train(self, states, targets):
         targets = tf.stop_gradient(targets)

@@ -23,19 +23,17 @@ class PSOEnv(py_environment.PyEnvironment):
         self.actions_descriptions = config.action_names[:self._num_actions]
 
         self._minimum = config.fDeltas[config.func_num - 1]
-        self.actions_filename = config.env_action_counts
-        self.values_filename = config.env_action_values
 
         self._max_episodes = config.num_episodes
         self._num_swarm_obs_intervals = config.num_swarm_obs_intervals
         self._swarm_obs_interval_length = config.swarm_obs_interval_length
+        self._obs_per_episode = config.obs_per_episode
         self._swarm_size = config.swarm_size
         self._dim = config.dim
 
         self._observ_size = config.swarm_size * 3  # [0-49]: Velocities, [50-99]: Relative Fitness, [100-149]: Average Replacement Rate
         self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=config.num_actions-1, name='action')
-        self._observation_spec = array_spec.BoundedArraySpec(shape=(self._observ_size,), dtype=np.float64,
-                                                             name='observation')
+        self._observation_spec = array_spec.BoundedArraySpec(shape=(self._observ_size,), dtype=np.float64, name='observation')
 
         self._actions_count = 0
         self._episode_ended = False
@@ -46,16 +44,12 @@ class PSOEnv(py_environment.PyEnvironment):
 
         obj_f = functions.CEC_functions(dim=config.dim, fun_num=config.func_num)
 
-        self.swarm = PSOSwarm(
-            objective_function=obj_f,
-            num_swarm_obs_intervals=config.num_swarm_obs_intervals,
-            swarm_obs_interval_length=config.swarm_obs_interval_length,
-            dimension=config.dim, swarm_size=config.swarm_size)
+        self.swarm = PSOSwarm(objective_function=obj_f, config=config)
 
         self.action_methods = {
             0: lambda: None,
             1: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
-            2: self.swarm.increase_pbest_replacement_threshold  # Increase Threshold for Replacement
+            2: self.swarm.increase_pbest_replacement_threshold,  # Increase Threshold for Replacement
         }
 
         # self.action_methods = {
@@ -65,8 +59,6 @@ class PSOEnv(py_environment.PyEnvironment):
         #     3: self.swarm.decrease_social_factor,  # Discourage social learning
         #     4: self.swarm.reset_all_particles,  # Reset all particles. Maybe keep global leader?
         #     5: self.swarm.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
-        #     6: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
-        #     7: self.swarm.increase_pbest_replacement_threshold  # Increase Threshold for Replacement
         # }
 
     def action_spec(self):
@@ -82,8 +74,6 @@ class PSOEnv(py_environment.PyEnvironment):
         """
         self._actions_count = 0
         self._episode_ended = False
-        self._episode_actions = []
-        self._episode_values = []
         self._best_fitness = None
 
         # Restart the swarm with initializing criteria
@@ -121,10 +111,9 @@ class PSOEnv(py_environment.PyEnvironment):
         # Execute common operations after action
         self.swarm.optimize()
         self._observation = self.swarm.get_observation()
-        self.current_best_f = self.swarm.get_current_best_fitness()
 
-        self._episode_actions.append(action)
-        self._episode_values.append(self._minimum - self.current_best_f)
+
+        self.current_best_f = self.swarm.get_current_best_fitness()
 
         if self._best_fitness is None:
             reward = self._minimum - self.current_best_f
@@ -135,18 +124,11 @@ class PSOEnv(py_environment.PyEnvironment):
             self._best_fitness = min(self._best_fitness, self.current_best_f)
 
         if self._episode_ended:
-            self.store_episode_actions_to_csv(self._episode_actions, self._episode_values)
             return ts.termination(self._observation, reward)
         else:
             return ts.transition(self._observation, reward, discount=1.0)
 
     #   returns: TimeStep(step_type, reward, discount, observation)
-    def store_episode_actions_to_csv(self, actions_row, values_row):
-        with open(self.actions_filename, mode='a', newline='') as csv_file:
-            csv.writer(csv_file).writerow(actions_row)
-
-        with open(self.values_filename, mode='a', newline='') as csv_file:
-            csv.writer(csv_file).writerow(values_row)
 
     # supposedly not needed
     def get_info(self) -> types.NestedArray:
