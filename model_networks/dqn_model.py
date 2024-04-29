@@ -9,11 +9,6 @@ from model_networks.base_model import BaseModel
 class DQNModel(BaseModel):
     def __init__(self, config):
         super(DQNModel, self).__init__(config, "dqn")
-        self.epsilon = config.epsilon_start
-
-        self.optimizer = Adam(self.config.learning_rate)
-        self.compute_loss = tf.keras.losses.MeanSquaredError()
-        self.model = self.nn_model()
 
     def nn_model(self):
         model = tf.keras.Sequential(
@@ -46,6 +41,6 @@ class DQNModel(BaseModel):
     #     return np.argmax(q_values)
 
     def train(self, states, targets):
-        history = self.model.fit(states, targets, epochs=1)
+        history = self.model.fit(states, targets, epochs=1, verbose=0)
         loss = history.history["loss"][0]
         return loss

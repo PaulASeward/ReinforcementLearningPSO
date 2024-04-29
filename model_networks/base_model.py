@@ -16,8 +16,9 @@ class BaseModel:
         self.dir_model = self.model_dir + "/net/" + config.experiment + "/" + str(datetime.datetime.utcnow()) + "/"
 
         self.compute_loss = tf.keras.losses.MeanSquaredError()
-        self.optimizer = None
-        self.model = None
+        self.add_optimizer(config.lr_method, config.learning_rate)
+        self.compute_loss = tf.keras.losses.MeanSquaredError()
+        self.model = self.nn_model()
 
         self.debug = not True
         self.sess = None
@@ -36,20 +37,20 @@ class BaseModel:
         self.train_steps = 0
         self.is_training = False
 
-    def add_optimizer(self, lr_method, learning_rate, loss, clip=-1):
-        lr_method = lr_method.lower()  # lower to make sure
+    def add_optimizer(self, lr_method, learning_rate, clip=-1):
+        lr_method = lr_method.lower()
 
         if lr_method == 'adam':  # sgd method
-            optimizer = Adam(lr=learning_rate)
+            optimizer = Adam(learning_rate=learning_rate)
             # optimizer = tf.train.AdamOptimizer(lr)
         elif lr_method == 'adagrad':
-            optimizer = Adagrad(lr=learning_rate)
+            optimizer = Adagrad(learning_rate=learning_rate)
             # optimizer = tf.train.AdagradOptimizer(lr)
         elif lr_method == 'sgd':
-            optimizer = SGD(lr=learning_rate)
+            optimizer = SGD(learning_rate=learning_rate)
             # optimizer = tf.train.GradientDescentOptimizer(lr)
         elif lr_method == 'rmsprop':
-            optimizer = RMSprop(lr=learning_rate, momentum=0.95, epsilon=0.01)
+            optimizer = RMSprop(learning_rate=learning_rate, momentum=0.95, epsilon=0.01)
             # optimizer = tf.train.RMSPropOptimizer(lr, momentum=0.95, epsilon=0.01)
         else:
             raise NotImplementedError("Unknown method {}".format(lr_method))
@@ -57,6 +58,9 @@ class BaseModel:
         self.optimizer = optimizer
 
         return optimizer
+
+    def nn_model(self):
+        raise NotImplementedError("Method not implemented")
 
     def predict(self, state):
         return self.model.predict(state)

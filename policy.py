@@ -18,6 +18,9 @@ class Policy:
         """
         raise NotImplementedError('This method should be override.')
 
+    def get_config(self):
+        return {'num_actions': self.num_actions}
+
 
 class UniformRandomPolicy(Policy):
     """
@@ -29,9 +32,6 @@ class UniformRandomPolicy(Policy):
 
     def select_action(self, **kwargs):
         return np.random.randint(0, self.num_actions)
-
-    def get_config(self):
-        return {'num_actions': self.num_actions}
 
 
 class GreedyPolicy(Policy):
