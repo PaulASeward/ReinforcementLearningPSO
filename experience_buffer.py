@@ -9,7 +9,7 @@ class ExperienceBufferBase:
         self.buffer_size = buffer_size
         self.num_elements = num_elements # [state,action,reward,next_state,done]
 
-    def add(self, experience):  # Should this be a Sample object type? Does the experience param represent single steps, single episodes, or multiple episodes?
+    def add(self, experience):
         self.buffer.append(experience)
 
     def size(self):

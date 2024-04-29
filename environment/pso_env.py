@@ -35,22 +35,6 @@ class PSOEnv(py_environment.PyEnvironment):
         self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=config.num_actions-1, name='action')
         self._observation_spec = array_spec.BoundedArraySpec(shape=(self._observ_size,), dtype=np.float64, name='observation')
 
-        # Track Locations and Valuations
-        self.meta_data_headers = ['Action', 'Action Name', 'Replacement Threshold', 'Global Best Gravity', 'Individual Best Gravity']
-        self.track_locations = config.track_locations
-        self._store_locations_and_valuations = False
-        if self.track_locations:
-            self.tracked_locations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size, self._dim))
-            self.tracked_velocities = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size, self._dim))
-            self.tracked_best_locations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size, self._dim))
-            self.tracked_valuations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size))
-            self.meta_data = []
-            self.env_swarm_locations_path = None
-            self.env_swarm_velocities_path = None
-            self.env_swarm_best_locations_path = None
-            self.env_swarm_evaluations_path = None
-            self.env_meta_data_path = None
-
         self._actions_count = 0
         self._episode_ended = False
         self._episode_actions = []
@@ -66,8 +50,6 @@ class PSOEnv(py_environment.PyEnvironment):
             0: lambda: None,
             1: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
             2: self.swarm.increase_pbest_replacement_threshold,  # Increase Threshold for Replacement
-            3: self.swarm.increase_social_factor,  # Encourage social learning
-            4: self.swarm.decrease_social_factor,  # Discourage social learning
         }
 
         # self.action_methods = {
@@ -130,16 +112,6 @@ class PSOEnv(py_environment.PyEnvironment):
         self.swarm.optimize()
         self._observation = self.swarm.get_observation()
 
-        # Save Locations and Valuations
-        if self._store_locations_and_valuations:
-            eps_tracked_locations, eps_tracked_velocities, eps_tracked_best_locations, eps_tracked_valuations = self.swarm.get_tracked_locations_and_valuations()
-            self.tracked_locations[self._actions_count - 1] = eps_tracked_locations
-            self.tracked_velocities[self._actions_count - 1] = eps_tracked_velocities
-            self.tracked_best_locations[self._actions_count - 1] = eps_tracked_best_locations
-            self.tracked_valuations[self._actions_count - 1] = eps_tracked_valuations
-            threshold, c1, c2 = self.swarm.get_meta_data()
-            self.meta_data.append([action_index, self.actions_descriptions[action_index], threshold, c1, c2])
-
 
         self.current_best_f = self.swarm.get_current_best_fitness()
 
@@ -152,45 +124,11 @@ class PSOEnv(py_environment.PyEnvironment):
             self._best_fitness = min(self._best_fitness, self.current_best_f)
 
         if self._episode_ended:
-            # Save Locations and Valuations
-            if self._store_locations_and_valuations:
-                np.save(self.env_swarm_locations_path, self.tracked_locations)
-                np.save(self.env_swarm_velocities_path, self.tracked_velocities)
-                np.save(self.env_swarm_best_locations_path, self.tracked_best_locations)
-                np.save(self.env_swarm_evaluations_path, self.tracked_valuations)
-                with open(self.env_meta_data_path, 'w', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow(self.meta_data_headers)
-                    writer.writerows(self.meta_data)
-
-                # Reset the arrays
-                self.tracked_locations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size, self._dim))
-                self.tracked_velocities = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size, self._dim))
-                self.tracked_best_locations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size, self._dim))
-                self.tracked_valuations = np.zeros((self._max_episodes, self._obs_per_episode, self._swarm_size))
-                self.meta_data = []
-                self._store_locations_and_valuations = False
-                self.swarm.track_locations = False  # Turn off tracking
-
             return ts.termination(self._observation, reward)
-
         else:
             return ts.transition(self._observation, reward, discount=1.0)
 
     #   returns: TimeStep(step_type, reward, discount, observation)
-
-    def store_locations_and_valuations(self, store: bool, env_swarm_locations_path=None, env_swarm_velocities_path=None, env_swarm_best_locations_path=None, env_swarm_evaluations_path=None, env_meta_data_path=None):
-        """
-        This setter-like method acts as a toggle with automatic save, turn off, and reset at the end of a terminating episode.
-        """
-        self._store_locations_and_valuations = store
-        self.swarm.track_locations = store
-        if store:  # New Directories are made for each new tracked episode
-            self.env_swarm_locations_path = env_swarm_locations_path
-            self.env_swarm_velocities_path = env_swarm_velocities_path
-            self.env_swarm_best_locations_path = env_swarm_best_locations_path
-            self.env_swarm_evaluations_path = env_swarm_evaluations_path
-            self.env_meta_data_path = env_meta_data_path
 
     # supposedly not needed
     def get_info(self) -> types.NestedArray:

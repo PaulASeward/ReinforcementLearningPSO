@@ -18,7 +18,7 @@ class Config(object):
     observation_length = 150
     num_actions = 5
     # action_names = ['Do nothing', 'Reset slower half', 'Encourage social learning', 'Discourage social learning', 'Reset all particles', 'Reset all particles and keep global best']
-    action_names = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement',  'Encourage social learning', 'Encourage individual learning']
+    action_names = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
 
     train_steps = 20000
     log_interval = 200
@@ -145,12 +145,9 @@ class Config(object):
             experiment = self.network_type + "_" + self.algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
             self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
-            # self.interval_actions_plot_path = os.path.join(self.results_dir, f"interval_actions_plot.png")
             self.loss_file = os.path.join(self.results_dir, f"average_training_loss.csv")
             self.average_returns_path = os.path.join(self.results_dir, f"average_returns.csv")
-            # self.average_returns_plot_path = os.path.join(self.results_dir, f"average_returns_plot.png")
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
-            # self.fitness_plot_path = os.path.join(self.results_dir, f"average_fitness_plot.png")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
 
