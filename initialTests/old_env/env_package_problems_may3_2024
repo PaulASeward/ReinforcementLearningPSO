@@ -1,0 +1,102 @@
+[pseward@cedar1 f6_pbest_random_theshold]$ ls -l
+total 332
+drwxrwxr-x 3 pseward pseward 4096 Apr 29 06:58 agents
+-rw-r----- 1 pseward pseward 6240 Apr 29 06:53 config.py
+drwxrwxr-x 3 pseward pseward 4096 Apr 29 06:53 environment
+-rw-r----- 1 pseward pseward 4171 Apr 29 06:53 experience_buffer.py
+-rw-r----- 1 pseward pseward 2027 Apr 29 07:02 f6_drqn_random-30141872.out
+-rw-r----- 1 pseward pseward 5525 Apr 30 06:30 f6_drqn_random-30236990.out
+-rw-r----- 1 pseward pseward 7610 Apr 29 06:54 logging_utils.py
+-rw-r----- 1 pseward pseward 5363 Apr 29 06:53 main.py
+drwxrwxr-x 2 pseward pseward 4096 Apr 29 06:53 model_networks
+-rw-r----- 1 pseward pseward 6357 Apr 29 06:53 plot_utils.py
+-rw-r----- 1 pseward pseward 4993 Apr 29 06:53 policy.py
+-rw-r----- 1 pseward pseward  451 Apr 30 06:24 run_agent.sh
+[pseward@cedar1 f6_pbest_random_theshold]$ cat f6_drqn_random-30141872.out
+Traceback (most recent call last):
+  File "/scratch/pseward/f6_pbest_random_theshold/main.py", line 1, in <module>
+    from agents.dqn_agent import DQNAgent
+  File "/scratch/pseward/f6_pbest_random_theshold/agents/dqn_agent.py", line 1, in <module>
+    from agents.agent import BaseAgent
+  File "/scratch/pseward/f6_pbest_random_theshold/agents/agent.py", line 2, in <module>
+    from tf_agents.environments import tf_py_environment
+  File "/scratch/pseward/TF_RL2/lib/python3.10/site-packages/tf_agents/__init__.py", line 70, in <module>
+    from tf_agents import agents
+  File "/scratch/pseward/TF_RL2/lib/python3.10/site-packages/tf_agents/agents/__init__.py", line 17, in <module>
+    from tf_agents.agents import behavioral_cloning
+  File "/scratch/pseward/TF_RL2/lib/python3.10/site-packages/tf_agents/agents/behavioral_cloning/__init__.py", line 17, in <module>
+    from tf_agents.agents.behavioral_cloning import behavioral_cloning_agent
+  File "/scratch/pseward/TF_RL2/lib/python3.10/site-packages/tf_agents/agents/behavioral_cloning/behavioral_cloning_agent.py", line 38, in <module>
+    from tf_agents.agents import data_converter
+  File "/scratch/pseward/TF_RL2/lib/python3.10/site-packages/tf_agents/agents/data_converter.py", line 26, in <module>
+    from tf_agents.specs import tensor_spec
+  File "/scratch/pseward/TF_RL2/lib/python3.10/site-packages/tf_agents/specs/__init__.py", line 21, in <module>
+    from tf_agents.specs import bandit_spec_utils
+  File "/scratch/pseward/TF_RL2/lib/python3.10/site-packages/tf_agents/specs/bandit_spec_utils.py", line 26, in <module>
+    from tf_agents.specs import tensor_spec
+  File "/scratch/pseward/TF_RL2/lib/python3.10/site-packages/tf_agents/specs/tensor_spec.py", line 30, in <module>
+    from tf_agents.typing import types
+  File "/scratch/pseward/TF_RL2/lib/python3.10/site-packages/tf_agents/typing/types.py", line 49, in <module>
+    Distribution = tfp.distributions.Distribution
+AttributeError: module 'tensorflow_probability' has no attribute 'distributions'
+[pseward@cedar1 f6_pbest_random_theshold]$ 
+
+
+
+
+[pseward@cedar1 f6_pbest_random_theshold]$ cat f6_drqn_random-30236990.out
+2024-04-30 06:28:08.341775: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2024-04-30 06:28:08.342971: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2024-04-30 06:28:08.444270: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2024-04-30 06:28:08.679607: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Traceback (most recent call last):
+  File "/scratch/pseward/f6_pbest_random_theshold/main.py", line 1, in <module>
+    from agents.dqn_agent import DQNAgent
+  File "/scratch/pseward/f6_pbest_random_theshold/agents/dqn_agent.py", line 1, in <module>
+    from agents.agent import BaseAgent
+  File "/scratch/pseward/f6_pbest_random_theshold/agents/agent.py", line 2, in <module>
+    from tf_agents.environments import tf_py_environment
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tf_agents/__init__.py", line 70, in <module>
+    from tf_agents import agents
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tf_agents/agents/__init__.py", line 17, in <module>
+    from tf_agents.agents import behavioral_cloning
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tf_agents/agents/behavioral_cloning/__init__.py", line 17, in <module>
+    from tf_agents.agents.behavioral_cloning import behavioral_cloning_agent
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tf_agents/agents/behavioral_cloning/behavioral_cloning_agent.py", line 37, in <module>
+    import tensorflow_probability as tfp
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/__init__.py", line 20, in <module>
+    from tensorflow_probability import substrates
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/substrates/__init__.py", line 17, in <module>
+    from tensorflow_probability.python.internal import all_util
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/__init__.py", line 138, in <module>
+    dir(globals()[pkg_name])  # Forces loading the package from its lazy loader.
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/internal/lazy_loader.py", line 57, in __dir__
+    module = self._load()
+             ^^^^^^^^^^^^
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/internal/lazy_loader.py", line 40, in _load
+    module = importlib.import_module(self.__name__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v3/Compiler/gcccore/python/3.11.5/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/experimental/__init__.py", line 31, in <module>
+    from tensorflow_probability.python.experimental import bijectors
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/experimental/bijectors/__init__.py", line 17, in <module>
+    from tensorflow_probability.python.bijectors.ldj_ratio import forward_log_det_jacobian_ratio
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/bijectors/__init__.py", line 19, in <module>
+    from tensorflow_probability.python.bijectors.absolute_value import AbsoluteValue
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/bijectors/absolute_value.py", line 19, in <module>
+    from tensorflow_probability.python.bijectors import bijector
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/bijectors/bijector.py", line 26, in <module>
+    from tensorflow_probability.python.internal import batch_shape_lib
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/internal/batch_shape_lib.py", line 23, in <module>
+    from tensorflow_probability.python.internal import prefer_static as ps
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/internal/prefer_static.py", line 344, in <module>
+    ones_like = _copy_docstring(tf.ones_like, _ones_like)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/pseward/TF_RL/lib/python3.11/site-packages/tensorflow_probability/python/internal/prefer_static.py", line 91, in _copy_docstring
+    raise ValueError(
+ValueError: Arg specs do not match: original=FullArgSpec(args=['input', 'dtype', 'name', 'layout'], varargs=None, varkw=None, defaults=(None, None, None), kwonlyargs=[], kwonlydefaults=None, annotations={}), new=FullArgSpec(args=['input', 'dtype', 'name'], varargs=None, varkw=None, defaults=(None, None), kwonlyargs=[], kwonlydefaults=None, annotations={}), fn=<function ones_like_v2 at 0x2b3af09ff560>
+
