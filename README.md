@@ -87,3 +87,7 @@ The environment/ directory features the core simulation components for the RL PS
 
 ## Model Networks
 The model_networks/ directory houses the neural network architectures for the RL PSO Project, featuring the BaseModel class and its derivatives, DQNModel and DRQNModel. These models are configured to use different optimizers like Adam or RMSprop, and are integral for training on batches of experience data. Users can customize learning parameters such as learning rate and gamma in the config.py file. Each model compiles with a mean squared error loss function and supports detailed performance tracking and checkpoint saving for effective training session management and recovery. This setup allows for tailored neural network configurations to meet specific experimental needs within the project's reinforcement learning framework.
+
+## Deprecated Files
+The TF_Implementation/ directory contains deprecated TensorFlow implementations of the RL PSO Project, but I had issues with matching/surpassing the time of a numpy implementation of PSO Swarm. These files are kept for reference purposes and are not used in the current project version.
+The initialTests/ directory contains deprecated initial test scripts that were used to test the initial versions of PSO Swarm implementations to track the adaptation of this project and different library versioning. These files are kept for reference purposes and are not used in the current project version.
