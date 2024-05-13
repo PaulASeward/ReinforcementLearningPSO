@@ -15,14 +15,15 @@ class BaseModel:
         self.dir_output = self.model_dir + "/output/" + config.experiment + "/" + str(datetime.datetime.utcnow()) + "/"
         self.dir_model = self.model_dir + "/net/" + config.experiment + "/" + str(datetime.datetime.utcnow()) + "/"
 
+        self.optimizer = None
+        self.debug = not True
+        self.sess = None
+        self.saver = None
+
         self.compute_loss = tf.keras.losses.MeanSquaredError()
         self.add_optimizer(config.lr_method, config.learning_rate)
         self.compute_loss = tf.keras.losses.MeanSquaredError()
         self.model = self.nn_model()
-
-        self.debug = not True
-        self.sess = None
-        self.saver = None
 
         # Learning parameters
         self.gamma = config.gamma
@@ -42,16 +43,12 @@ class BaseModel:
 
         if lr_method == 'adam':  # sgd method
             optimizer = Adam(learning_rate=learning_rate)
-            # optimizer = tf.train.AdamOptimizer(lr)
         elif lr_method == 'adagrad':
             optimizer = Adagrad(learning_rate=learning_rate)
-            # optimizer = tf.train.AdagradOptimizer(lr)
         elif lr_method == 'sgd':
             optimizer = SGD(learning_rate=learning_rate)
-            # optimizer = tf.train.GradientDescentOptimizer(lr)
         elif lr_method == 'rmsprop':
             optimizer = RMSprop(learning_rate=learning_rate, momentum=0.95, epsilon=0.01)
-            # optimizer = tf.train.RMSPropOptimizer(lr, momentum=0.95, epsilon=0.01)
         else:
             raise NotImplementedError("Unknown method {}".format(lr_method))
 
@@ -63,7 +60,7 @@ class BaseModel:
         raise NotImplementedError("Method not implemented")
 
     def predict(self, state):
-        return self.model.predict(state)
+        return self.model.predict(state, verbose=0)
 
     def get_action_q_values(self, state):
         q_value_array = self.predict(state)
