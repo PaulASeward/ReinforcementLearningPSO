@@ -24,21 +24,6 @@ class DQNModel(BaseModel):
 
         return model
 
-    # def predict(self, state):
-    #     return self.model.predict(state)
-    #
-    # def get_action_q_values(self, state):
-    #     q_value_array = self.predict(state)
-    #     q_values = q_value_array[0]
-    #
-    #     # Could use policies here
-    #     self.epsilon *= self.config.epsilon_decay
-    #     self.epsilon = max(self.epsilon, self.config.epsilon_end)
-    #
-    #     if np.random.random() < self.epsilon:
-    #         return np.random.randint(0, self.config.num_actions - 1)
-    #
-    #     return np.argmax(q_values)
 
     def train(self, states, targets):
         history = self.model.fit(states, targets, epochs=1, verbose=0)
