@@ -25,7 +25,7 @@ class BaseAgent:
 
         self.build_environment()
         if config.policy == "ExponentialDecayGreedyEpsilon":
-            self.set_policy(ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps))
+            self.set_policy(ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.num_actions))
 
     def set_policy(self, policy):
         self.policy = policy
