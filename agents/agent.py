@@ -6,7 +6,7 @@ from environment.tracked_locations_pso_env import TrackedLocationsPSOEnv
 from environment.mock_pso_env import MockPSOEnv
 from environment.pso_env import PSOEnv
 from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
-from policy import *
+from agents.policy import *
 
 
 class BaseAgent:
