@@ -1,4 +1,4 @@
-from environment.pso_env import *
+from environment.env import *
 
 
 class TrackedLocationsPSOEnv(PSOEnv):
