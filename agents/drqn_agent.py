@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from agents.utils.experience_buffer import ExperienceBufferRecurrent as ReplayBuffer
 from model_networks.drqn_model import DRQNModel
-from utils.logging_utils import ResultsLogger, ComputeDrqnReturn
+from utils.logging_utils import ResultsLogger
 
 
 class DRQNAgent(BaseAgent):
@@ -19,7 +19,7 @@ class DRQNAgent(BaseAgent):
 
     def train(self):
         with self.writer.as_default():
-            results_logger = ResultsLogger(self.config, self.env, self.raw_env, self.model, ComputeDrqnReturn())
+            results_logger = ResultsLogger(self.config)
             for ep in range(self.config.train_steps):
                 terminal, episode_reward = False, 0
                 actions, rewards = [], []

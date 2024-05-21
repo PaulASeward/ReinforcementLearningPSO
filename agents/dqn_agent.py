@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
 from model_networks.dqn_model import DQNModel
-from utils.logging_utils import ResultsLogger, ComputeDqnReturn
+from utils.logging_utils import ResultsLogger
 
 
 class DQNAgent(BaseAgent):
@@ -18,7 +18,7 @@ class DQNAgent(BaseAgent):
 
     def train(self):
         with self.writer.as_default():
-            results_logger = ResultsLogger(self.config, self.env, self.raw_env, self.model, ComputeDqnReturn())
+            results_logger = ResultsLogger(self.config)
 
             for ep in range(self.config.train_steps):
                 terminal, episode_reward = False, 0.0
