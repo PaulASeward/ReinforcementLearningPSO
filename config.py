@@ -42,6 +42,7 @@ class Config(object):
     log_dir = os.path.join(results_dir, "saved_session", "logs")
 
     # EPSILON GREEDY PARAMETERS
+    policy = "ExponentialDecayGreedyEpsilon"
     epsilon_start = 1.0
     epsilon_end = 0.01
     # epsilon_decay_episodes = 1000
@@ -102,7 +103,6 @@ class Config(object):
         self.iteration_intervals = None
         self.obs_per_episode = None
         self.iterations = None
-        self.policy = None
         self.swarm_size = None
 
     def update_properties(self, network_type=None, func_num=None, num_actions=None, swarm_size=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):

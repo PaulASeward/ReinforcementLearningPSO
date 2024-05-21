@@ -36,7 +36,7 @@ source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 You can customize the training configuration by specifying arguments, for example:
     
 ```bash
-python main.py --network_type DQN --algorithm PSO --dim 30 --swarm_size 50 --func_num 19
+python main.py --network_type DRQN --algorithm PSO --dim 30 --swarm_size 50 --func_num 6
 ```
 
 The application will be available at http://127.0.0.1:8050/

@@ -43,7 +43,6 @@ if __name__ == "__main__":
         config.train = args.train
         config.dim = args.dim
         config.algorithm = args.algorithm
-        config.policy = args.policy
         config.num_actions = args.num_actions
     else:
         print("Unsupported algorithm type: ", args.algorithm)
