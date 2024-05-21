@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import os
 import numpy as np
 import csv
-from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
+from utils.plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 import tensorflow as tf
 from agents.utils.policy import GreedyPolicy
 
