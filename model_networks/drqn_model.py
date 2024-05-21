@@ -1,6 +1,4 @@
-import numpy as np
 import tensorflow as tf
-from keras.api._v2.keras.optimizers import Adam
 from keras.layers import Input, Dense, LSTM
 from model_networks.base_model import BaseModel
 

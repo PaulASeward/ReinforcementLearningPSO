@@ -2,17 +2,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import csv
-
 import numpy as np
-from environment.pso_swarm import PSOSwarm
+from pso.pso_swarm import PSOSwarm
 from tf_agents.environments import py_environment
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts
 from typing import Any
 from tf_agents.typing import types
-import environment.functions as functions
-import os
+import pso.functions as functions
 
 
 class PSOEnv(py_environment.PyEnvironment):
