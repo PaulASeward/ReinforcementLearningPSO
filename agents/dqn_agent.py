@@ -1,7 +1,7 @@
 from agents.agent import BaseAgent
 import numpy as np
 import tensorflow as tf
-from agents.experience_buffer import ExperienceBufferStandard as ReplayBuffer
+from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
 from model_networks.dqn_model import DQNModel
 from logging_utils import ResultsLogger, ComputeDqnReturn
 
