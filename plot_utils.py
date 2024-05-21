@@ -2,7 +2,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.patches import Patch
 import os
-import tensorflow as tf
 
 
 def plot_data_over_iterations(file_name, y_label, x_label, iteration_interval_scale):
@@ -116,23 +115,3 @@ def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_
     # Save the single figure with subplots
     plt.savefig(output_file_name, dpi='figure', format="png", bbox_inches='tight')
     plt.close()
-
-
-def save_scalar(step, name, value, writer):
-    """Save a scalar value to tensorboard.
-      Parameters
-      ----------
-      step: int
-        Training step (sets the position on x-axis of tensorboard graph.
-      name: str
-        Name of variable. Will be the name of the graph in tensorboard.
-      value: float
-        The value of the variable at this step.
-      writer: tf.FileWriter
-        The tensorboard FileWriter instance.
-      """
-    summary = tf.Summary()
-    summary_value = summary.value.add()
-    summary_value.simple_value = float(value)
-    summary_value.tag = name
-    writer.add_summary(summary, step)
