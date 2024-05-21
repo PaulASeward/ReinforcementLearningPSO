@@ -53,8 +53,8 @@ class ResultsLogger:
             reward_sums = np.sum(recent_rewards, axis=1)
             fitness = self.config.fDeltas[self.config.func_num - 1] - reward_sums
 
-            avg_return = np.mean(reward_sums)
-            avg_fitness = np.mean(fitness)
+            avg_return = np.mean(reward_sums)  # Total return of all episodes for an iteration
+            avg_fitness = np.mean(fitness)  # Furthest minimum value explored for an iteration
 
             print('step = {0}: Average Return = {1} Average Fitness = {2}'.format(step, avg_return, avg_fitness))
             self.returns.append(avg_return)
