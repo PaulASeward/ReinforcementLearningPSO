@@ -1,0 +1,5 @@
+/var/spool/slurmd/job4978376/slurm_script: line 9: /home/pseward/pseward/scrstch/TF_RL/bin: No such file or directory
+/project/6067661/pseward/pso/PSOAlgorithm/functions.py:66: RuntimeWarning: divide by zero encountered in scalar divide
+  W = 1 / np.sqrt(np.sum(X_shift ** 2)) * np.exp(-1 * np.sum(X_shift ** 2) / (2 * d * delta[i] ** 2))
+/project/6067661/pseward/pso/PSOAlgorithm/functions.py:72: RuntimeWarning: invalid value encountered in divide
+  omega = W_star / np.sum(W_star) * (fit + bias)

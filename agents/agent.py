@@ -1,11 +1,12 @@
 import tensorflow as tf
 from tf_agents.environments import tf_py_environment
 import os
+import numpy as np
 from datetime import datetime
 from environment.tracked_locations_pso_env import TrackedLocationsPSOEnv
 from environment.mock_pso_env import MockPSOEnv
 from environment.pso_env import PSOEnv
-from plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
+from utils.plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy
 
 
