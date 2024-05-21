@@ -54,6 +54,7 @@ def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_
     output_file_name = os.path.splitext(input_file_actions)[0] + '.png'
     action_counts = np.genfromtxt(input_file_actions, delimiter=',')
     action_values = np.genfromtxt(input_file_values, delimiter=',')
+    cumulative_rewards = np.cumsum(action_values, axis=1)
 
     num_episodes = action_counts.shape[1]
     rows_per_interval = len(action_counts) // num_intervals
@@ -70,31 +71,26 @@ def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_
     legend_handles = [Patch(facecolor=f'C{i}') for i in range(num_actions)]
     fig.legend(legend_handles, action_names[:num_actions], loc='upper right', title="Actions")
 
-
-    min_line_value = 0
-
     # Calculate the min and max values for the line graph
-    min_line_value = np.inf  # Initialize with a high value
+    min_line_value = 0  # Initialize with a high value
     max_line_value = -np.inf  # Initialize with a low value
     for i in range(num_intervals):  # Calculate min and max values for the line graph
         start_idx = i * rows_per_interval
         end_idx = (i + 1) * rows_per_interval if i < num_intervals - 1 else len(action_counts)  # Final interval length
-        interval_values = action_values[start_idx:end_idx]
-        average_value_per_episode = np.mean(interval_values, axis=0)
-        min_line_value = min(min_line_value, np.min(average_value_per_episode))
+        interval_values = cumulative_rewards[start_idx:end_idx]
+        average_value_per_episode = abs(np.mean(interval_values, axis=0))
         max_line_value = max(max_line_value, np.max(average_value_per_episode))
-
 
     for i in range(num_intervals):
         row = i // 3
         col = i % 3
         ax = axes[row, col]  # Access the appropriate subplot in the grid
-
         start_idx = i * rows_per_interval
         end_idx = (i + 1) * rows_per_interval if i < num_intervals - 1 else len(action_counts)  # Final interval length
+
         interval_data = action_counts[start_idx:end_idx]
-        interval_values = action_values[start_idx:end_idx]
-        average_value_per_episode = np.mean(interval_values, axis=0)
+        interval_values = cumulative_rewards[start_idx:end_idx]
+        average_value_per_episode = abs(np.mean(interval_values, axis=0))
 
         bottom = np.zeros(num_episodes)
         for action_num in range(num_actions):
@@ -105,7 +101,7 @@ def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_
         # Add line graph overlay
         ax2 = ax.twinx()
         ax2.plot(x_values, average_value_per_episode, color='black', marker='o')
-        ax2.set_ylabel("Average Value of Error Per Episode")
+        ax2.set_ylabel("Average Best Minimum Explored Per Episode")
         ax2.set_ylim(min_line_value, max_line_value)
 
         ax.set_xlabel("Episode Number")
