@@ -56,5 +56,4 @@ class DRQNAgent(BaseAgent):
                 print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")
                 # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
-
-            results_logger.plot_log_statements()
+            results_logger.print_execution_time()

@@ -99,6 +99,9 @@ class ResultsLogger:
         self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.num_actions), dtype=np.int32)
         self.eval_interval_count = 0
 
+    def print_execution_time(self):
+        print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
+
     def save_log_statements(self, step, actions, rewards, train_loss=None):
         for action in actions:
             self.action_counts[self.eval_interval_count, action] += 1
@@ -150,14 +153,6 @@ class ResultsLogger:
 
         with open(self.config.action_values_path, mode='a', newline='') as csv_file:
             csv.writer(csv_file).writerow(values_row)
-
-    def plot_log_statements(self):
-        plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration', self.config.eval_interval)
-        plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
-        plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
-        plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.config.action_names)
-        plot_actions_with_values_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, num_actions=self.config.num_actions, action_names=self.config.action_names)
-        print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
 
     def get_returns(self):
         return self.returns

@@ -16,7 +16,6 @@ class DQNAgent(BaseAgent):
         self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer()
 
-
     def train(self):
         with self.writer.as_default():
             results_logger = ResultsLogger(self.config, self.env, self.raw_env, self.model, ComputeDqnReturn())
@@ -54,5 +53,4 @@ class DQNAgent(BaseAgent):
                 print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")
                 # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
-
-            results_logger.plot_log_statements()
+            results_logger.print_execution_time()

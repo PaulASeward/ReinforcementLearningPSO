@@ -15,12 +15,13 @@ class Main:
     def train(self):
         self.agent.get_actions()
         self.agent.train()
+        self.agent.build_plots()
 
     def plot(self):
         self.agent.build_plots()
 
     # def evaluate(self, num_episodes, checkpoint_dir):
-    #     self.agent.play(num_episodes, checkpoint_dir)
+    #     self.agent.evaluate(num_episodes, checkpoint_dir)
 
 
 if __name__ == "__main__":
