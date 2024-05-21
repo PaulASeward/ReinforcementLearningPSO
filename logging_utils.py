@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 
 import csv
 from plot_utils import *
-from policy import *
+import tensorflow as tf
+from agents.policy import *
 
 
 class ComputeReturnStrategy(ABC):
@@ -156,11 +157,6 @@ class ResultsLogger:
         plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
         plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.config.action_names)
         plot_actions_with_values_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, num_actions=self.config.num_actions, action_names=self.config.action_names)
-
-        if self.config.track_locations:
-            # Plot the Swarm Locations and Valuations
-            x=1
-
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
 
     def get_returns(self):
@@ -174,3 +170,23 @@ class ResultsLogger:
 
     def get_action_counts(self):
         return self.action_counts
+
+
+def save_scalar(step, name, value, writer):
+    """Save a scalar value to tensorboard.
+      Parameters
+      ----------
+      step: int
+        Training step (sets the position on x-axis of tensorboard graph.
+      name: str
+        Name of variable. Will be the name of the graph in tensorboard.
+      value: float
+        The value of the variable at this step.
+      writer: tf.FileWriter
+        The tensorboard FileWriter instance.
+      """
+    summary = tf.Summary()
+    summary_value = summary.value.add()
+    summary_value.simple_value = float(value)
+    summary_value.tag = name
+    writer.add_summary(summary, step)

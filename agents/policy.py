@@ -38,9 +38,6 @@ class UniformRandomPolicy(Policy):
 class GreedyPolicy(Policy):
     """Always returns best action according to Q-values. This is a pure exploitation policy.
     """
-    def __init__(self, num_actions):
-        assert num_actions >= 1
-        self.num_actions = num_actions
 
     def select_action(self, q_values, **kwargs):
         """
