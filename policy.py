@@ -7,6 +7,7 @@ class Policy:
     """
     Policies are used by the agent to choose actions.
     """
+    num_actions = None
 
     def select_action(self, **kwargs):
         """Used by agents to select actions.
@@ -37,6 +38,10 @@ class UniformRandomPolicy(Policy):
 class GreedyPolicy(Policy):
     """Always returns best action according to Q-values. This is a pure exploitation policy.
     """
+    def __init__(self, num_actions):
+        assert num_actions >= 1
+        self.num_actions = num_actions
+
     def select_action(self, q_values, **kwargs):
         """
         Parameters
@@ -55,8 +60,9 @@ class GreedyEpsilonPolicy(Policy):
     ----------
     epsilon: float  Initial probability of choosing a random action. Can be changed over time.
     """
-    def __init__(self, epsilon):
+    def __init__(self, epsilon, num_actions):
         self.epsilon = epsilon
+        self.num_actions = num_actions
 
     def select_action(self, q_values, **kwargs):
         """Run Greedy-Epsilon for the given Q-values.
@@ -89,9 +95,10 @@ class LinearDecayGreedyEpsilonPolicy(Policy):
 
     """
 
-    def __init__(self, epsilon_start, epsilon_end, num_steps):
+    def __init__(self, epsilon_start, epsilon_end, num_steps, num_actions):
         self.epsilon_start = epsilon_start
         self.epsilon_end = epsilon_end
+        self.num_actions = num_actions
 
         self.decay_rate = float(epsilon_end - epsilon_start) / num_steps
         self.step = 0
@@ -138,10 +145,11 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
 
         """
 
-    def __init__(self, epsilon_start, epsilon_end, num_steps):
+    def __init__(self, epsilon_start, epsilon_end, num_steps, num_actions):
         self.current_epsilon = epsilon_start
         self.epsilon_start = epsilon_start
         self.epsilon_end = epsilon_end
+        self.num_actions = num_actions
 
         self.decay_rate = 4 * float(epsilon_start - epsilon_end) / num_steps
         self.step = 0
