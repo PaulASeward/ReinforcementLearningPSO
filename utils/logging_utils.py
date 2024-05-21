@@ -49,11 +49,12 @@ class ResultsLogger:
 
             # Read the last eval_interval number of rows to calculate the total return per row. This can be used to then calculate the relative fitness and then compute averages.
             rewards = np.genfromtxt(self.config.action_values_path, delimiter=',')
-            reward_sums = np.sum(rewards[-self.config.eval_interval:, :])
+            recent_rewards = rewards[-self.config.eval_interval:, :]
+            reward_sums = np.sum(recent_rewards, axis=1)
             fitness = reward_sums + self.config.fDeltas[self.config.func_num - 1]
 
-            avg_return = reward_sums / self.config.eval_interval
-            avg_fitness = fitness / self.config.eval_interval
+            avg_return = np.mean(reward_sums)
+            avg_fitness = np.mean(fitness)
 
             print('step = {0}: Average Return = {1} Average Fitness = {2}'.format(step, avg_return, avg_fitness))
             self.returns.append(avg_return)
