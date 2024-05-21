@@ -11,7 +11,7 @@ from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts
 from typing import Any
 from tf_agents.typing import types
-import functions
+import pso.functions
 import os
 
 ACTION_DESCRIPTIONS = ['Do nothing', 'Reset slower half', 'Encourage social learning',

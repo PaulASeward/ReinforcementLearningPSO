@@ -9,7 +9,7 @@ from tf_agents.trajectories import time_step as ts
 from typing import Any
 
 
-class MockPSOEnv(py_environment.PyEnvironment):
+class MockEnv(py_environment.PyEnvironment):
     def __init__(self, config):
         super().__init__()
         self._num_actions = config.num_actions
