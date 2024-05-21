@@ -48,33 +48,31 @@ The application will be available at http://127.0.0.1:8050/
         │   ├── agent.py
         │   ├── dqn_agent.py
         │   ├── drqn_agent.py
-        │   └── __init__.py
-        ├── bin/
-        ├── config.py
+        |   ├── utils/
+        │   │   ├── experience_buffer.py
+        │   │   └── policy.py
         ├── environment/
-        │   ├── extdata/
-        │   ├── functions.py
-        │   ├── mock_pso_env.py
-        │   ├── pso_env.py
-        │   ├── pso_swarm.py
+        │   ├── mock_env.py
+        │   ├── env.py
         │   └── tracked_locations_pso_env.py
-        ├── experience_buffer.py
-        ├── initialTests/
-        ├── logging_utils.py
-        ├── main.py
+        ├── pso/
+        │   ├── extdata/
+        │   ├── spring2023Results/
+        │   ├── functions.py
+        │   ├── pso_swarm.py
         ├── model_networks/
         │   ├── base_model.py
         │   ├── dqn_model.py
         │   ├── drqn_model.py
-        │   └── __init__.py
-        ├── plot_utils.py
-        ├── policy.py
+        ├── run_history/
+        ├── utils/
+        │   ├── logging_utils.py
+        │   ├── plot_utils.py
+        ├── config.py
+        ├── main.py
         ├── README.md
         ├── requirements.txt
         ├── run_agent.sh
-        ├── Runs/
-        │   Various directories documenting different experiment runs and their configurations.
-        └── visualization/
 
 ## Customizing Configuration
 Edit the config.py file to set various parameters like network type, dimensions, swarm size, and more to suit different experimental needs.
