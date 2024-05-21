@@ -70,16 +70,20 @@ def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_
     legend_handles = [Patch(facecolor=f'C{i}') for i in range(num_actions)]
     fig.legend(legend_handles, action_names[:num_actions], loc='upper right', title="Actions")
 
+
+    min_line_value = 0
+
     # Calculate the min and max values for the line graph
     min_line_value = np.inf  # Initialize with a high value
     max_line_value = -np.inf  # Initialize with a low value
-    for i in range(num_intervals):
+    for i in range(num_intervals):  # Calculate min and max values for the line graph
         start_idx = i * rows_per_interval
         end_idx = (i + 1) * rows_per_interval if i < num_intervals - 1 else len(action_counts)  # Final interval length
         interval_values = action_values[start_idx:end_idx]
         average_value_per_episode = np.mean(interval_values, axis=0)
         min_line_value = min(min_line_value, np.min(average_value_per_episode))
         max_line_value = max(max_line_value, np.max(average_value_per_episode))
+
 
     for i in range(num_intervals):
         row = i // 3
