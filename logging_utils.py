@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import csv
 from plot_utils import *
 import tensorflow as tf
-from agents.policy import *
+from agents.utils.policy import *
 
 
 class ComputeReturnStrategy(ABC):
