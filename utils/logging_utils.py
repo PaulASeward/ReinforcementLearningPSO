@@ -51,7 +51,7 @@ class ResultsLogger:
             rewards = np.genfromtxt(self.config.action_values_path, delimiter=',')
             recent_rewards = rewards[-self.config.eval_interval:, :]
             reward_sums = np.sum(recent_rewards, axis=1)
-            fitness = reward_sums + self.config.fDeltas[self.config.func_num - 1]
+            fitness = self.config.fDeltas[self.config.func_num - 1] - reward_sums
 
             avg_return = np.mean(reward_sums)
             avg_fitness = np.mean(fitness)
