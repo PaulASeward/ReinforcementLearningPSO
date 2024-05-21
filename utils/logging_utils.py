@@ -1,96 +1,13 @@
 import time
-from abc import ABC, abstractmethod
-import os
 import numpy as np
 import csv
-from utils.plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 import tensorflow as tf
-from agents.utils.policy import GreedyPolicy
-
-
-class ComputeReturnStrategy(ABC):
-    def __init__(self):
-        self.policy = GreedyPolicy()  # Policy for Evaluating the Average Return of the Current Model
-
-    @abstractmethod
-    def compute_average_return(self, env, model, num_returns_to_average):
-        pass
-
-
-class ComputeDqnReturn(ComputeReturnStrategy):
-    def compute_average_return(self, env, model, num_returns_to_average=4):
-        total_return = 0.0
-        total_fitness = 0.0
-
-        for _ in range(num_returns_to_average):
-            time_step = env.reset()
-            observation = time_step.observation
-            episode_return = 0.0
-
-            terminal = False
-            while not terminal:
-                q_values = model.get_action_q_values(observation)
-                action = self.policy.select_action(q_values)
-                step_type, reward, discount, observation = env.step(action)
-
-                episode_return += reward.numpy()[0]
-                terminal = bool(1 - discount)
-
-            total_return += episode_return
-            total_fitness += env.pyenv.envs[0]._best_fitness
-
-        avg_return = total_return / num_returns_to_average
-        avg_fitness = total_fitness / num_returns_to_average
-
-        return avg_return, avg_fitness
-
-
-class ComputeDrqnReturn(ComputeReturnStrategy):
-    def compute_average_return(self, env, model, num_returns_to_average=4):
-        total_return = 0.0
-        total_fitness = 0.0
-
-        def update_states(states, next_state):
-            states = np.roll(states, -1, axis=0)
-            states[-1] = next_state
-            return states
-
-        for _ in range(num_returns_to_average):
-            states = np.zeros([model.config.trace_length, model.config.observation_length])  # Make Dynamic
-
-            current_state = env.reset()
-            states = update_states(states, current_state.observation)
-
-            episode_return = 0.0
-
-            terminal = False
-            while not terminal:  # This is repeats logic of for _ in range, so we are taking new and separate X episodes.
-                q_values = model.get_action_q_values(np.reshape(states, [1, model.config.trace_length, model.config.observation_length]))
-                action = self.policy.select_action(q_values)
-                step_type, reward, discount, next_state = env.step(action)
-
-                episode_return += reward.numpy()[0]
-                terminal = bool(1 - discount)
-
-                states = update_states(states, next_state)
-
-            total_return += episode_return
-            total_fitness += env.pyenv.envs[0]._best_fitness
-
-        avg_return = total_return / num_returns_to_average
-        avg_fitness = total_fitness / num_returns_to_average
-
-        return avg_return, avg_fitness
 
 
 class ResultsLogger:
-    def __init__(self, config, env, raw_env, model, logging_strategy: ComputeReturnStrategy):
+    def __init__(self, config):
         self.config = config
         self.start_time = time.time()
-        self.env = env
-        self.raw_env = raw_env
-        self.model = model
-        self.logging_strategy: ComputeReturnStrategy = logging_strategy
 
         self.loss = []
         self.returns = []
@@ -118,23 +35,28 @@ class ResultsLogger:
             np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
 
         if step % self.config.eval_interval == 0:
-
             # Save the locations and valuations to each directory
-            if self.config.track_locations:
-                locations_new_dir = os.path.join(self.config.swarm_locations_dir, f"locations_at_step_{step}")
-                os.makedirs(locations_new_dir, exist_ok=True)
+            # if self.config.track_locations:
+            #     locations_new_dir = os.path.join(self.config.swarm_locations_dir, f"locations_at_step_{step}")
+            #     os.makedirs(locations_new_dir, exist_ok=True)
+            #
+            #     env_swarm_locations_path = os.path.join(locations_new_dir, self.config.env_swarm_locations_name)
+            #     emv_swarm_velocities_path = os.path.join(locations_new_dir, self.config.env_swarm_velocities_name)
+            #     env_swarm_best_locations_path = os.path.join(locations_new_dir, self.config.env_swarm_best_locations_name)
+            #     env_swarm_evaluations_path = os.path.join(locations_new_dir, self.config.env_swarm_evaluations_name)
+            #     env_meta_data_path = os.path.join(locations_new_dir, self.config.env_meta_data_name)
+            #     self.raw_env.store_locations_and_valuations(True, env_swarm_locations_path, emv_swarm_velocities_path, env_swarm_best_locations_path, env_swarm_evaluations_path, env_meta_data_path)
 
-                env_swarm_locations_path = os.path.join(locations_new_dir, self.config.env_swarm_locations_name)
-                emv_swarm_velocities_path = os.path.join(locations_new_dir, self.config.env_swarm_velocities_name)
-                env_swarm_best_locations_path = os.path.join(locations_new_dir, self.config.env_swarm_best_locations_name)
-                env_swarm_evaluations_path = os.path.join(locations_new_dir, self.config.env_swarm_evaluations_name)
-                env_meta_data_path = os.path.join(locations_new_dir, self.config.env_meta_data_name)
-                self.raw_env.store_locations_and_valuations(True, env_swarm_locations_path, emv_swarm_velocities_path, env_swarm_best_locations_path, env_swarm_evaluations_path, env_meta_data_path)
+            # Read the last eval_interval number of rows to calculate the total return per row. This can be used to then calculate the relative fitness and then compute averages.
+            rewards = np.genfromtxt(self.config.action_values_path, delimiter=',')
+            reward_sums = np.sum(rewards[-self.config.eval_interval:, :])
+            fitness = reward_sums + self.config.fDeltas[self.config.func_num - 1]
 
-            avg_return, avg_fitness = self.logging_strategy.compute_average_return(self.env, self.model, 4)
+            avg_return = reward_sums / self.config.eval_interval
+            avg_fitness = fitness / self.config.eval_interval
 
-            print('step = {0}: Average Return = {1}'.format(step, avg_return))
-            self.returns.append(float(avg_return))
+            print('step = {0}: Average Return = {1} Average Fitness = {2}'.format(step, avg_return, avg_fitness))
+            self.returns.append(avg_return)
             self.fitness.append(avg_fitness)
 
             with open(self.config.interval_actions_counts_path, 'a') as file:
