@@ -58,14 +58,15 @@ def plot_actions_over_iteration_intervals(file_name, relative_fitness, x_label, 
     handles1, labels1 = ax1.get_legend_handles_labels()
     handles2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(handles1 + handles2, labels1 + labels2, loc='upper left')
-    # plt.legend()
     plt.savefig(output_file_name, dpi='figure', format="png", bbox_inches='tight')
     plt.close()
 
 
-def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_file_values, num_actions, action_names, num_intervals=9):
+def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_file_values, standard_pso_values, function_min_value, num_actions, action_names, num_intervals=9):
     output_file_name = os.path.splitext(input_file_actions)[0] + '.png'
     action_counts = np.genfromtxt(input_file_actions, delimiter=',')
+    standard_pso_results = np.genfromtxt(standard_pso_values, delimiter=',', skip_header=1)
+    standard_pso_distance = abs(function_min_value - standard_pso_results[:, 1])
     action_values = np.genfromtxt(input_file_values, delimiter=',')
     cumulative_rewards = np.cumsum(action_values, axis=1)
 
@@ -114,6 +115,7 @@ def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_
         # Add line graph overlay
         ax2 = ax.twinx()
         ax2.plot(x_values, average_value_per_episode, color='black', marker='o')
+        ax2.plot(x_values, standard_pso_distance, color='red', linestyle='--', label='Standard PSO')
         ax2.set_ylabel("Average Best Minimum Explored Per Episode")
         ax2.set_ylim(min_line_value, max_line_value)
 
@@ -121,6 +123,9 @@ def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_
         ax.set_ylabel("Action Count")
         ax.set_title(f'Action Counts - (Iterations {start_idx + 1} to {end_idx})')
         ax.set_xticks(x_values)
+
+        if i == 0:  # Only add legend to the first subplot to avoid repetition
+            ax2.legend(loc='upper left')
 
     # Adjust subplot layout and add single legend
     plt.tight_layout()
