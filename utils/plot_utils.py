@@ -16,8 +16,9 @@ def plot_data_over_iterations(file_name, y_label, x_label, iteration_interval_sc
     plt.close()
 
 
-def plot_actions_over_iteration_intervals(file_name, x_label, y_label, title, iteration_intervals, label_iteration_intervals, action_names):
+def plot_actions_over_iteration_intervals(file_name, relative_fitness, x_label, y_label, title, iteration_intervals, label_iteration_intervals, action_names):
     action_counts = np.genfromtxt(file_name, delimiter=',')
+    relative_fitness_values = np.genfromtxt(relative_fitness, delimiter=',')
     output_file_name = os.path.splitext(file_name)[0] + '_plot.png'
     num_actions = action_counts.shape[1]
     print("Number of Actions Being Plotted: ", num_actions)
@@ -32,20 +33,43 @@ def plot_actions_over_iteration_intervals(file_name, x_label, y_label, title, it
         action_counts = action_counts[:min_length, :]
         label_iteration_intervals = label_iteration_intervals[:min_length]
 
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+
     # Create a bar plot for each action
     bar_width = 0.8 * (iteration_intervals[1] - iteration_intervals[0])
-    plt.figure(figsize=(10, 6))
     bottom = np.zeros(len(iteration_intervals))
 
     for action in range(num_actions):
-        plt.bar(iteration_intervals, action_counts[:, action], bottom=bottom, width=bar_width, label=action_names[action])
+        ax1.bar(iteration_intervals, action_counts[:, action], bottom=bottom, width=bar_width, label=action_names[action])
         bottom += action_counts[:, action]
+
+    ax1.set_xlabel(x_label)
+    ax1.set_ylabel('Action Count')
+    ax1.set_title(title)
+
+    # Create a second y-axis for the relative fitness values
+    ax2 = ax1.twinx()
+    ax2.plot(iteration_intervals, relative_fitness_values, label='Average Relative Fitness', color='black', marker='o')
+    ax2.set_ylabel('Average Relative Fitness')
+
     # Set x-axis ticks and labels with rotated tick labels
-    plt.xticks(label_iteration_intervals, labels=[str(i) for i in label_iteration_intervals], rotation=45, ha="right", fontsize=8)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.title(title)
+    ax1.set_xticks(label_iteration_intervals)
+    ax1.set_xticklabels([str(i) for i in label_iteration_intervals], rotation=45, ha="right", fontsize=8)
+    handles1, labels1 = ax1.get_legend_handles_labels()
+    handles2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(handles1 + handles2, labels1 + labels2, loc='upper left')
+
+    # # Add line graph overlay
+    # plt.plot(iteration_intervals, relative_fitness_values, label='Average Relative Fitness', color='black', marker='o')
+    #
+    # # Set x-axis ticks and labels with rotated tick labels
+    # plt.xticks(label_iteration_intervals, labels=[str(i) for i in label_iteration_intervals], rotation=45, ha="right", fontsize=8)
+    # plt.xlabel(x_label)
+    # plt.ylabel(y_label)
+    # plt.title(title)
+
     plt.legend()
+
     plt.savefig(output_file_name, dpi='figure', format="png", bbox_inches='tight')
     plt.close()
 
