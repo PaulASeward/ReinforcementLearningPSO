@@ -58,18 +58,7 @@ def plot_actions_over_iteration_intervals(file_name, relative_fitness, x_label, 
     handles1, labels1 = ax1.get_legend_handles_labels()
     handles2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(handles1 + handles2, labels1 + labels2, loc='upper left')
-
-    # # Add line graph overlay
-    # plt.plot(iteration_intervals, relative_fitness_values, label='Average Relative Fitness', color='black', marker='o')
-    #
-    # # Set x-axis ticks and labels with rotated tick labels
-    # plt.xticks(label_iteration_intervals, labels=[str(i) for i in label_iteration_intervals], rotation=45, ha="right", fontsize=8)
-    # plt.xlabel(x_label)
-    # plt.ylabel(y_label)
-    # plt.title(title)
-
-    plt.legend()
-
+    # plt.legend()
     plt.savefig(output_file_name, dpi='figure', format="png", bbox_inches='tight')
     plt.close()
 
