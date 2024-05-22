@@ -27,6 +27,7 @@ class Config(object):
 
     # Output files
     results_dir = "results"
+    standard_pso_results_dir = "pso/standard_pso_results"
     os.makedirs(results_dir, exist_ok=True)
     swarm_locations_dir = os.path.join(results_dir, "swarm_locations")
     os.makedirs(swarm_locations_dir, exist_ok=True)
@@ -97,6 +98,7 @@ class Config(object):
         self.average_returns_path = None
         self.loss_file = None
         self.interval_actions_counts_path = None
+        self.standard_pso_path = None
         self.experiment = None
         self.num_eval_intervals = None
         self.label_iterations_intervals = None
@@ -147,6 +149,7 @@ class Config(object):
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
+            self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.func_num}.csv")
 
 
 class PSOConfig(Config):
