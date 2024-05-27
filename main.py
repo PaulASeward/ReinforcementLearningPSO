@@ -31,11 +31,11 @@ if __name__ == "__main__":
     parser.add_argument("--func_num", type=int, default=6, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
     parser.add_argument("--dim", type=int, default=30,help="The number of dimensions in the search space. Default is 30.")
     parser.add_argument("--swarm_size", type=int, default=50, help="The number of particles in the swarm. Default is 50.")
-    parser.add_argument("--num_actions", type=int, default=3, help="The number of actions to choose from in the action space. Default is 5.")
+    parser.add_argument("--num_actions", type=int, default=5, help="The number of actions to choose from in the action space. Default is 5.")
     parser.add_argument("--num_episodes", type=int, default=20, help="The number of episodes in each Reinforcement Learning Iterations before terminating.")
     parser.add_argument("--num_swarm_obs_intervals", type=int, default=10, help="The number of swarm observation intervals. Ex) At 10 evenly spaced observation intervals, observations in the swarm will be collected. Default is 10.")
     parser.add_argument("--swarm_obs_interval_length", type=int, default=30, help="The number of observations per episode conducted in the swarm. Ex) Particle Best Replacement Counts are averaged over the last _ observations before an episode terminates and action is decided. Default is 30.")
-    parser.add_argument("--train", type=bool, default=False, help="Whether to train a network or to examine a given network")
+    parser.add_argument("--train", type=bool, default=True, help="Whether to train a network or to examine a given network")
     parser.add_argument("--steps", type=int, default=20000, help="number of iterations to train")
     args, remaining = parser.parse_known_args()
 

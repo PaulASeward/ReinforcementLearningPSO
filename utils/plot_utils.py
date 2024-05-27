@@ -114,9 +114,9 @@ def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_
 
         # Add line graph overlay
         ax2 = ax.twinx()
-        ax2.plot(x_values, average_value_per_episode, color='black', marker='o')
-        ax2.plot(x_values, standard_pso_distance, color='red', linestyle='--', label='Standard PSO')
-        ax2.set_ylabel("Average Best Minimum Explored Per Episode")
+        ax2.plot(x_values, average_value_per_episode, color='black', marker='o', label='RL PSO')
+        ax2.plot(x_values, standard_pso_distance, color='red', marker='o', label='Standard PSO')
+        ax2.set_ylabel("Average Best Minimum Explored Relative to Function Minimum")
         ax2.set_ylim(min_line_value, max_line_value)
 
         ax.set_xlabel("Episode Number")
