@@ -12,9 +12,9 @@ class Config(object):
     num_swarm_obs_intervals = 10
     swarm_obs_interval_length = 30
     observation_length = 150
-    num_actions = 5
-    action_names = ['Do nothing', 'Encourage social learning', 'Discourage social learning', 'Reset slower half', 'Reset all particles and keep global best']
-    # action_names = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
+    num_actions = 3
+    # action_names = ['Do nothing', 'Encourage social learning', 'Discourage social learning', 'Reset slower half', 'Reset all particles and keep global best']
+    action_names = ['Do nothing', 'Decrease Threshold for Replacement', 'Increase Threshold for Replacement']
 
     train_steps = 20000
     log_interval = 200
