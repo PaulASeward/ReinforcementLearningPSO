@@ -43,19 +43,19 @@ class PSOEnv(py_environment.PyEnvironment):
 
         self.swarm = PSOSwarm(objective_function=obj_f, config=config)
 
-        # self.action_methods = {
-        #     0: lambda: None,
-        #     1: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
-        #     2: self.swarm.increase_pbest_replacement_threshold,  # Increase Threshold for Replacement
-        # }
-
         self.action_methods = {
-            0: lambda: None,  # Do nothing
-            1: self.swarm.increase_social_factor,  # Encourage social learning
-            2: self.swarm.decrease_social_factor,  # Discourage social learning
-            3: self.swarm.reset_slow_particles,  # Reset slower half
-            4: self.swarm.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
+            0: lambda: None,
+            1: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
+            2: self.swarm.increase_pbest_replacement_threshold,  # Increase Threshold for Replacement
         }
+
+        # self.action_methods = {
+        #     0: lambda: None,  # Do nothing
+        #     1: self.swarm.increase_social_factor,  # Encourage social learning
+        #     2: self.swarm.decrease_social_factor,  # Discourage social learning
+        #     3: self.swarm.reset_slow_particles,  # Reset slower half
+        #     4: self.swarm.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
+        # }
 
     def action_spec(self):
         return self._action_spec
