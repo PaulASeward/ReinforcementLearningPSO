@@ -164,6 +164,8 @@ class PSOConfig(Config):
     c_min = 0.88  # Min of 5 decreases of 10%
     c_max = 2.41  # Max of 5 increases of 10%
     rangeF = 100
+    v_min = 59.049
+    v_max = 161.051
     replacement_threshold = 1.0
     replacement_threshold_min = 0.5
     replacement_threshold_max = 1.0

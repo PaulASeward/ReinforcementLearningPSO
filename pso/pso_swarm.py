@@ -13,16 +13,12 @@ class PSOSwarm:
         self.w = config.w  # Inertia weight to prevent velocities becoming too large
         self.c1 = config.c1  # Social component Learning Factor
         self.c2 = config.c2  # Cognitive component Learning Factor
-        self.c_min = config.c_min  # Min of 5 decreases of 10%
-        self.c_max = config.c_max  # Max of 5 increases of 10%
         self.function = objective_function
         self.dimension = config.dim
         self.swarm_size = config.swarm_size
         self.rangeF = config.rangeF
 
         # Threshold Params
-        self.gbest_replacement_threshold_min, self.pbest_replacement_threshold_min = config.replacement_threshold_min, config.replacement_threshold_min
-        self.gbest_replacement_threshold_max, self.pbest_replacement_threshold_max = config.replacement_threshold_max, config.replacement_threshold_max
         self.gbest_replacement_threshold, self.pbest_replacement_threshold = config.replacement_threshold, config.replacement_threshold
         self.gbest_replacement_threshold_decay, self.pbest_replacement_threshold_decay = config.replacement_threshold_decay, config.replacement_threshold_decay
 
@@ -41,8 +37,8 @@ class PSOSwarm:
             self.track_locations = False
 
         # Set Constraints for clamping position and limiting velocity
-        self.Vmin, self.Vmax = -1 * self.rangeF, self.rangeF
-        self.Xmin, self.Xmax = -1 * self.rangeF, self.rangeF
+        self.abs_max_velocity = self.rangeF
+        self.abs_max_position = self.rangeF
 
         self.velocity_magnitudes = None
         self.relative_fitness = None
@@ -71,8 +67,7 @@ class PSOSwarm:
         self.c1 = self.config.c1
         self.c2 = self.config.c2
         self.gbest_replacement_threshold, self.pbest_replacement_threshold = self.config.replacement_threshold, self.config.replacement_threshold
-        self.Vmin, self.Vmax = -1 * self.rangeF, self.rangeF
-        self.Xmin, self.Xmax = -1 * self.rangeF, self.rangeF
+        self.abs_max_velocity = self.rangeF
 
         self.velocity_magnitudes = None
         self.relative_fitness = None
@@ -124,68 +119,6 @@ class PSOSwarm:
     def get_current_best_fitness(self):
         return self.gbest_val
 
-    def get_meta_data(self):
-        return self.pbest_replacement_threshold, self.c1, self.c2
-
-    def reset_all_particles(self):
-        self._initialize()
-
-    def reset_all_particles_keep_global_best(self):
-        old_gbest_pos = self.P[np.argmin(self.pbest_val)]
-        old_gbest_val = np.min(self.pbest_val)
-
-        self._initialize()
-
-        # Keep Previous Solution before resetting.
-        if old_gbest_val < self.gbest_val:
-            self.gbest_pos = old_gbest_pos
-            self.gbest_val = old_gbest_val
-
-    def reset_slow_particles(self):
-        self.update_velocity_maginitude()
-        avg_velocity = np.mean(self.velocity_magnitudes)
-        slow_particles = self.velocity_magnitudes < avg_velocity
-        replacement_positions = np.random.uniform(low=-1 * self.rangeF, high=self.rangeF, size=(self.swarm_size, self.dimension))
-        replacement_velocities = np.full((self.swarm_size, self.dimension), 0)
-        slow_particles_reshaped = slow_particles[:, np.newaxis]  # Reshape to match self.X
-
-        self.X = np.where(slow_particles_reshaped, replacement_positions, self.X)
-        self.V = np.where(slow_particles_reshaped, replacement_velocities, self.V)
-        self.P = self.X
-
-        self.update_swarm_valuations_and_bests()
-
-    def increase_social_factor(self):
-        self.c1 *= 1.10  # Social component
-        self.c1 = np.clip(self.c1, self.c_min, self.c_max)
-
-        self.c2 *= 0.90  # Cognitive component
-        self.c2 = np.clip(self.c2, self.c_min, self.c_max)
-
-    def decrease_social_factor(self):
-        self.c1 *= 0.90
-        self.c1 = np.clip(self.c1, self.c_min, self.c_max)
-
-        self.c2 *= 1.10
-        self.c2 = np.clip(self.c2, self.c_min, self.c_max)
-
-    # Threshold actions to promote exploration vs exploitation
-    def decrease_gbest_replacement_threshold(self):
-        self.gbest_replacement_threshold *= self.gbest_replacement_threshold_decay
-        self.gbest_replacement_threshold = np.clip(self.gbest_replacement_threshold, self.gbest_replacement_threshold_min, self.gbest_replacement_threshold_max)
-
-    def increase_gbest_replacement_threshold(self):
-        self.gbest_replacement_threshold *= 1.10
-        self.gbest_replacement_threshold = np.clip(self.gbest_replacement_threshold, self.gbest_replacement_threshold_min, self.gbest_replacement_threshold_max)
-
-    def decrease_pbest_replacement_threshold(self):
-        self.pbest_replacement_threshold *= self.pbest_replacement_threshold_decay
-        self.pbest_replacement_threshold = np.clip(self.pbest_replacement_threshold, self.pbest_replacement_threshold_min, self.pbest_replacement_threshold_max)
-
-    def increase_pbest_replacement_threshold(self):
-        self.pbest_replacement_threshold *= 1.10
-        self.pbest_replacement_threshold = np.clip(self.pbest_replacement_threshold, self.pbest_replacement_threshold_min, self.pbest_replacement_threshold_max)
-
     def eval(self, X):
         return self.function.Y_matrix(np.array(X).astype(float))
 
@@ -196,7 +129,7 @@ class PSOSwarm:
 
         # Update new velocity with old velocity*inertia plus component matrices
         self.V = self.w * self.V + social + cognitive
-        self.V = np.clip(self.V, self.Vmin, self.Vmax)
+        self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
 
     def update_position(self):
         # Clamp position inside boundary and reflect them in case they are out of the boundary based on:
@@ -205,8 +138,8 @@ class PSOSwarm:
         self.X = self.X + self.V # Add velocity to current position
 
         # Identify positions outside the boundaries, and reflect the out-of-bounds positions
-        out_of_bounds = np.logical_or(self.X < self.Xmin, self.X > self.Xmax)
-        self.X = np.where(out_of_bounds, np.sign(self.X) * 2 * self.Xmax - self.X, self.X)
+        out_of_bounds = np.logical_or(self.X < -self.abs_max_position, self.X > self.abs_max_position)
+        self.X = np.where(out_of_bounds, np.sign(self.X) * 2 * self.abs_max_position - self.X, self.X)
         self.V = np.where(out_of_bounds, 0, self.V)  # Out-of-bounds velocities are set to 0
 
         # Use function evaluation for each particle (vector) in Swarm to provide value for each position in X.
