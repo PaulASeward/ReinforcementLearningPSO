@@ -49,7 +49,7 @@ class TrackedLocationsPSOEnv(PSOEnv):
 
         # Implementation of the action
         action_index = action.item()
-        action_method = self.action_methods.get(action_index, lambda: None)
+        action_method = self.actions.action_methods.get(action_index, lambda: None)
         action_method()
 
         # Execute common operations after action

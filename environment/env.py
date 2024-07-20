@@ -18,7 +18,6 @@ class PSOEnv(py_environment.PyEnvironment):
         super().__init__()
         self._func_num = config.func_num
         self._num_actions = config.num_actions
-        self.actions_descriptions = config.action_names[:self._num_actions]
 
         self._minimum = config.fDeltas[config.func_num - 1]
 
@@ -45,14 +44,8 @@ class PSOEnv(py_environment.PyEnvironment):
         self.swarm = PSOSwarm(objective_function=obj_f, config=config)
 
         self.actions = Actions(swarm=self.swarm, config=config)
+        self.actions_descriptions = self.actions.action_names[:self._num_actions]
 
-        self.action_methods = {
-            0: lambda: None,  # Do nothing
-            1: self.actions.increase_social_factor,  # Encourage social learning
-            2: self.actions.decrease_social_factor,  # Discourage social learning
-            3: self.actions.reset_slow_particles,  # Reset slower half
-            4: self.actions.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
-        }
 
     def action_spec(self):
         return self._action_spec
@@ -98,7 +91,7 @@ class PSOEnv(py_environment.PyEnvironment):
 
         # Implementation of the action
         action_index = action.item()
-        action_method = self.action_methods.get(action_index, lambda: None)
+        action_method = self.actions.action_methods.get(action_index, lambda: None)
         action_method()
 
         # Execute common operations after action
