@@ -1,5 +1,6 @@
 from environment.env import *
-
+from environment.actions.actions import Actions
+import csv
 
 class TrackedLocationsPSOEnv(PSOEnv):
     def __init__(self, config):
@@ -27,14 +28,6 @@ class TrackedLocationsPSOEnv(PSOEnv):
         self._episode_values = []
         self._best_fitness = None
         self.current_best_f = None
-
-        self.action_methods = {
-            0: lambda: None,
-            1: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
-            2: self.swarm.increase_pbest_replacement_threshold,  # Increase Threshold for Replacement
-            3: self.swarm.increase_social_factor,  # Encourage social learning
-            4: self.swarm.decrease_social_factor,  # Discourage social learning
-        }
 
     def _step(self, action):
         """Updates the environment according to action and returns a `TimeStep`.
@@ -70,8 +63,7 @@ class TrackedLocationsPSOEnv(PSOEnv):
             self.tracked_velocities[self._actions_count - 1] = eps_tracked_velocities
             self.tracked_best_locations[self._actions_count - 1] = eps_tracked_best_locations
             self.tracked_valuations[self._actions_count - 1] = eps_tracked_valuations
-            threshold, c1, c2 = self.swarm.get_meta_data()
-            self.meta_data.append([action_index, self.actions_descriptions[action_index], threshold, c1, c2])
+            self.meta_data.append([action_index, self.actions_descriptions[action_index], self.swarm.pbest_replacement_threshold, self.swarm.c1, self.swarm.c2])
 
 
         self.current_best_f = self.swarm.get_current_best_fitness()
