@@ -1,5 +1,5 @@
 from pso.pso_swarm import PSOSwarm
-import pso.functions as functions
+import pso.cec_benchmark_functions as functions
 import os
 import csv
 from tqdm import tqdm
