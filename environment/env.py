@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import numpy as np
 from pso.pso_swarm import PSOSwarm
+from environment.actions.actions import Actions
 from tf_agents.environments import py_environment
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts
@@ -43,19 +44,15 @@ class PSOEnv(py_environment.PyEnvironment):
 
         self.swarm = PSOSwarm(objective_function=obj_f, config=config)
 
-        self.action_methods = {
-            0: lambda: None,
-            1: self.swarm.decrease_pbest_replacement_threshold,  # Decrease Threshold for Replacement
-            2: self.swarm.increase_pbest_replacement_threshold,  # Increase Threshold for Replacement
-        }
+        self.actions = Actions(swarm=self.swarm, config=config)
 
-        # self.action_methods = {
-        #     0: lambda: None,  # Do nothing
-        #     1: self.swarm.increase_social_factor,  # Encourage social learning
-        #     2: self.swarm.decrease_social_factor,  # Discourage social learning
-        #     3: self.swarm.reset_slow_particles,  # Reset slower half
-        #     4: self.swarm.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
-        # }
+        self.action_methods = {
+            0: lambda: None,  # Do nothing
+            1: self.actions.increase_social_factor,  # Encourage social learning
+            2: self.actions.decrease_social_factor,  # Discourage social learning
+            3: self.actions.reset_slow_particles,  # Reset slower half
+            4: self.actions.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
+        }
 
     def action_spec(self):
         return self._action_spec
