@@ -11,7 +11,7 @@ from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts
 from typing import Any
 from tf_agents.typing import types
-import pso.functions
+import pso.cec_benchmark_functions as benchmark_functions
 import os
 
 ACTION_DESCRIPTIONS = ['Do nothing', 'Reset slower half', 'Encourage social learning',
@@ -45,7 +45,7 @@ class PSOEnv(py_environment.PyEnvironment):
         self._episode_values = []
         self._best_fitness = None
 
-        obj_f = functions.CEC_functions(dimension, fun_num=func_num)
+        obj_f = benchmark_functions.CEC_functions(dimension, fun_num=func_num)
 
         self.swarm = pso.PSOVectorSwarmGlobalLocal(
             objective_function=obj_f,

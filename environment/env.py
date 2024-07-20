@@ -9,7 +9,7 @@ from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts
 from typing import Any
 from tf_agents.typing import types
-import pso.functions as functions
+import pso.cec_benchmark_functions as benchmark_functions
 
 
 class PSOEnv(py_environment.PyEnvironment):
@@ -39,7 +39,7 @@ class PSOEnv(py_environment.PyEnvironment):
         self._best_fitness = None
         self.current_best_f = None
 
-        obj_f = functions.CEC_functions(dim=config.dim, fun_num=config.func_num)
+        obj_f = benchmark_functions.CEC_functions(dim=config.dim, fun_num=config.func_num)
 
         self.swarm = PSOSwarm(objective_function=obj_f, config=config)
 
