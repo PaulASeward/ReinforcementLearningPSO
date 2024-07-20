@@ -6,16 +6,24 @@ class Actions:
         self.swarm = swarm
         self.config = config
         self.action_methods = {
-            0: self.do_nothing,  # Do nothing
-            1: self.increase_social_factor,  # Encourage social learning
-            2: self.decrease_social_factor,  # Discourage social learning
-            3: self.reset_slow_particles,  # Reset slower half
-            4: self.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
+            0: self.do_nothing,
+            1: self.increase_all_velocities,
+            2: self.decrease_all_velocities,
+            3: self.increase_max_velocity,
+            4: self.decrease_max_velocity,
+            5: self.increase_velocities_of_slow_velocities,
+            6: self.decrease_velocities_of_fast_particles,
+            7: self.reset_slow_particles,  # Reset slower half
+            8: self.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
         }
 
         self.action_names = ['Do nothing',
-                             'Encourage social learning',
-                             'Discourage social learning',
+                             'Increase all velocities',
+                             'Decrease all velocities',
+                             'Increase max velocity',
+                             'Decrease max velocity',
+                             'Speed up slower half',
+                             'Slow down faster half',
                              'Reset slower half',
                              'Reset all particles and keep global best']
 
