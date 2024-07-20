@@ -5,6 +5,19 @@ class Actions:
     def __init__(self, swarm, config):
         self.swarm = swarm
         self.config = config
+        self.action_methods = {
+            0: self.do_nothing,  # Do nothing
+            1: self.increase_social_factor,  # Encourage social learning
+            2: self.decrease_social_factor,  # Discourage social learning
+            3: self.reset_slow_particles,  # Reset slower half
+            4: self.reset_all_particles_keep_global_best,  # Reset all particles. Keep global leader.
+        }
+
+        self.action_names = ['Do nothing',
+                             'Encourage social learning',
+                             'Discourage social learning',
+                             'Reset slower half',
+                             'Reset all particles and keep global best']
 
     def do_nothing(self):
         return
