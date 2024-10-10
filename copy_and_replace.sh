@@ -9,15 +9,15 @@ DATE=$(date +%Y%m%d)
 # Loop over each number
 for i in "${NUMBERS[@]}"; do
     # Create a new directory with the date, 'f', and the number as part of the name
-    NEW_DIR="run_history/${DATE}f$i"
+    NEW_DIR="run_history/${DATE}_f$i"
     mkdir -p "$NEW_DIR"
 
     # Copy the directories and files into the new directory
-    cp -r agents "$NEW_DIR"
-    cp -r environment "$NEW_DIR"
-    cp -r model_networks "$NEW_DIR"
-    cp -r pso "$NEW_DIR"
-    cp -r utils "$NEW_DIR"
+    rsync -av --exclude='__pycache__' agents "$NEW_DIR"
+    rsync -av --exclude='__pycache__' environment "$NEW_DIR"
+    rsync -av --exclude='__pycache__' model_networks "$NEW_DIR"
+    rsync -av --exclude='__pycache__' pso "$NEW_DIR"
+    rsync -av --exclude='__pycache__' utils "$NEW_DIR"
     cp main.py "$NEW_DIR"
     cp config.py "$NEW_DIR"
 
