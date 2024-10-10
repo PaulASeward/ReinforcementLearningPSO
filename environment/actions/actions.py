@@ -45,8 +45,7 @@ class Actions:
             self.swarm.gbest_val = old_gbest_val
 
     def reset_slow_particles(self):
-        self.swarm.update_velocity_maginitude()
-        avg_velocity = np.mean(self.swarm.velocity_magnitudes)
+        avg_velocity = self._calculate_average_velocity()
         slow_particles = self.swarm.velocity_magnitudes < avg_velocity
         replacement_positions = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF, size=(self.swarm.swarm_size, self.swarm.dimension))
         replacement_velocities = np.full((self.swarm.swarm_size, self.swarm.dimension), 0)
@@ -66,9 +65,12 @@ class Actions:
     def decrease_all_velocities(self):
         self.swarm.V = self.swarm.V * 0.90
 
-    def increase_velocities_of_slow_velocities(self):
+    def _calculate_average_velocity(self):
         self.swarm.update_velocity_maginitude()
-        avg_velocity = np.mean(self.swarm.velocity_magnitudes)
+        return np.mean(self.swarm.velocity_magnitudes)
+
+    def increase_velocities_of_slow_velocities(self):
+        avg_velocity = self._calculate_average_velocity()
         slow_particles = self.swarm.velocity_magnitudes < avg_velocity
         slow_particles_reshaped = slow_particles[:, np.newaxis]  # Reshape to match self.swarm.X
 
@@ -77,8 +79,7 @@ class Actions:
         self.swarm.V = np.where(slow_particles_reshaped, faster_velocities, self.swarm.V)
 
     def decrease_velocities_of_fast_particles(self):
-        self.swarm.update_velocity_maginitude()
-        avg_velocity = np.mean(self.swarm.velocity_magnitudes)
+        avg_velocity = self._calculate_average_velocity()
         fast_particles = self.swarm.velocity_magnitudes > avg_velocity
         fast_particles_reshaped = fast_particles[:, np.newaxis]  # Reshape to match self.swarm.X
 
