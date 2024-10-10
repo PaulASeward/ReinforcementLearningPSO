@@ -47,6 +47,25 @@ The copy_and_replace.sh can crete multiple directories fo run experiments from i
 ./copy_and_replace.sh 10,14,22
 ```
 
+## Moving and Running the Project into Compute Canada
+
+Logging Into ComputeCanada
+```
+ssh -y <username>@cedar.computecanada.ca
+password
+MFA Code
+```
+
+Copying the files from this project directory in terminal:
+```
+scp -r run_history/<currentdate_f#> pseward@cedar.computecanada.ca:scratch/
+```
+
+Copying from ComputeCanada to Local Machine
+```
+scp -r pseward@cedar.computecanada.ca:scratch/<currentdate_f#>/results run_history/
+```
+
 The application will be available at http://127.0.0.1:8050/
 
 
