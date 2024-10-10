@@ -7,4 +7,4 @@
 #SBATCH --job-name=f12_drqn_9_actions
 #SBATCH --output=%x-%j.out
 source ~/scratch/TF_RL/bin/activate
-python main.py --network_type=DRQN --func_num=12 --num_actions=9 --num_episodes=20 --num_swarm_obs_intervals=10 --swar50m_obs_interval_length=30
+python main.py --network_type=DRQN --func_num=12 --num_actions=9 --num_episodes=20 --num_swarm_obs_intervals=10 --swarm_obs_interval_length=30
