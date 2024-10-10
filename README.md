@@ -39,6 +39,14 @@ You can customize the training configuration by specifying arguments, for exampl
 python main.py --network_type DRQN --algorithm PSO --dim 30 --swarm_size 50 --func_num 6
 ```
 
+## Creating Multiple Experiments
+
+The copy_and_replace.sh can crete multiple directories fo run experiments from in compute canada. It can be executed as follows:
+
+```bash
+./copy_and_replace.sh 10,14,22
+```
+
 The application will be available at http://127.0.0.1:8050/
 
 
