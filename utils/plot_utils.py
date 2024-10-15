@@ -105,6 +105,8 @@ def plot_actions_with_values_over_iteration_intervals(input_file_actions, input_
         interval_data = action_counts[start_idx:end_idx]
         interval_values = cumulative_rewards[start_idx:end_idx]
         average_value_per_episode = abs(np.mean(interval_values, axis=0))
+        max_line_value = max(max_line_value, np.max(average_value_per_episode))
+        max_line_value = max(max_line_value, np.max(standard_pso_distance))
 
         bottom = np.zeros(num_episodes)
         for action_num in range(num_actions):
