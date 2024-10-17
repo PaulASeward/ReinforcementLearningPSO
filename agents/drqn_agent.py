@@ -2,7 +2,7 @@ from agents.agent import BaseAgent
 import numpy as np
 import tensorflow as tf
 from agents.utils.experience_buffer import ExperienceBufferRecurrent as ReplayBuffer
-from model_networks.drqn_model import DRQNModel
+from agents.model_networks.drqn_model import DRQNModel
 from utils.logging_utils import ResultsLogger
 
 

@@ -15,7 +15,6 @@ for i in "${NUMBERS[@]}"; do
     # Copy the directories and files into the new directory
     rsync -av --exclude='__pycache__' agents "$NEW_DIR"
     rsync -av --exclude='__pycache__' environment "$NEW_DIR"
-    rsync -av --exclude='__pycache__' model_networks "$NEW_DIR"
     rsync -av --exclude='__pycache__' pso "$NEW_DIR"
     rsync -av --exclude='__pycache__' utils "$NEW_DIR"
     cp main.py "$NEW_DIR"
