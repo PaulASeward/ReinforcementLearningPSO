@@ -1,5 +1,4 @@
 from environment.env import *
-from environment.actions.actions import Actions
 import csv
 
 class TrackedLocationsPSOEnv(PSOEnv):
