@@ -145,14 +145,14 @@ class PSOSwarm:
         # Use function evaluation for each particle (vector) in Swarm to provide value for each position in X.
         self.val = self.eval(self.X)
 
-    def update_pbest_with_elitist_selection(self):
+    def update_pbest(self):
         improved_particles = self.val < self.pbest_val  # Update each Particle's best position for each particle index
         self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
         self.pbest_val = np.where(improved_particles, self.val, self.pbest_val)
 
         self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counter
 
-    def update_gbest_with_elitist_selection(self):
+    def update_gbest(self):
         self.gbest_pos = self.P[np.argmin(self.pbest_val)]
         self.gbest_val = np.min(self.pbest_val)
 
@@ -161,9 +161,8 @@ class PSOSwarm:
             for i in range(self.swarm_obs_interval_length):
                 self.update_velocities(self.gbest_pos)  # Input global leader particle position
                 self.update_position()
-                self.update_pbest_with_elitist_selection()
-                # self.update_pbest_with_non_elitist_selection()
-                self.update_gbest_with_elitist_selection()
+                self.update_pbest()
+                self.update_gbest()
 
                 if self.track_locations:
                     self.tracked_locations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.X
@@ -173,28 +172,6 @@ class PSOSwarm:
 
             self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
             self.pbest_replacement_counts = np.zeros(self.swarm_size)
-
-    def update_pbest_with_non_elitist_selection_random(self):
-        pbest_change = (self.val - self.pbest_val) / np.abs(self.pbest_val)
-        improved_particles = pbest_change < 0
-
-        # Allow exploitative search, per standard for better solutions
-        self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
-        self.pbest_val = np.where(improved_particles, self.val, self.pbest_val)
-        self.pbest_replacement_counts += improved_particles
-
-        # Promote Exploratory Search allowing for non-elitist selection
-        non_elitist_improvements = np.logical_and(pbest_change >= 0, np.random.uniform(size=self.swarm_size) > self.pbest_replacement_threshold + pbest_change)
-        self.P = np.where(non_elitist_improvements[:, np.newaxis], self.X, self.P)
-        self.pbest_val = np.where(non_elitist_improvements, self.val, self.pbest_val)
-        self.pbest_replacement_counts += non_elitist_improvements
-
-    def update_pbest_with_non_elitist_selection(self):
-        improved_particles = self.pbest_replacement_threshold * self.val < self.pbest_val
-        self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
-        self.pbest_val = np.where(improved_particles, self.val, self.pbest_val)
-
-        self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counter
 
 
 
