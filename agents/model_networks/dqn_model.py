@@ -1,6 +1,6 @@
 import tensorflow as tf
 from keras.layers import Input, Dense
-from model_networks.base_model import BaseModel
+from agents.model_networks.base_model import BaseModel
 
 
 class DQNModel(BaseModel):
