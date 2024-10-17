@@ -30,7 +30,7 @@ class Actions:
     def do_nothing(self):
         return
 
-    def reset_all_particles(self):
+    def reset_all_particles_without_memory(self):
         self.swarm.reinitialize()
 
     def reset_all_particles_keep_global_best(self):
@@ -44,6 +44,15 @@ class Actions:
             self.swarm.gbest_pos = old_gbest_pos
             self.swarm.gbest_val = old_gbest_val
 
+    def reset_all_particles_keep_personal_best(self):
+        old_pbest_pos = self.swarm.P
+
+        self.swarm.reinitialize()
+
+        self.swarm.P = old_pbest_pos
+        self.swarm.update_swarm_valuations_and_bests()
+
+
     def reset_slow_particles(self):
         avg_velocity = self._calculate_average_velocity()
         slow_particles = self.swarm.velocity_magnitudes < avg_velocity
@@ -54,7 +63,6 @@ class Actions:
         self.swarm.X = np.where(slow_particles_reshaped, replacement_positions, self.swarm.X)
         self.swarm.V = np.where(slow_particles_reshaped, replacement_velocities, self.swarm.V)
         self.swarm.P = np.where(slow_particles_reshaped, self.swarm.X, self.swarm.P)
-        # self.swarm.P = self.swarm.X
 
         self.swarm.update_swarm_valuations_and_bests()
 
