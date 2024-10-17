@@ -60,23 +60,23 @@ class PSOSwarm:
         self.gbest_replacement_threshold, self.pbest_replacement_threshold = self.config.replacement_threshold, self.config.replacement_threshold
         self.abs_max_velocity = self.rangeF
 
+        self.initialize_stored_counts()
+
+        # Record the initialized particle and global best solutions
+        self.update_swarm_valuations_and_bests()
+
+    def initialize_stored_counts(self):
         self.velocity_magnitudes = None
         self.relative_fitness = None
-        self.average_batch_counts = None
-        self.pbest_replacement_counts = None
-
         self.val = None
         self.gbest_val = None
         self.gbest_pos = None
         self.pbest_val = None
 
-        # Static class variable to track pbest_val replacements
+        # Static class variables to track pbest_val replacements
         self.pbest_replacement_counts = np.zeros(self.swarm_size)
         self.pbest_replacement_batchcounts = np.zeros((self.num_swarm_obs_intervals, self.swarm_size))
         self.average_batch_counts = np.zeros(self.swarm_size)
-
-        # Record the initialized particle and global best solutions
-        self.update_swarm_valuations_and_bests()
 
     def update_swarm_valuations_and_bests(self):
         self.val = self.eval(self.P)  # Vector of particle's current value of its position based on Function Eval
