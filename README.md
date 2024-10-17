@@ -12,7 +12,7 @@ This project is a Dash web application designed to visualize the corrections mad
 
 ## Installation
 
-Ensure you have Python 3.6 or newer installed. It's recommended to use a virtual environment:
+Ensure you have Python 3.9 or newer installed. It's recommended to use a virtual environment:
 
 ```bash
 python3 -m venv venv
