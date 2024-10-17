@@ -27,15 +27,6 @@ class PSOSwarm:
         self.swarm_obs_interval_length = config.swarm_obs_interval_length
         self.iterations = self.num_swarm_obs_intervals * self.swarm_obs_interval_length
 
-        # Track Locations
-        self.track_locations = config.track_locations
-        if self.track_locations:
-            self.tracked_locations = np.zeros((self.iterations, self.swarm_size, self.dimension))
-            self.tracked_velocities = np.zeros((self.iterations, self.swarm_size, self.dimension))
-            self.tracked_best_locations = np.zeros((self.iterations, self.swarm_size, self.dimension))
-            self.tracked_valuations = np.zeros((self.iterations, self.swarm_size))
-            self.track_locations = False
-
         # Set Constraints for clamping position and limiting velocity
         self.abs_max_velocity = self.rangeF
         self.abs_max_position = self.rangeF
@@ -113,9 +104,6 @@ class PSOSwarm:
 
         return np.concatenate([self.velocity_magnitudes, self.relative_fitness, self.average_batch_counts], axis=0)
 
-    def get_tracked_locations_and_valuations(self):
-        return self.tracked_locations, self.tracked_velocities, self.tracked_best_locations, self.tracked_valuations
-
     def get_current_best_fitness(self):
         return self.gbest_val
 
@@ -163,12 +151,6 @@ class PSOSwarm:
                 self.update_position()
                 self.update_pbest()
                 self.update_gbest()
-
-                if self.track_locations:
-                    self.tracked_locations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.X
-                    self.tracked_velocities[obs_interval_idx * self.swarm_obs_interval_length + i] = self.V
-                    self.tracked_best_locations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.P
-                    self.tracked_valuations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.val
 
             self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
             self.pbest_replacement_counts = np.zeros(self.swarm_size)

@@ -5,7 +5,6 @@ class Config(object):
     network_type = "DQN"
     algorithm = "PSO"
     use_mock_data = False
-    track_locations = False
 
     # AGENT PARAMETERS
     num_episodes = 20
