@@ -35,17 +35,6 @@ class ResultsLogger:
             np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
 
         if step % self.config.eval_interval == 0:
-            # Save the locations and valuations to each directory
-            # if self.config.track_locations:
-            #     locations_new_dir = os.path.join(self.config.swarm_locations_dir, f"locations_at_step_{step}")
-            #     os.makedirs(locations_new_dir, exist_ok=True)
-            #
-            #     env_swarm_locations_path = os.path.join(locations_new_dir, self.config.env_swarm_locations_name)
-            #     emv_swarm_velocities_path = os.path.join(locations_new_dir, self.config.env_swarm_velocities_name)
-            #     env_swarm_best_locations_path = os.path.join(locations_new_dir, self.config.env_swarm_best_locations_name)
-            #     env_swarm_evaluations_path = os.path.join(locations_new_dir, self.config.env_swarm_evaluations_name)
-            #     env_meta_data_path = os.path.join(locations_new_dir, self.config.env_meta_data_name)
-            #     self.raw_env.store_locations_and_valuations(True, env_swarm_locations_path, emv_swarm_velocities_path, env_swarm_best_locations_path, env_swarm_evaluations_path, env_meta_data_path)
 
             # Read the last eval_interval number of rows to calculate the total return per row. This can be used to then calculate the relative fitness and then compute averages.
             rewards = np.genfromtxt(self.config.action_values_path, delimiter=',')
@@ -66,7 +55,6 @@ class ResultsLogger:
 
             self.eval_interval_count += 1
 
-            # saving the results into a TEXT file
             np.savetxt(self.config.average_returns_path, self.returns, delimiter=", ", fmt='% s')
             np.savetxt(self.config.fitness_path, self.fitness, delimiter=", ", fmt='% s')
 
@@ -77,17 +65,6 @@ class ResultsLogger:
         with open(self.config.action_values_path, mode='a', newline='') as csv_file:
             csv.writer(csv_file).writerow(values_row)
 
-    def get_returns(self):
-        return self.returns
-
-    def get_fitness(self):
-        return self.fitness
-
-    def get_loss(self):
-        return self.loss
-
-    def get_action_counts(self):
-        return self.action_counts
 
 
 def save_scalar(step, name, value, writer):
