@@ -27,15 +27,6 @@ class PSOSwarm:
         self.swarm_obs_interval_length = config.swarm_obs_interval_length
         self.iterations = self.num_swarm_obs_intervals * self.swarm_obs_interval_length
 
-        # Track Locations
-        self.track_locations = config.track_locations
-        if self.track_locations:
-            self.tracked_locations = np.zeros((self.iterations, self.swarm_size, self.dimension))
-            self.tracked_velocities = np.zeros((self.iterations, self.swarm_size, self.dimension))
-            self.tracked_best_locations = np.zeros((self.iterations, self.swarm_size, self.dimension))
-            self.tracked_valuations = np.zeros((self.iterations, self.swarm_size))
-            self.track_locations = False
-
         # Set Constraints for clamping position and limiting velocity
         self.abs_max_velocity = self.rangeF
         self.abs_max_position = self.rangeF
@@ -69,23 +60,23 @@ class PSOSwarm:
         self.gbest_replacement_threshold, self.pbest_replacement_threshold = self.config.replacement_threshold, self.config.replacement_threshold
         self.abs_max_velocity = self.rangeF
 
+        self.initialize_stored_counts()
+
+        # Record the initialized particle and global best solutions
+        self.update_swarm_valuations_and_bests()
+
+    def initialize_stored_counts(self):
         self.velocity_magnitudes = None
         self.relative_fitness = None
-        self.average_batch_counts = None
-        self.pbest_replacement_counts = None
-
         self.val = None
         self.gbest_val = None
         self.gbest_pos = None
         self.pbest_val = None
 
-        # Static class variable to track pbest_val replacements
+        # Static class variables to track pbest_val replacements
         self.pbest_replacement_counts = np.zeros(self.swarm_size)
         self.pbest_replacement_batchcounts = np.zeros((self.num_swarm_obs_intervals, self.swarm_size))
         self.average_batch_counts = np.zeros(self.swarm_size)
-
-        # Record the initialized particle and global best solutions
-        self.update_swarm_valuations_and_bests()
 
     def update_swarm_valuations_and_bests(self):
         self.val = self.eval(self.P)  # Vector of particle's current value of its position based on Function Eval
@@ -112,9 +103,6 @@ class PSOSwarm:
         self.update_batch_counts()
 
         return np.concatenate([self.velocity_magnitudes, self.relative_fitness, self.average_batch_counts], axis=0)
-
-    def get_tracked_locations_and_valuations(self):
-        return self.tracked_locations, self.tracked_velocities, self.tracked_best_locations, self.tracked_valuations
 
     def get_current_best_fitness(self):
         return self.gbest_val
@@ -145,14 +133,14 @@ class PSOSwarm:
         # Use function evaluation for each particle (vector) in Swarm to provide value for each position in X.
         self.val = self.eval(self.X)
 
-    def update_pbest_with_elitist_selection(self):
+    def update_pbest(self):
         improved_particles = self.val < self.pbest_val  # Update each Particle's best position for each particle index
         self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
         self.pbest_val = np.where(improved_particles, self.val, self.pbest_val)
 
         self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counter
 
-    def update_gbest_with_elitist_selection(self):
+    def update_gbest(self):
         self.gbest_pos = self.P[np.argmin(self.pbest_val)]
         self.gbest_val = np.min(self.pbest_val)
 
@@ -161,40 +149,11 @@ class PSOSwarm:
             for i in range(self.swarm_obs_interval_length):
                 self.update_velocities(self.gbest_pos)  # Input global leader particle position
                 self.update_position()
-                self.update_pbest_with_elitist_selection()
-                # self.update_pbest_with_non_elitist_selection()
-                self.update_gbest_with_elitist_selection()
-
-                if self.track_locations:
-                    self.tracked_locations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.X
-                    self.tracked_velocities[obs_interval_idx * self.swarm_obs_interval_length + i] = self.V
-                    self.tracked_best_locations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.P
-                    self.tracked_valuations[obs_interval_idx * self.swarm_obs_interval_length + i] = self.val
+                self.update_pbest()
+                self.update_gbest()
 
             self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
             self.pbest_replacement_counts = np.zeros(self.swarm_size)
-
-    def update_pbest_with_non_elitist_selection_random(self):
-        pbest_change = (self.val - self.pbest_val) / np.abs(self.pbest_val)
-        improved_particles = pbest_change < 0
-
-        # Allow exploitative search, per standard for better solutions
-        self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
-        self.pbest_val = np.where(improved_particles, self.val, self.pbest_val)
-        self.pbest_replacement_counts += improved_particles
-
-        # Promote Exploratory Search allowing for non-elitist selection
-        non_elitist_improvements = np.logical_and(pbest_change >= 0, np.random.uniform(size=self.swarm_size) > self.pbest_replacement_threshold + pbest_change)
-        self.P = np.where(non_elitist_improvements[:, np.newaxis], self.X, self.P)
-        self.pbest_val = np.where(non_elitist_improvements, self.val, self.pbest_val)
-        self.pbest_replacement_counts += non_elitist_improvements
-
-    def update_pbest_with_non_elitist_selection(self):
-        improved_particles = self.pbest_replacement_threshold * self.val < self.pbest_val
-        self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
-        self.pbest_val = np.where(improved_particles, self.val, self.pbest_val)
-
-        self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counter
 
 
 

@@ -3,7 +3,6 @@ from tf_agents.environments import tf_py_environment
 import os
 import numpy as np
 from datetime import datetime
-from environment.tracked_locations_env import TrackedLocationsPSOEnv
 from environment.mock_env import MockEnv
 from environment.env import PSOEnv
 from utils.plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
@@ -56,8 +55,6 @@ class BaseAgent:
     def build_environment(self):
         if self.config.use_mock_data:
             self.raw_env = MockEnv(self.config)
-        elif self.config.track_locations:
-            self.raw_env = TrackedLocationsPSOEnv(self.config)
         else:
             self.raw_env = PSOEnv(self.config)  # Raw environment
         self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
@@ -66,9 +63,8 @@ class BaseAgent:
 
     def get_actions(self):
         print(f"num_actions: {self.config.num_actions}")
-        action_descriptions = self.raw_env.actions_descriptions
 
-        for index, description in enumerate(action_descriptions):
+        for index, description in enumerate(self.raw_env.actions_descriptions):
             if index +1 <= self.config.num_actions:
                 action_no = str(index+1)
                 print(f"Action #{action_no} Description: {description}")
