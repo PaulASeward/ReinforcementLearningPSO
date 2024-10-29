@@ -174,3 +174,19 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
     def reset(self):
         """Start the decay over at the start value."""
         self.step = 0
+
+
+class OrnsteinUhlenbeckActionNoisePolicy(Policy):
+    def __init__(self, num_actions, noise, lower_bound, upper_bound):
+        self.num_actions = num_actions
+        self.noise = noise
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+
+    def select_action(self, q_values, **kwargs):
+        action = np.clip(q_values + self.noise(), self.lower_bound, self.upper_bound)
+        return action
+
+    def reset(self):
+        self.noise.reset()
+
