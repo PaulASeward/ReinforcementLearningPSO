@@ -56,6 +56,16 @@ class Config(object):
     # update_freq = 10000
     # train_start = 20000
 
+    # DDPG TRAINING PARAMETERS
+    # ou_mean = 1
+    ou_mean = 0.0
+    ou_theta = 0.15
+    # ou_sigma = 0.2
+    ou_sigma = 0.5
+    ou_dt = 1e-2
+    upper_bound = 1.0
+    lower_bound = -1.0
+
     dir_save = "saved_session/"
     restore = False
 
