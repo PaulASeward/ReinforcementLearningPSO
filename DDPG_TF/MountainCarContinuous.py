@@ -7,8 +7,9 @@ import ReplayBuffer
 import os
 import tensorflow as tf
 import wandb
+from wandb.integration.keras import WandbCallback
 
-from wandb.keras import WandbCallback
+
 from noise import OrnsteinUhlenbeckActionNoise
 
 # inicializuj prostredie Weights & Biases
@@ -27,6 +28,8 @@ env = gym.make('MountainCarContinuous-v0')
 # Actor
 actorNet = Actor.Actor(env.observation_space.shape, env.action_space.shape, lr=wandb.config.lr_A)
 actorNet_target = Actor.Actor(env.observation_space.shape, env.action_space.shape, lr=wandb.config.lr_A)
+
+
 
 # Critic
 criticNet = Critic.Critic(env.observation_space.shape, env.action_space.shape, lr=wandb.config.lr_C)
