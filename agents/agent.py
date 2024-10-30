@@ -56,7 +56,7 @@ class BaseAgent:
     def build_environment(self):
         if self.config.use_mock_data:
             self.raw_env = MockEnv(self.config)  # Mock environment
-        elif self.config.discrete_action_space:
+        elif not self.config.discrete_action_space:
             self.raw_env = ContinuousPSOEnv(self.config)  # Continuous environment
         else:
             self.raw_env = PSOEnv(self.config)  # Raw environment
