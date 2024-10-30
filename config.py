@@ -63,6 +63,7 @@ class Config(object):
     # ou_sigma = 0.2
     ou_sigma = 0.5
     ou_dt = 1e-2
+    tau = 0.005
     upper_bound = 1.0
     lower_bound = -1.0
 
