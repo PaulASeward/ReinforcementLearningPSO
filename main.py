@@ -1,5 +1,6 @@
 from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
+from agents.ddpg_agent import DDPGAgent
 from config import PSOConfig
 import sys
 import argparse
@@ -9,7 +10,8 @@ class Main:
     def __init__(self, config):
         agent_mapping = {
             "DQN": DQNAgent,
-            "DRQN": DRQNAgent
+            "DRQN": DRQNAgent,
+            "DDPG": DDPGAgent
         }
 
         self.agent = agent_mapping.get(config.network_type, DRQNAgent)(config)
@@ -28,12 +30,12 @@ class Main:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run DQN Agent on PSO Algorithm")
-    parser.add_argument("--network_type", type=str, default="DRQN",help="Type of the network to build, can either be 'DQN' or 'DRQN'")
+    parser.add_argument("--network_type", type=str, default="DDPG",help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
     parser.add_argument("--algorithm", type=str, default="PSO", help="The metaheuristic algorithm to use. Currently only pso is supported")
-    parser.add_argument("--func_num", type=int, default=12, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
+    parser.add_argument("--func_num", type=int, default=11, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
     parser.add_argument("--dim", type=int, default=30,help="The number of dimensions in the search space. Default is 30.")
     parser.add_argument("--swarm_size", type=int, default=50, help="The number of particles in the swarm. Default is 50.")
-    parser.add_argument("--num_actions", type=int, default=9, help="The number of actions to choose from in the action space. Default is 5.")
+    parser.add_argument("--num_actions", type=int, default=3, help="The number of actions to choose from in the action space. Default is 5.")
     parser.add_argument("--num_episodes", type=int, default=20, help="The number of episodes in each Reinforcement Learning Iterations before terminating.")
     parser.add_argument("--num_swarm_obs_intervals", type=int, default=10, help="The number of swarm observation intervals. Ex) At 10 evenly spaced observation intervals, observations in the swarm will be collected. Default is 10.")
     parser.add_argument("--swarm_obs_interval_length", type=int, default=30, help="The number of observations per episode conducted in the swarm. Ex) Particle Best Replacement Counts are averaged over the last _ observations before an episode terminates and action is decided. Default is 30.")
@@ -51,7 +53,7 @@ if __name__ == "__main__":
         print("Unsupported algorithm type: ", args.algorithm)
         sys.exit(1)
 
-    assert args.network_type in ["DQN", "DRQN"], "Please specify a network_type of either DQN or DRQN"
+    assert args.network_type in ["DQN", "DRQN", "DDPG"], "Please specify a network_type of either DQN, DRQN, or DDPG"
     assert args.func_num in list(range(1, 29)), "Please specify a func_num from 1-28"
     assert args.dim in [2, 5, 10, 20, 20, 30, 40, 50, 60, 70, 80, 90, 100], "Please specify a dim from 2,5,10,20,30,40,50,60,70,80,90,100"
 

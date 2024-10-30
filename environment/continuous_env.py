@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import numpy as np
 from pso.pso_swarm import PSOSwarm
-from environment.actions.actions import DiscreteActions
+from environment.actions.actions import ContinuousActions
 from tf_agents.environments import py_environment
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts
@@ -18,6 +18,8 @@ class PSOEnv(py_environment.PyEnvironment):
         super().__init__()
         self._func_num = config.func_num
         self._num_actions = config.num_actions
+        self._discrete_action_space = config.discrete_action_space
+
         self._minimum = config.fDeltas[config.func_num - 1]
 
         self._max_episodes = config.num_episodes
@@ -32,11 +34,8 @@ class PSOEnv(py_environment.PyEnvironment):
 
         self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
 
-        self.actions = DiscreteActions(swarm=self.swarm, config=config)
-        self.actions_descriptions = self.actions.action_names[:self._num_actions]
-
-        self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=config.num_actions-1, name='action')
-        self.actions = DiscreteActions(swarm=self.swarm, config=config)
+        self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.float64, minimum=config.lower_bound, maximum=config.upper_bound, name='action')
+        self.actions = ContinuousActions(swarm=self.swarm, config=config)
         self.actions_descriptions = self.actions.action_names[:self._num_actions]
 
         self._actions_count = 0
@@ -92,9 +91,7 @@ class PSOEnv(py_environment.PyEnvironment):
             self._episode_ended = True
 
         # Implementation of the action
-        action_index = action.item()
-        action_method = self.actions.action_methods.get(action_index, lambda: None)
-        action_method()
+        self.actions(action)
 
         # Execute common operations after action
         self.swarm.optimize()

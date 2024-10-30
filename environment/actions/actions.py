@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Actions:
+class DiscreteActions:
     def __init__(self, swarm, config):
         self.swarm = swarm
         self.config = config
@@ -140,3 +140,24 @@ class Actions:
         self.swarm.pbest_replacement_threshold = np.clip(self.swarm.pbest_replacement_threshold,
                                                          self.config.pbest_replacement_threshold_min,
                                                          self.config.pbest_replacement_threshold_max)
+
+
+class ContinuousActions:
+    def __init__(self, swarm, config):
+        self.swarm = swarm
+        self.config = config
+
+        self.action_names = ['Inertia Param',
+                             'Social Param',
+                             'Cognitive Param']
+
+    def __call__(self, action):
+        self.swarm.w = action[0]
+        self.swarm.c1 = action[1]
+        self.swarm.c2 = action[2]
+
+
+    def act(self, action):
+        self.swarm.w = action[0]
+        self.swarm.c1 = action[1]
+        self.swarm.c2 = action[2]
