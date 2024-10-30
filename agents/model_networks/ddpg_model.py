@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow.keras import Model
 from keras.layers import Input, Dense, BatchNormalization, Add, Lambda
 from agents.model_networks.base_model import BaseModel
 
@@ -24,12 +25,23 @@ class ActorNetworkModel(BaseModel):
         # Scale the output by action_high
         model.add(tf.keras.layers.Lambda(lambda x: x * self.action_high))
 
+        # TODO: IS THIS NEEDED?
+        model.compile(loss=self.compute_loss, optimizer=self.optimizer)
+
         return model
 
-    def train(self, states, targets):
-        history = self.model.fit(states, targets, epochs=1, verbose=0)
-        loss = history.history["loss"][0]
-        return loss
+    @tf.function
+    def train(self, X_train, critic_network):
+        with tf.GradientTape() as tape:
+            y_pred = self.model(X_train, training=True)
+            q_pred = critic_network([X_train, y_pred])
+
+            loss_a = -tf.reduce_mean(q_pred)
+
+        actor_grads = tape.gradient(loss_a, self.model.trainable_variables)
+        self.optimizer.apply_gradients(zip(actor_grads, self.model.trainable_variables))
+
+        return loss_a
 
 
 class CriticNetworkModel(BaseModel):
@@ -61,7 +73,10 @@ class CriticNetworkModel(BaseModel):
         outputs = Dense(1, kernel_initializer=last_init)(outs)
 
         # Create the model
-        model = tf.keras.Model(inputs=[state_input, action_input], outputs=outputs)
+        model = Model(inputs=[state_input, action_input], outputs=outputs)
+
+        model.compile(loss=self.compute_loss, optimizer=self.optimizer)
+
         return model
 
     def train(self, states, actions, targets):
@@ -70,25 +85,25 @@ class CriticNetworkModel(BaseModel):
         return loss
 
 
-class DDPGModel(BaseModel):
-    def __init__(self, config):
-        super(DDPGModel, self).__init__(config, "ddpg")
-
-    def nn_model(self):
-        model = tf.keras.Sequential(
-            [
-                Input((self.config.observation_length,)),
-                Dense(32, activation="relu"),
-                Dense(16, activation="relu"),
-                Dense(self.config.num_actions),
-            ]
-        )
-
-        model.compile(loss=self.compute_loss, optimizer=self.optimizer)
-
-        return model
-
-    def train(self, states, targets):
-        history = self.model.fit(states, targets, epochs=1, verbose=0)
-        loss = history.history["loss"][0]
-        return loss
+# class DDPGModel(BaseModel):
+#     def __init__(self, config):
+#         super(DDPGModel, self).__init__(config, "ddpg")
+#
+#     def nn_model(self):
+#         model = tf.keras.Sequential(
+#             [
+#                 Input((self.config.observation_length,)),
+#                 Dense(32, activation="relu"),
+#                 Dense(16, activation="relu"),
+#                 Dense(self.config.num_actions),
+#             ]
+#         )
+#
+#         model.compile(loss=self.compute_loss, optimizer=self.optimizer)
+#
+#         return model
+#
+#     def train(self, states, targets):
+#         history = self.model.fit(states, targets, epochs=1, verbose=0)
+#         loss = history.history["loss"][0]
+#         return loss
