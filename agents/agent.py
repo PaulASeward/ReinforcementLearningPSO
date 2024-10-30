@@ -4,6 +4,7 @@ import os
 import numpy as np
 from datetime import datetime
 from environment.mock_env import MockEnv
+from environment.continuous_env import PSOEnv as ContinuousPSOEnv
 from environment.env import PSOEnv
 from utils.plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
 from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy
@@ -54,7 +55,9 @@ class BaseAgent:
 
     def build_environment(self):
         if self.config.use_mock_data:
-            self.raw_env = MockEnv(self.config)
+            self.raw_env = MockEnv(self.config)  # Mock environment
+        elif self.config.discrete_action_space:
+            self.raw_env = ContinuousPSOEnv(self.config)  # Continuous environment
         else:
             self.raw_env = PSOEnv(self.config)  # Raw environment
         self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment

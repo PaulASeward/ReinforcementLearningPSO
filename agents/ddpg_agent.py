@@ -24,6 +24,7 @@ class DDPGAgent(BaseAgent):
         self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer()
 
+
     def update_model_target_weights(self):
         theta_a, theta_c = self.actor_network.model.get_weights(), self.critic_network.model.get_weights()
         theta_a_targ, theta_c_targ = self.actor_network_target.model.get_weights(), self.critic_network_target.model.get_weights()
@@ -74,8 +75,8 @@ class DDPGAgent(BaseAgent):
                 observation = observation.observation
 
                 while not terminal:
-                    q_values = self.model.get_action_q_values(observation)
-                    action = self.policy.select_action(q_values)
+                    q_values = self.actor_network.get_action_q_values(observation)
+                    action = self.policy.select_action(q_values)  # Doesn't actually select one discrete action, but adds noise to the continuous action space.
                     actions.append(action)
                     step_type, reward, discount, next_observation = self.env.step(action)
 

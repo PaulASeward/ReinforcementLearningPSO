@@ -67,6 +67,8 @@ class Config(object):
     upper_bound = 1.0
     lower_bound = -1.0
 
+    discrete_action_space = True
+
     dir_save = "saved_session/"
     restore = False
 
@@ -149,6 +151,10 @@ class Config(object):
 
         if network_type is not None:
             self.network_type = network_type
+
+            if network_type == "DDPG":
+                self.discrete_action_space = False
+
             experiment = self.network_type + "_" + self.algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
             self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
