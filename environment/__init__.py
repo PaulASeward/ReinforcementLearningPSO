@@ -1,7 +1,7 @@
 import gym
 
 gym.register(
-    id="ContinuousMaze-v0",
-    entry_point="gym_continuous_maze.gym_continuous_maze:ContinuousMaze",
+    id="ContinuousPsoGymEnv-v0",
+    entry_point="environment.gym_env_continuous:ContinuousPsoGymEnv",
     max_episode_steps=20,
 )

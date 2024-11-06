@@ -53,9 +53,6 @@ class PSOEnv(py_environment.PyEnvironment):
         self._best_fitness = None
         self.current_best_f = None
 
-
-
-
     def action_spec(self):
         return self._action_spec
 

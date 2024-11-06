@@ -72,7 +72,7 @@ class DDPGAgent(BaseAgent):
                 self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
 
                 observation = self.env.reset()
-                observation = observation.observation
+                observation = observation[0]
 
                 while not terminal:
                     q_values = self.actor_network.get_action_q_values(observation)
