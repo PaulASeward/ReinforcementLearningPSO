@@ -156,7 +156,6 @@ class ContinuousActions:
         self.swarm.c1 = action[1]
         self.swarm.c2 = action[2]
 
-
     def act(self, action):
         self.swarm.w = action[0]
         self.swarm.c1 = action[1]

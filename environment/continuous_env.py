@@ -33,8 +33,16 @@ class PSOEnv(py_environment.PyEnvironment):
         self._observation_spec = array_spec.BoundedArraySpec(shape=(self._observ_size,), dtype=np.float64, name='observation')
 
         self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
+        self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.float64, minimum=0, maximum=config.num_actions-1, name='action')
 
-        self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.float64, minimum=config.lower_bound, maximum=config.upper_bound, name='action')
+        # self._action_spec = array_spec.BoundedArraySpec(shape=(self._num_actions,), dtype=np.float64, minimum=config.lower_bound, maximum=config.upper_bound, name='action')
+        # self._action_spec = [array_spec.BoundedArraySpec(shape=(1,), dtype=np.float64, minimum=config.lower_bound,
+        #                                                  maximum=config.upper_bound, name='action'),
+        #                      array_spec.BoundedArraySpec(shape=(1,), dtype=np.float64, minimum=config.lower_bound,
+        #                                                  maximum=config.upper_bound, name='action'),
+        #                      array_spec.BoundedArraySpec(shape=(1,), dtype=np.float64, minimum=config.lower_bound,
+        #                                                  maximum=config.upper_bound, name='action')]
+
         self.actions = ContinuousActions(swarm=self.swarm, config=config)
         self.actions_descriptions = self.actions.action_names[:self._num_actions]
 
