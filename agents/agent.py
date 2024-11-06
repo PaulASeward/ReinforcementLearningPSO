@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tf_agents.environments import tf_py_environment
+from tf_agents.environments import tf_py_environment, wrappers
 import os
 import numpy as np
 from datetime import datetime
@@ -58,8 +58,10 @@ class BaseAgent:
             self.raw_env = MockEnv(self.config)  # Mock environment
         elif not self.config.discrete_action_space:
             self.raw_env = ContinuousPSOEnv(self.config)  # Continuous environment
+            # self.raw_env = wrappers.ActionDiscretizeWrapper(self.raw_env, self.config.num_actions)  # Discretized environment
         else:
             self.raw_env = PSOEnv(self.config)  # Raw environment
+        # self.env = tf_py_environment.TFPyEnvironment(self.raw_env, check_dims=True)  # Training environment
         self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
 
         return self.env
