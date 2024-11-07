@@ -31,7 +31,7 @@ class Main:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run DQN Agent on PSO Algorithm")
     parser.add_argument("--network_type", type=str, default="DDPG",help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
-    parser.add_argument("--algorithm", type=str, default="PSO", help="The metaheuristic algorithm to use. Currently only pso is supported")
+    parser.add_argument("--swarm_algorithm", type=str, default="PSO", help="The metaheuristic swarm algorithm to use. Currently only pso is supported")
     parser.add_argument("--func_num", type=int, default=11, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
     parser.add_argument("--dim", type=int, default=30,help="The number of dimensions in the search space. Default is 30.")
     parser.add_argument("--swarm_size", type=int, default=50, help="The number of particles in the swarm. Default is 50.")
@@ -43,14 +43,14 @@ if __name__ == "__main__":
     parser.add_argument("--steps", type=int, default=2000, help="number of iterations to train")
     args, remaining = parser.parse_known_args()
 
-    if args.algorithm == "PSO":
+    if args.swarm_algorithm == "PSO":
         config = PSOConfig()
         config.train = args.train
         config.dim = args.dim
-        config.algorithm = args.algorithm
+        config.swarm_algorithm = args.swarm_algorithm
         config.num_actions = args.num_actions
     else:
-        print("Unsupported algorithm type: ", args.algorithm)
+        print("Unsupported swarm algorithm type: ", args.swarm_algorithm)
         sys.exit(1)
 
     assert args.network_type in ["DQN", "DRQN", "DDPG"], "Please specify a network_type of either DQN, DRQN, or DDPG"

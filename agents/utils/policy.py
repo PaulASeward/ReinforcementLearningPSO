@@ -1,6 +1,7 @@
 """RL Policy classes."""
 
 import numpy as np
+from agents.utils.noise import OrnsteinUhlenbeckActionNoise
 
 
 class Policy:
@@ -177,16 +178,27 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
 
 
 class OrnsteinUhlenbeckActionNoisePolicy(Policy):
-    def __init__(self, num_actions, noise, lower_bound, upper_bound):
-        self.num_actions = num_actions
-        self.noise = noise
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
+    def __init__(self, config):
+        self.ou_noise = OrnsteinUhlenbeckActionNoise(config, size=config.num_actions)
+
+        self.num_actions = config.num_actions
+        self.lower_bound = config.lower_bound
+        self.upper_bound = config.upper_bound
+
+        self.current_epsilon = config.epsilon_start
+        self.epsilon_start = config.epsilon_start
+        self.epsilon_end = config.epsilon_end
+        self.decay_rate = 4 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        self.step = 0
 
     def select_action(self, q_values, **kwargs):
-        action = np.clip(q_values + self.noise(), self.lower_bound, self.upper_bound)
+        self.step += 1
+        self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
+        # epsilon = max(self.current_epsilon, self.epsilon_end)
+
+        action = np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
         return action
 
     def reset(self):
-        self.noise.reset()
+        self.ou_noise.reset()
 
