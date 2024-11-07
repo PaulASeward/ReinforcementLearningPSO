@@ -17,6 +17,10 @@ class DRQNAgent(BaseAgent):
         self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer()
 
+    def update_states(self, next_state):
+        self.states = np.roll(self.states, -1, axis=0)
+        self.states[-1] = next_state
+
     def train(self):
         with self.writer.as_default():
             results_logger = ResultsLogger(self.config)
@@ -37,9 +41,7 @@ class DRQNAgent(BaseAgent):
                     terminal = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
 
                     prev_states = self.states
-
                     self.update_states(next_state)  # Updates the states array removing oldest when adding newest for sliding window
-
                     self.replay_buffer.add([prev_states, action, reward * self.config.discount_factor, self.states, terminal])
 
                     episode_reward += reward
