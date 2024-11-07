@@ -73,20 +73,20 @@ class DDPGAgent(BaseAgent):
 
                 observation = self.env.reset()
                 observation = observation[0]
+                state = np.reshape(observation, (1, self.config.observation_length))
 
                 while not terminal:
-                    q_values = self.actor_network.get_action_q_values(observation)
+                    q_values = self.actor_network.get_action_q_values(state)
                     action = self.policy.select_action(q_values)  # Doesn't actually select one discrete action, but adds noise to the continuous action space.
-                    actions.append(action)
-                    step_type, reward, discount, next_observation = self.env.step(action)
+                    next_observation, reward, terminal, info = self.env.step(action)
 
-                    reward = reward.numpy()[0]
-                    rewards.append(reward)
-                    terminal = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
+                    next_state = np.reshape(next_observation, (1, self.config.observation_length))
+                    self.replay_buffer.add([state, action, reward * self.config.discount_factor, next_state, terminal])
 
-                    self.replay_buffer.add([observation, action, reward * self.config.discount_factor, next_observation, terminal])
-                    observation = next_observation
+                    state = next_state
                     episode_reward += reward
+                    actions.append(action)
+                    rewards.append(reward)
 
                 losses = None
                 if self.replay_buffer.size() >= self.config.batch_size:

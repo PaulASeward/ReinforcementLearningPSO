@@ -20,8 +20,9 @@ class DiscreteActions:
                              'Decrease social factor', ]
 
     def __call__(self, action):
-        action_index = action.item()
-        action_method = self.action_methods.get(action_index, lambda: None)
+        if not isinstance(action, int):
+            action = action.item()
+        action_method = self.action_methods.get(action, lambda: None)
         action_method()
 
     def do_nothing(self):

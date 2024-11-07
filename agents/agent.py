@@ -68,10 +68,11 @@ class BaseAgent:
             # self.raw_env = ContinuousPSOEnv(self.config)  # Continuous environment
             # self.raw_env = wrappers.ActionDiscretizeWrapper(self.raw_env, self.config.num_actions)  # Discretized environment
         else:
-            # self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)  # Continuous environment
-            # self.env = self.raw_env
-            self.raw_env = PSOEnv(self.config)  # Raw environment
-            self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
+            self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)  # Continuous environment
+            self.env = self.raw_env
+
+            # self.raw_env = PSOEnv(self.config)  # Raw environment
+            # self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
 
         return self.env
 

@@ -24,17 +24,14 @@ class DiscretePsoGymEnv(gym.Env):
         self._swarm_size = config.swarm_size
         self._dim = config.dim
 
-        self.config = config
-        swarm_size = 50
-        self._observ_size = swarm_size * 3
-        low_limits_obs_space = np.zeros(self._observ_size)  # 150-dimensional array with all elements set to 0
-        high_limits_obs_space = np.full(self._observ_size, np.inf)
+        self._observation_length = config.observation_length
+        low_limits_obs_space = np.zeros(self._observation_length)  # 150-dimensional array with all elements set to 0
+        high_limits_obs_space = np.full(self._observation_length, np.inf)
 
         self.action_space = gym.spaces.Discrete(self._num_actions)
-        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observ_size,), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
 
         self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
-
         self.actions = DiscreteActions(swarm=self.swarm, config=config)
         self.actions_descriptions = self.actions.action_names[:self._num_actions]
 
@@ -96,21 +93,17 @@ class DiscretePsoGymEnv(gym.Env):
             self._episode_ended = True
 
         # Implementation of the action
-        action_index = action.item()
-        action_method = self.actions.action_methods.get(action_index, lambda: None)
-        action_method()
-
         self.actions(action)
         self.swarm.optimize()
 
         observation = self._get_obs()
         reward = self._get_reward()
-        truncated = False
+        # truncated = False
 
         terminated = self._get_done()
         info = self._get_info()
 
-        return observation, reward, terminated, truncated, info
+        return observation, reward, terminated, info
 
     def render(self, mode="human"):
         pass
