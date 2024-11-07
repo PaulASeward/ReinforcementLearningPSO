@@ -13,15 +13,24 @@ class ResultsLogger:
         self.returns = []
         self.fitness = []
 
-        self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.num_actions), dtype=np.int32)
+        if self.config.discrete_action_space:
+            # For discrete action spaces, track counts per action
+            self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.num_actions), dtype=np.int32)
+        else:
+            # For continuous action spaces, store each action vector per evaluation interval
+            self.action_counts = [[] for _ in range(self.config.num_eval_intervals)]
+
         self.eval_interval_count = 0
 
     def print_execution_time(self):
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
 
     def save_log_statements(self, step, actions, rewards, train_loss=None):
-        for action in actions:
-            self.action_counts[self.eval_interval_count, action] += 1
+        if self.config.discrete_action_space:
+            for action in actions:
+                self.action_counts[self.eval_interval_count, action] += 1
+        else:
+            self.action_counts[self.eval_interval_count].append(actions)
 
         self.store_episode_actions_to_csv(actions, rewards)
 

@@ -3,7 +3,7 @@ import os
 
 class Config(object):
     network_type = "DQN"
-    algorithm = "PSO"
+    swarm_algorithm = "PSO"
     use_mock_data = False
 
     # AGENT PARAMETERS
@@ -155,7 +155,7 @@ class Config(object):
             if network_type == "DDPG":
                 self.discrete_action_space = False
 
-            experiment = self.network_type + "_" + self.algorithm + "_F" + str(self.func_num)
+            experiment = self.network_type + "_" + self.swarm_algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
             self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
             self.loss_file = os.path.join(self.results_dir, f"average_training_loss.csv")
@@ -167,7 +167,7 @@ class Config(object):
 
 
 class PSOConfig(Config):
-    algorithm = "PSO"
+    swarm_algorithm = "PSO"
     topology = 'global'
 
     dim = 30

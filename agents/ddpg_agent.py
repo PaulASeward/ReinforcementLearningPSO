@@ -5,7 +5,7 @@ from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuf
 from agents.model_networks.ddpg_model import ActorNetworkModel, CriticNetworkModel
 from utils.logging_utils import ResultsLogger
 from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicy
-from agents.utils.noise import OrnsteinUhlenbeckActionNoise
+# from agents.utils.noise import OrnsteinUhlenbeckActionNoise
 
 class DDPGAgent(BaseAgent):
     def __init__(self, config):
@@ -17,9 +17,7 @@ class DDPGAgent(BaseAgent):
 
         self.critic_network = CriticNetworkModel(config)
         self.critic_network_target = CriticNetworkModel(config)
-
-        self.ou_noise = OrnsteinUhlenbeckActionNoise(config, size=config.num_actions)
-        self.set_policy(OrnsteinUhlenbeckActionNoisePolicy(num_actions=config.num_actions, noise=self.ou_noise, lower_bound=config.lower_bound, upper_bound=config.upper_bound))
+        self.set_policy(OrnsteinUhlenbeckActionNoisePolicy(config))
 
         self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer()
