@@ -46,9 +46,6 @@ class PSOEnv(py_environment.PyEnvironment):
         self._best_fitness = None
         self.current_best_f = None
 
-
-
-
     def action_spec(self):
         return self._action_spec
 
@@ -92,14 +89,11 @@ class PSOEnv(py_environment.PyEnvironment):
             self._episode_ended = True
 
         # Implementation of the action
-        action_index = action.item()
-        action_method = self.actions.action_methods.get(action_index, lambda: None)
-        action_method()
+        self.actions(action)
 
         # Execute common operations after action
         self.swarm.optimize()
         self._observation = self.swarm.get_observation()
-
 
         self.current_best_f = self.swarm.get_current_best_fitness()
 

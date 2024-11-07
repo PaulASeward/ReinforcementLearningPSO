@@ -27,6 +27,7 @@ class DQNAgent(BaseAgent):
                 self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
 
                 observation = self.env.reset()
+                # observation = observation[0]
                 observation = observation.observation
 
                 while not terminal:

@@ -19,6 +19,11 @@ class DiscreteActions:
                              'Increase social factor',
                              'Decrease social factor', ]
 
+    def __call__(self, action):
+        action_index = action.item()
+        action_method = self.action_methods.get(action_index, lambda: None)
+        action_method()
+
     def do_nothing(self):
         return
 
