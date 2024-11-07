@@ -39,9 +39,9 @@ class BaseAgent:
         weights = self.model.model.get_weights()
         self.target_model.model.set_weights(weights)
 
-    def update_states(self, next_state):
-        self.states = np.roll(self.states, -1, axis=0)
-        self.states[-1] = next_state
+    # def update_states(self, next_state):
+    #     self.states = np.roll(self.states, -1, axis=0)
+    #     self.states[-1] = next_state
 
     def replay_experience(self, experience_length=10):
         losses = []
@@ -67,12 +67,12 @@ class BaseAgent:
 
             # self.raw_env = ContinuousPSOEnv(self.config)  # Continuous environment
             # self.raw_env = wrappers.ActionDiscretizeWrapper(self.raw_env, self.config.num_actions)  # Discretized environment
-        else:
+        elif self.config.network_type == "DQN":
             self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)  # Continuous environment
             self.env = self.raw_env
-
-            # self.raw_env = PSOEnv(self.config)  # Raw environment
-            # self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
+        else:
+            self.raw_env = PSOEnv(self.config)  # Raw environment
+            self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
 
         return self.env
 
