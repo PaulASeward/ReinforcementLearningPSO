@@ -6,6 +6,8 @@ import numpy as np
 from datetime import datetime
 from environment.mock_env import MockEnv
 import environment.gym_env_continuous
+from environment.gym_env_discrete import DiscretePsoGymEnv
+
 from environment.continuous_env import PSOEnv as ContinuousPSOEnv
 from environment.env import PSOEnv
 from utils.plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
@@ -66,6 +68,8 @@ class BaseAgent:
             # self.raw_env = ContinuousPSOEnv(self.config)  # Continuous environment
             # self.raw_env = wrappers.ActionDiscretizeWrapper(self.raw_env, self.config.num_actions)  # Discretized environment
         else:
+            # self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)  # Continuous environment
+            # self.env = self.raw_env
             self.raw_env = PSOEnv(self.config)  # Raw environment
             self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
 
