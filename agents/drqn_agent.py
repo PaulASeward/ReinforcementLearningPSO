@@ -36,8 +36,6 @@ class DRQNAgent(BaseAgent):
                     reward = reward.numpy()[0]
                     terminal = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
 
-                    actions.append(action)
-                    rewards.append(reward)
                     prev_states = self.states
 
                     self.update_states(next_state)  # Updates the states array removing oldest when adding newest for sliding window
@@ -45,6 +43,8 @@ class DRQNAgent(BaseAgent):
                     self.replay_buffer.add([prev_states, action, reward * self.config.discount_factor, self.states, terminal])
 
                     episode_reward += reward
+                    actions.append(action)
+                    rewards.append(reward)
 
                 losses = None
                 if self.replay_buffer.size() >= self.config.batch_size:
