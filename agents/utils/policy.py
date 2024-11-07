@@ -194,10 +194,16 @@ class OrnsteinUhlenbeckActionNoisePolicy(Policy):
     def select_action(self, q_values, **kwargs):
         self.step += 1
         self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
-        # epsilon = max(self.current_epsilon, self.epsilon_end)
+        epsilon = max(self.current_epsilon, self.epsilon_end)
 
-        action = np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
-        return action
+        if np.random.rand() < epsilon:
+            return np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
+
+        else:
+            return q_values
+
+        # action = np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
+        # return action
 
     def reset(self):
         self.ou_noise.reset()
