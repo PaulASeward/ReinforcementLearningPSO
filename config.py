@@ -177,8 +177,8 @@ class PSOConfig(Config):
     w_max = 1.175  # Max of 5 increases of 10%
     c1 = 2.05 * w  # Social component Learning Factor
     c2 = 2.05 * w  # Cognitive component Learning Factor
-    c_min = 0.88  # Min of 5 decreases of 10%
-    c_max = 2.41  # Max of 5 increases of 10%
+    c_min = 1.21  # Min of 5 decreases of 10%
+    c_max = 3.30  # Max of 5 increases of 10%
     rangeF = 100
     v_min = 59.049
     v_max = 161.051
