@@ -156,11 +156,13 @@ class ContinuousActions:
         self.action_names = ['Inertia Param',
                              'Social Param',
                              'Cognitive Param']
+        self.action_offset = [self.swarm.config.w, self.swarm.config.c1, self.swarm.config.c2]
 
     def __call__(self, action):
         """
         :param action: Tuple of 3 values representing the change in inertia, social, and cognitive parameters. Each value should be in the range [-1, 1]
         """
-        self.swarm.w = self.swarm.config.w + action[0]
-        self.swarm.c1 = self.swarm.config.c1 + action[1]
-        self.swarm.c2 = self.swarm.config.c2 + action[2]
+        action_with_offset = np.array(action) + self.action_offset
+        self.swarm.w = action_with_offset[0]
+        self.swarm.c1 = action_with_offset[1]
+        self.swarm.c2 = action_with_offset[2]

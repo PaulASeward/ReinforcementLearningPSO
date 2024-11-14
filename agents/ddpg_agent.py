@@ -69,6 +69,7 @@ class DDPGAgent(BaseAgent):
 
                 self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
 
+                self.policy.reset()  # Reset the noise process
                 observation = self.env.reset()
                 observation = observation[0]
                 state = np.reshape(observation, (1, self.config.observation_length))
