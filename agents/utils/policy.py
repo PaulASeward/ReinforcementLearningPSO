@@ -23,6 +23,9 @@ class Policy:
     def get_config(self):
         return {'num_actions': self.num_actions}
 
+    def reset(self):
+        pass
+
 
 class UniformRandomPolicy(Policy):
     """
@@ -196,14 +199,13 @@ class OrnsteinUhlenbeckActionNoisePolicy(Policy):
         self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
         epsilon = max(self.current_epsilon, self.epsilon_end)
 
-        if np.random.rand() < epsilon:
-            return np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
+        # if np.random.rand() < epsilon:
+        #     return np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
+        # else:
+        #     return q_values
 
-        else:
-            return q_values
-
-        # action = np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
-        # return action
+        action = np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
+        return action
 
     def reset(self):
         self.ou_noise.reset()
