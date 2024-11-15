@@ -4,8 +4,10 @@ from tf_agents.environments import tf_py_environment, wrappers
 import os
 import numpy as np
 from datetime import datetime
-from environment.mock_env import MockEnv
+from environment.mock.mock_env import MockEnv
 import environment.gym_env_continuous
+import environment.mock.mock_gym_env_continuous
+import environment.mock.mock_gym_env_discrete
 from environment.gym_env_discrete import DiscretePsoGymEnv
 
 from environment.env import PSOEnv
@@ -35,8 +37,9 @@ class BaseAgent:
         self.policy = policy
 
     def update_model_target_weights(self):
-        weights = self.model.model.get_weights()
-        self.target_model.model.set_weights(weights)
+        if not self.config.use_mock_data:
+            weights = self.model.model.get_weights()
+            self.target_model.model.set_weights(weights)
 
     # def update_states(self, next_state):
     #     self.states = np.roll(self.states, -1, axis=0)
@@ -44,34 +47,41 @@ class BaseAgent:
 
     def replay_experience(self, experience_length=10):
         losses = []
-        for _ in range(experience_length):  # Why size 10?
-            states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
-            targets = self.target_model.predict(states)
+        if not self.config.use_mock_data:
+            for _ in range(experience_length):  # Why size 10?
+                states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
+                targets = self.target_model.predict(states)
 
-            next_q_values = self.target_model.predict(next_states).max(axis=1)
-            targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
+                next_q_values = self.target_model.predict(next_states).max(axis=1)
+                targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
 
-            loss = self.model.train(states, targets)
-            losses.append(loss)
+                loss = self.model.train(states, targets)
+                losses.append(loss)
 
         return losses
 
     def build_environment(self):
-        if self.config.use_mock_data:
-            self.raw_env = MockEnv(self.config)  # Mock environment
-            self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
-        elif not self.config.discrete_action_space:
-            self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)  # Continuous environment
-            self.env = self.raw_env
-
-            # self.raw_env = ContinuousPSOEnv(self.config)  # Continuous environment
-            # self.raw_env = wrappers.ActionDiscretizeWrapper(self.raw_env, self.config.num_actions)  # Discretized environment
+        if self.config.network_type == "DDPG" and not self.config.discrete_action_space:
+            if self.config.use_mock_data:
+                self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
+                self.env = self.raw_env
+            else:
+                self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)  # Continuous environment
+                self.env = self.raw_env
         elif self.config.network_type == "DQN":
-            self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)  # Continuous environment
-            self.env = self.raw_env
+            if self.config.use_mock_data:
+                self.raw_env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config)  # Continuous environment
+                self.env = self.raw_env
+            else:
+                self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)  # Continuous environment
+                self.env = self.raw_env
         else:
-            self.raw_env = PSOEnv(self.config)  # Raw environment
-            self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
+            if self.config.use_mock_data:
+                self.raw_env = MockEnv(self.config)  # Mock environment
+                self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
+            else:
+                self.raw_env = PSOEnv(self.config)  # Raw environment
+                self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
 
         return self.env
 

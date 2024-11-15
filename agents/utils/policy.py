@@ -185,6 +185,7 @@ class OrnsteinUhlenbeckActionNoisePolicy(Policy):
         self.ou_noise = OrnsteinUhlenbeckActionNoise(config, size=config.num_actions)
 
         self.num_actions = config.num_actions
+        # TODO: Should these bounds be dynamic depending on the dimension?
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound
 
