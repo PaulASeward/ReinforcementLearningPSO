@@ -49,10 +49,11 @@ class DQNAgent(BaseAgent):
                     episode_reward += reward
 
                 losses = None
-                if self.replay_buffer.size() >= self.config.batch_size:
-                    losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
+                if not self.config.use_mock_data:
+                    if self.replay_buffer.size() >= self.config.batch_size:
+                        losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
 
-                self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
+                    self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
                 results_logger.save_log_statements(step=ep+1, actions=actions, rewards=rewards, train_loss=losses)
                 print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")

@@ -22,17 +22,17 @@ class DDPGAgent(BaseAgent):
         self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer()
 
-
     def update_model_target_weights(self):
-        theta_a, theta_c = self.actor_network.model.get_weights(), self.critic_network.model.get_weights()
-        theta_a_targ, theta_c_targ = self.actor_network_target.model.get_weights(), self.critic_network_target.model.get_weights()
+        if not self.config.use_mock_data:
+            theta_a, theta_c = self.actor_network.model.get_weights(), self.critic_network.model.get_weights()
+            theta_a_targ, theta_c_targ = self.actor_network_target.model.get_weights(), self.critic_network_target.model.get_weights()
 
-        # mixing factor tau : we gradually shift the weights...
-        theta_a_targ = [theta_a[i] * self.config.tau + theta_a_targ[i] * (1 - self.config.tau) for i in range(len(theta_a))]
-        theta_c_targ = [theta_c[i] * self.config.tau + theta_c_targ[i] * (1 - self.config.tau) for i in range(len(theta_c))]
+            # mixing factor tau : we gradually shift the weights...
+            theta_a_targ = [theta_a[i] * self.config.tau + theta_a_targ[i] * (1 - self.config.tau) for i in range(len(theta_a))]
+            theta_c_targ = [theta_c[i] * self.config.tau + theta_c_targ[i] * (1 - self.config.tau) for i in range(len(theta_c))]
 
-        self.actor_network_target.model.set_weights(theta_a_targ)
-        self.critic_network_target.model.set_weights(theta_c_targ)
+            self.actor_network_target.model.set_weights(theta_a_targ)
+            self.critic_network_target.model.set_weights(theta_c_targ)
 
     def update_states(self, next_state):
         self.states = np.roll(self.states, -1, axis=0)
@@ -40,22 +40,23 @@ class DDPGAgent(BaseAgent):
 
     def replay_experience(self, experience_length=10):
         losses = []
-        for _ in range(experience_length):  # Why size 10?
-            states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
+        if not self.config.use_mock_data:
+            for _ in range(experience_length):  # Why size 10?
+                states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
 
-            # ---------------------------- update critic ---------------------------- #
-            next_actions = self.actor_network_target.model(next_states)
-            next_q_values = self.critic_network_target.model([next_states, next_actions])
+                # ---------------------------- update critic ---------------------------- #
+                next_actions = self.actor_network_target.model(next_states)
+                next_q_values = self.critic_network_target.model([next_states, next_actions])
 
-            # Use Bellman Equation! (recursive definition of q-values)
-            q_values_target = rewards + (1 - done) * self.config.gamma * next_q_values
+                # Use Bellman Equation! (recursive definition of q-values)
+                q_values_target = rewards + (1 - done) * self.config.gamma * next_q_values
 
-            self.critic_network.model.fit([states, actions], q_values_target, batch_size=self.config.batch_size, epochs=1, verbose=0, shuffle=False)
+                self.critic_network.model.fit([states, actions], q_values_target, batch_size=self.config.batch_size, epochs=1, verbose=0, shuffle=False)
 
-            # ---------------------------- update actor ---------------------------- #
-            action_loss = self.actor_network.train(states, self.critic_network.model)
+                # ---------------------------- update actor ---------------------------- #
+                action_loss = self.actor_network.train(states, self.critic_network.model)
 
-            losses.append(action_loss)
+                losses.append(action_loss)
 
         return losses
 
