@@ -27,27 +27,33 @@ class DQNAgent(BaseAgent):
                 self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
 
                 observation = self.env.reset()
-                observation = observation.observation
+                observation = observation[0]
+                state = np.reshape(observation, (1, self.config.observation_length))
+                # observation = observation.observation
 
                 while not terminal:
-                    q_values = self.model.get_action_q_values(observation)
+                    q_values = self.model.get_action_q_values(state)
                     action = self.policy.select_action(q_values)
                     actions.append(action)
-                    step_type, reward, discount, next_observation = self.env.step(action)
+                    next_observation, reward, terminal, info = self.env.step(action)
 
-                    reward = reward.numpy()[0]
+                    # reward = reward.numpy()[0]
                     rewards.append(reward)
-                    terminal = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
+                    # terminal = bool(1 - done)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
+                    next_state = np.reshape(next_observation, (1, self.config.observation_length))
 
-                    self.replay_buffer.add([observation, action, reward * self.config.discount_factor, next_observation, terminal])
-                    observation = next_observation
+                    self.replay_buffer.add([state, action, reward * self.config.discount_factor, next_state, terminal])
+                    # self.replay_buffer.add((np.squeeze(state), action, reward, np.squeeze(next_state), done))
+
+                    state = next_state
                     episode_reward += reward
 
                 losses = None
-                if self.replay_buffer.size() >= self.config.batch_size:
-                    losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
+                if not self.config.use_mock_data:
+                    if self.replay_buffer.size() >= self.config.batch_size:
+                        losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
 
-                self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
+                    self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
                 results_logger.save_log_statements(step=ep+1, actions=actions, rewards=rewards, train_loss=losses)
                 print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")

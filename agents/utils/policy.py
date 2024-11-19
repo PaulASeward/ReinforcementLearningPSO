@@ -1,6 +1,7 @@
 """RL Policy classes."""
 
 import numpy as np
+from agents.utils.noise import OrnsteinUhlenbeckActionNoise
 
 
 class Policy:
@@ -21,6 +22,9 @@ class Policy:
 
     def get_config(self):
         return {'num_actions': self.num_actions}
+
+    def reset(self):
+        pass
 
 
 class UniformRandomPolicy(Policy):
@@ -148,7 +152,8 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
         self.epsilon_end = epsilon_end
         self.num_actions = num_actions
 
-        self.decay_rate = 4 * float(epsilon_start - epsilon_end) / num_steps
+        self.decay_rate = float(epsilon_start - epsilon_end) / num_steps
+        # self.decay_rate = 4 * float(epsilon_start - epsilon_end) / num_steps
         self.step = 0
 
     def select_action(self, q_values, **kwargs):
@@ -174,3 +179,36 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
     def reset(self):
         """Start the decay over at the start value."""
         self.step = 0
+
+
+class OrnsteinUhlenbeckActionNoisePolicy(Policy):
+    def __init__(self, config):
+        self.ou_noise = OrnsteinUhlenbeckActionNoise(config, size=config.num_actions)
+
+        self.num_actions = config.num_actions
+        # TODO: Should these bounds be dynamic depending on the dimension?
+        self.lower_bound = config.lower_bound
+        self.upper_bound = config.upper_bound
+
+        self.current_epsilon = config.epsilon_start
+        self.epsilon_start = config.epsilon_start
+        self.epsilon_end = config.epsilon_end
+        self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        self.step = 0
+
+    def select_action(self, q_values, **kwargs):
+        self.step += 1
+        self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
+        epsilon = max(self.current_epsilon, self.epsilon_end)
+
+        if np.random.rand() < epsilon:
+            return np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
+        else:
+            return q_values
+
+        # action = np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
+        # return action
+
+    def reset(self):
+        self.ou_noise.reset()
+

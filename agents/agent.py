@@ -1,11 +1,17 @@
+import gym
 import tensorflow as tf
-from tf_agents.environments import tf_py_environment
+from tf_agents.environments import tf_py_environment, wrappers
 import os
 import numpy as np
 from datetime import datetime
-from environment.mock_env import MockEnv
+from environment.mock.mock_env import MockEnv
+import environment.gym_env_continuous
+import environment.mock.mock_gym_env_continuous
+import environment.mock.mock_gym_env_discrete
+from environment.gym_env_discrete import DiscretePsoGymEnv
+
 from environment.env import PSOEnv
-from utils.plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals
+from utils.plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals, plot_continuous_actions_over_iteration_intervals
 from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy
 
 
@@ -31,33 +37,51 @@ class BaseAgent:
         self.policy = policy
 
     def update_model_target_weights(self):
-        weights = self.model.model.get_weights()
-        self.target_model.model.set_weights(weights)
+        if not self.config.use_mock_data:
+            weights = self.model.model.get_weights()
+            self.target_model.model.set_weights(weights)
 
-    def update_states(self, next_state):
-        self.states = np.roll(self.states, -1, axis=0)
-        self.states[-1] = next_state
+    # def update_states(self, next_state):
+    #     self.states = np.roll(self.states, -1, axis=0)
+    #     self.states[-1] = next_state
 
     def replay_experience(self, experience_length=10):
         losses = []
-        for _ in range(experience_length):  # Why size 10?
-            states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
-            targets = self.target_model.predict(states)
+        if not self.config.use_mock_data:
+            for _ in range(experience_length):  # Why size 10?
+                states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
+                targets = self.target_model.predict(states)
 
-            next_q_values = self.target_model.predict(next_states).max(axis=1)
-            targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
+                next_q_values = self.target_model.predict(next_states).max(axis=1)
+                targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
 
-            loss = self.model.train(states, targets)
-            losses.append(loss)
+                loss = self.model.train(states, targets)
+                losses.append(loss)
 
         return losses
 
     def build_environment(self):
-        if self.config.use_mock_data:
-            self.raw_env = MockEnv(self.config)
+        if self.config.network_type == "DDPG" and not self.config.discrete_action_space:
+            if self.config.use_mock_data:
+                self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
+                self.env = self.raw_env
+            else:
+                self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)  # Continuous environment
+                self.env = self.raw_env
+        elif self.config.network_type == "DQN":
+            if self.config.use_mock_data:
+                self.raw_env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config)  # Continuous environment
+                self.env = self.raw_env
+            else:
+                self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)  # Continuous environment
+                self.env = self.raw_env
         else:
-            self.raw_env = PSOEnv(self.config)  # Raw environment
-        self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
+            if self.config.use_mock_data:
+                self.raw_env = MockEnv(self.config)  # Mock environment
+                self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
+            else:
+                self.raw_env = PSOEnv(self.config)  # Raw environment
+                self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
 
         return self.env
 
@@ -73,5 +97,8 @@ class BaseAgent:
         plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration', self.config.eval_interval)
         plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
         plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
-        plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, self.config.fitness_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.raw_env.actions_descriptions)
-        plot_actions_with_values_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, standard_pso_values=self.config.standard_pso_path, function_min_value=self.config.fDeltas[self.config.func_num - 1], num_actions=self.config.num_actions, action_names=self.raw_env.actions_descriptions)
+        if self.config.discrete_action_space:
+            plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, self.config.fitness_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.raw_env.actions_descriptions)
+            plot_actions_with_values_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, standard_pso_values_path=self.config.standard_pso_path, function_min_value=self.config.fDeltas[self.config.func_num - 1], num_actions=self.config.num_actions, action_names=self.raw_env.actions_descriptions)
+        else:
+            plot_continuous_actions_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, standard_pso_values_path=self.config.standard_pso_path, function_min_value=self.config.fDeltas[self.config.func_num - 1], num_actions=self.config.num_actions, action_names=self.raw_env.actions_descriptions, action_offset=self.raw_env.actions_offset, num_intervals=18)
