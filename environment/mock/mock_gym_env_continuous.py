@@ -3,7 +3,7 @@ from typing import Dict, Optional, Tuple
 import gym
 import numpy as np
 from pso.cec_benchmark_functions import CEC_functions
-from environment.actions.actions import ContinuousActions
+from environment.actions.continuous_actions import ContinuousActions
 from pso.pso_swarm import PSOSwarm
 
 

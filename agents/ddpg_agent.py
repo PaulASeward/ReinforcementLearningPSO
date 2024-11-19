@@ -10,6 +10,8 @@ from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicy
 class DDPGAgent(BaseAgent):
     def __init__(self, config):
         super(DDPGAgent, self).__init__(config)
+        # TODO: Adjust states from 50 particles with 3 dimensions = 150 flattened array to 50 particles with 3 dimensions each.
+
         self.states = np.zeros([self.config.trace_length, self.config.observation_length])
 
         self.actor_network = ActorNetworkModel(config)

@@ -66,7 +66,8 @@ class BaseAgent:
                 self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
                 self.env = self.raw_env
             else:
-                self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)  # Continuous environment
+                self.raw_env = gym.make("ContinuousMultiSwarmPsoGymEnv-v0", config=self.config)
+                # self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)  # Continuous environment
                 self.env = self.raw_env
         elif self.config.network_type == "DQN":
             if self.config.use_mock_data:
