@@ -3,7 +3,7 @@ import os
 
 class Config(object):
     network_type = "DQN"
-    algorithm = "PSO"
+    swarm_algorithm = "PSO"
     use_mock_data = False
 
     # AGENT PARAMETERS
@@ -55,6 +55,19 @@ class Config(object):
     # train_freq = 8
     # update_freq = 10000
     # train_start = 20000
+
+    # DDPG TRAINING PARAMETERS
+    # ou_mean = 1
+    ou_mean = 0.0
+    ou_theta = 0.15
+    # ou_sigma = 0.2
+    ou_sigma = 0.5
+    ou_dt = 1e-2
+    tau = 0.005
+    upper_bound = 1.0
+    lower_bound = -1.0
+
+    discrete_action_space = True
 
     dir_save = "saved_session/"
     restore = False
@@ -138,7 +151,11 @@ class Config(object):
 
         if network_type is not None:
             self.network_type = network_type
-            experiment = self.network_type + "_" + self.algorithm + "_F" + str(self.func_num)
+
+            if network_type == "DDPG":
+                self.discrete_action_space = False
+
+            experiment = self.network_type + "_" + self.swarm_algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
             self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
             self.loss_file = os.path.join(self.results_dir, f"average_training_loss.csv")
@@ -150,16 +167,18 @@ class Config(object):
 
 
 class PSOConfig(Config):
-    algorithm = "PSO"
+    swarm_algorithm = "PSO"
     topology = 'global'
 
     dim = 30
 
     w = 0.729844  # Inertia weight
+    w_min = 0.43  # Min of 5 decreases of 10%
+    w_max = 1.175  # Max of 5 increases of 10%
     c1 = 2.05 * w  # Social component Learning Factor
     c2 = 2.05 * w  # Cognitive component Learning Factor
-    c_min = 0.88  # Min of 5 decreases of 10%
-    c_max = 2.41  # Max of 5 increases of 10%
+    c_min = 1.21  # Min of 5 decreases of 10%
+    c_max = 3.30  # Max of 5 increases of 10%
     rangeF = 100
     v_min = 59.049
     v_max = 161.051
