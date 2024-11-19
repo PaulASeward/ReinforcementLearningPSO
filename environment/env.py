@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import numpy as np
 from pso.pso_swarm import PSOSwarm
-from environment.actions.actions import DiscreteActions
+from environment.actions.discrete_actions import DiscreteActions
 from tf_agents.environments import py_environment
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts

@@ -1,9 +1,7 @@
 import os
-
+import copy
 
 class Config(object):
-    network_type = "DQN"
-    swarm_algorithm = "PSO"
     use_mock_data = False
 
     # AGENT PARAMETERS
@@ -116,8 +114,15 @@ class Config(object):
         self.iterations = None
         self.swarm_size = None
         self.num_actions = None
+        self.swarm_algorithm = None
+        self.num_sub_swarms = None
+        self.network_type = None
+        self.dim = None
 
-    def update_properties(self, network_type=None, func_num=None, num_actions=None, swarm_size=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
+    def clone(self):
+        return copy.deepcopy(self)
+
+    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
 
@@ -127,6 +132,9 @@ class Config(object):
         if swarm_size is not None:
             self.swarm_size = swarm_size
             self.observation_length = self.swarm_size * 3
+
+        if dimensions is not None:
+            self.dim = dimensions
 
         if num_episodes is not None:
             self.num_episodes = num_episodes
@@ -149,6 +157,12 @@ class Config(object):
             self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
             self.label_iterations_intervals = range(0, train_steps + self.eval_interval, self.train_steps // 20)
 
+        if swarm_algorithm is not None:
+            self.swarm_algorithm = swarm_algorithm
+            if swarm_algorithm == "PMSO":
+                self.num_sub_swarms = 5
+                self.num_actions *= self.num_sub_swarms
+
         if network_type is not None:
             self.network_type = network_type
 
@@ -167,10 +181,8 @@ class Config(object):
 
 
 class PSOConfig(Config):
-    swarm_algorithm = "PSO"
     topology = 'global'
-
-    dim = 30
+    is_sub_swarm = False
 
     w = 0.729844  # Inertia weight
     w_min = 0.43  # Min of 5 decreases of 10%

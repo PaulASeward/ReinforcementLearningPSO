@@ -3,11 +3,11 @@ from typing import Dict, Optional, Tuple
 import gym
 import numpy as np
 from pso.cec_benchmark_functions import CEC_functions
-from environment.actions.discrete_actions import DiscreteActions
-from pso.pso_swarm import PSOSwarm
+from environment.actions.continuous_actions import ContinuousMultiswarmActions
+from pso.pso_multiswarm import PSOMultiSwarm
 
 
-class MockDiscretePsoGymEnv(gym.Env):
+class ContinuousMultiSwarmPsoGymEnv(gym.Env):
     """Continuous environment."""
 
     # reward_range = (-float("inf"), float("inf"))
@@ -28,11 +28,18 @@ class MockDiscretePsoGymEnv(gym.Env):
         low_limits_obs_space = np.zeros(self._observation_length)  # 150-dimensional array with all elements set to 0
         high_limits_obs_space = np.full(self._observation_length, np.inf)
 
-        self.action_space = gym.spaces.Discrete(self._num_actions)
-        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
+        low_limit_subswarm_action_space = [-(config.w - config.w_min), -(config.c1 - config.c_min), -(config.c2 - config.c_min)]
+        high_limit_subswarm_action_space = [config.w_max - config.w, config.c_max - config.c1, config.c_max - config.c2]
+        low_limit_action_space = np.array([low_limit_subswarm_action_space for _ in range(config.num_sub_swarms)]).flatten()
+        high_limit_action_space = np.array([high_limit_subswarm_action_space for _ in range(config.num_sub_swarms)]).flatten()
 
-        self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
-        self.actions = DiscreteActions(swarm=self.swarm, config=config)
+        self.action_space = gym.spaces.Box(low=low_limit_action_space, high=high_limit_action_space,
+                                           shape=(self._num_actions,), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
+                                                shape=(self._observation_length,), dtype=np.float32)
+
+        self.swarm = PSOMultiSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
+        self.actions = ContinuousMultiswarmActions(swarm=self.swarm, config=config)
         self.actions_descriptions = self.actions.action_names[:self._num_actions]
 
         self._actions_count = 0
@@ -44,21 +51,18 @@ class MockDiscretePsoGymEnv(gym.Env):
 
 
     def _get_obs(self):
-        return np.random.rand(self._observation_length)
+        return self.swarm.get_observation()
 
     def _get_reward(self):
-        reward = np.random.rand() - 0.5  # Random reward between -0.5 and 0.5
-        self._best_fitness = np.random.rand() * 100 + 400
+        self.current_best_f = self.swarm.get_current_best_fitness()
 
-        # self.current_best_f = self.swarm.get_current_best_fitness()
-        #
-        # if self._best_fitness is None:
-        #     reward = self._minimum - self.current_best_f
-        #     self._best_fitness = self.current_best_f
-        # else:
-        #     reward = max(self._best_fitness - self.current_best_f, 0)  # no penalty in reward
-        #     # reward = self._minimum - self.current_best_f
-        #     self._best_fitness = min(self._best_fitness, self.current_best_f)
+        if self._best_fitness is None:
+            reward = self._minimum - self.current_best_f
+            self._best_fitness = self.current_best_f
+        else:
+            reward = max(self._best_fitness - self.current_best_f, 0)  # no penalty in reward
+            # reward = self._minimum - self.current_best_f
+            self._best_fitness = min(self._best_fitness, self.current_best_f)
 
         return reward
 
@@ -79,7 +83,7 @@ class MockDiscretePsoGymEnv(gym.Env):
         self._best_fitness = None
 
         # Restart the swarm with initializing criteria
-        # self.swarm.reinitialize()
+        self.swarm.reinitialize()
 
         observation = self._get_obs()
         info = self._get_info()
@@ -95,10 +99,10 @@ class MockDiscretePsoGymEnv(gym.Env):
         if self._actions_count == self._max_episodes:
             self._episode_ended = True
 
-        # # Implementation of the action
-        # self.actions(action)
-        # self.swarm.optimize()
-        #
+        # Implementation of the action
+        self.actions(action)
+        self.swarm.optimize()
+
         observation = self._get_obs()
         reward = self._get_reward()
         # truncated = False
