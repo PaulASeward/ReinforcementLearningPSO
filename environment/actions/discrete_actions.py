@@ -32,8 +32,8 @@ class DiscreteActions:
         self.swarm.reinitialize()
 
     def reset_all_particles_keep_global_best(self):
-        old_gbest_pos = self.swarm.P[np.argmin(self.swarm.pbest_val)]
-        old_gbest_val = np.min(self.swarm.pbest_val)
+        old_gbest_pos = self.swarm.P[np.argmin(self.swarm.P_vals)]
+        old_gbest_val = np.min(self.swarm.P_vals)
 
         self.swarm.reinitialize()
 

@@ -1,6 +1,6 @@
 from typing import Dict, Optional, Tuple
 
-import gym
+import gymnasium as gym
 import numpy as np
 from pso.cec_benchmark_functions import CEC_functions
 from environment.actions.continuous_actions import ContinuousMultiswarmActions
