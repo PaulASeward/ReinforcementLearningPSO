@@ -1,18 +1,5 @@
 import numpy as np
 
-class Particle:
-    def __init__(self, x, v, p, P_val, current_valuation, velocity_magnitude, relative_fitness, average_batch_count):
-        self.x = x
-        self.v = v
-        self.p = p
-        self.P_val = P_val
-        self.velocity_magnitude = velocity_magnitude
-        self.current_valuation = current_valuation
-        self.relative_fitness = relative_fitness
-        self.average_batch_count = average_batch_count
-
-
-
 
 class PSOSwarm:
 
@@ -51,7 +38,7 @@ class PSOSwarm:
 
         self.P_vals = None
         self.current_valuations = None
-        self.gbest_val = None
+        self.gbest_val = float('inf')
         self.gbest_pos = None
 
         # Initialize the swarm's positions velocities and best solutions
@@ -84,7 +71,7 @@ class PSOSwarm:
         self.relative_fitnesses = None
 
         self.current_valuations = None
-        self.gbest_val = None
+        self.gbest_val = float('inf')
         self.gbest_pos = None
 
         # Static class variables to track P_vals replacements
@@ -95,8 +82,7 @@ class PSOSwarm:
     def update_swarm_valuations_and_bests(self):
         self.P_vals = self.eval(self.P)  # Vector of particle's current valuation of its best position based on Function Eval
         self.current_valuations = self.eval(self.P)  # Vector of particle's current value of its position based on Function Eval
-        self.gbest_pos = self.P[np.argmin(self.P_vals)]  # Vector of globally best visited position.
-        self.gbest_val = np.min(self.P_vals)  # Single valuation of the global best position
+        self.update_gbest()
 
         self.update_relative_fitnesses()
         self.update_velocity_maginitude()
@@ -136,7 +122,7 @@ class PSOSwarm:
         self.V = self.w * self.V + social + cognitive
         self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
 
-    def update_position(self):
+    def update_positions(self):
         # Clamp position inside boundary and reflect them in case they are out of the boundary based on:
         # S. Helwig, J. Branke, and S. Mostaghim, "Experimental Analysis of Bound Handling Techniques in Particle Swarm Optimization," IEEE TEC: 17(2), 2013, pp. 259-271
 
@@ -150,7 +136,7 @@ class PSOSwarm:
         # Use function evaluation for each particle (vector) in Swarm to provide value for each position in X.
         self.current_valuations = self.eval(self.X)
 
-    def update_pbest(self):
+    def update_pbests(self):
         improved_particles = self.current_valuations < self.P_vals  # Update each Particle's best position for each particle index
         self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
         self.P_vals = np.where(improved_particles, self.current_valuations, self.P_vals)
@@ -158,39 +144,25 @@ class PSOSwarm:
         self.pbest_replacement_counts += improved_particles  # Update P_vals replacement counter
 
     def update_gbest(self):
-        self.gbest_pos = self.P[np.argmin(self.P_vals)]
-        self.gbest_val = np.min(self.P_vals)
+        self.gbest_pos = self.P[np.argmin(self.P_vals)]  # Vector of globally best visited position.
+        self.gbest_val = np.min(self.P_vals)  # Single valuation of the global best position
+
+    def store_and_reset_batch_counts(self, obs_interval_idx):
+        self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
+        self.pbest_replacement_counts = np.zeros(self.swarm_size)
 
     def optimize(self):
         for obs_interval_idx in range(self.num_swarm_obs_intervals):
-            for i in range(self.swarm_obs_interval_length):
-                self.update_velocities(self.gbest_pos)  # Input global leader particle position
-                self.update_position()
-                self.update_pbest()
-                self.update_gbest()
+            for _ in range(self.swarm_obs_interval_length):
+                self.optimize_single_iteration(self.gbest_pos)
+            self.store_and_reset_batch_counts(obs_interval_idx)
 
-            self.pbest_replacement_batchcounts[obs_interval_idx] = self.pbest_replacement_counts
-            self.pbest_replacement_counts = np.zeros(self.swarm_size)
+    def optimize_single_iteration(self, global_leader):
+        self.update_velocities(global_leader)  # Input global leader particle position
+        self.update_positions()
+        self.update_pbests()
+        self.update_gbest()
 
-    def get_particle(self, particle_index: int):
-        return Particle(self.X[particle_index],
-                        self.V[particle_index],
-                        self.P[particle_index],
-                        self.P_vals[particle_index],
-                        self.current_valuations[particle_index],
-                        self.velocity_magnitudes[particle_index],
-                        self.relative_fitnesses[particle_index],
-                        self.average_batch_counts[particle_index])
-
-    def add_particle(self, particle: Particle, particle_index: int):
-        self.X[particle_index] = particle.x
-        self.V[particle_index] = particle.v
-        self.P[particle_index] = particle.p
-        self.P_vals[particle_index] = particle.P_val
-        self.current_valuations[particle_index] = particle.current_valuation
-        self.velocity_magnitudes[particle_index] = particle.velocity_magnitude
-        self.relative_fitnesses[particle_index] = particle.relative_fitness
-        self.average_batch_counts[particle_index] = particle.average_batch_count
 
 
 
