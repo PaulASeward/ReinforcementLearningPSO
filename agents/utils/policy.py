@@ -152,8 +152,8 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
         self.epsilon_end = epsilon_end
         self.num_actions = num_actions
 
-        self.decay_rate = float(epsilon_start - epsilon_end) / num_steps
-        # self.decay_rate = 4 * float(epsilon_start - epsilon_end) / num_steps
+        # self.decay_rate =  float(epsilon_start - epsilon_end) / num_steps
+        self.decay_rate = 4 * float(epsilon_start - epsilon_end) / num_steps
         self.step = 0
 
     def select_action(self, q_values, **kwargs):

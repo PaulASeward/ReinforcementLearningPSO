@@ -11,7 +11,7 @@ import environment.mock.mock_gym_env_discrete
 from environment.gym_env_discrete import DiscretePsoGymEnv
 
 from environment.env import PSOEnv
-from utils.plot_utils import plot_data_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals, plot_continuous_actions_over_iteration_intervals
+from utils.plot_utils import plot_data_over_iterations, plot_two_datasets_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals, plot_continuous_actions_over_iteration_intervals
 from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy
 
 
@@ -65,8 +65,12 @@ class BaseAgent:
             if self.config.use_mock_data:
                 self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
                 self.env = self.raw_env
-            else:
+
+            if self.config.swarm_algorithm == "PMSO":
                 self.raw_env = gym.make("ContinuousMultiSwarmPsoGymEnv-v0", config=self.config)
+                self.env = self.raw_env
+            else:
+                self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
                 # self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)  # Continuous environment
                 self.env = self.raw_env
         elif self.config.network_type == "DQN":
@@ -98,8 +102,13 @@ class BaseAgent:
         plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration', self.config.eval_interval)
         plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
         plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
+        plot_two_datasets_over_iterations(self.config.average_returns_path, 'Average Return', self.config.epsilon_values_path, 'Epsilon Of Policy', 'Iteration', self.config.eval_interval)
+        plot_two_datasets_over_iterations(self.config.fitness_path, 'Average Fitness', self.config.epsilon_values_path, 'Epsilon Of Policy', 'Iteration', self.config.eval_interval)
         if self.config.discrete_action_space:
             plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, self.config.fitness_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.raw_env.actions_descriptions)
             plot_actions_with_values_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, standard_pso_values_path=self.config.standard_pso_path, function_min_value=self.config.fDeltas[self.config.func_num - 1], num_actions=self.config.num_actions, action_names=self.raw_env.actions_descriptions)
         else:
-            plot_continuous_actions_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, standard_pso_values_path=self.config.standard_pso_path, function_min_value=self.config.fDeltas[self.config.func_num - 1], num_actions=self.config.num_actions, action_names=self.raw_env.actions_descriptions, action_offset=self.raw_env.actions_offset, num_intervals=18)
+            if self.config.swarm_algorithm == "PMSO":
+                x=1
+            else:
+                plot_continuous_actions_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, standard_pso_values_path=self.config.standard_pso_path, function_min_value=self.config.fDeltas[self.config.func_num - 1], num_actions=self.config.num_actions, action_names=self.raw_env.actions_descriptions, action_offset=self.raw_env.actions_offset, num_intervals=15)

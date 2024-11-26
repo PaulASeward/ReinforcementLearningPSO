@@ -54,7 +54,7 @@ class DRQNAgent(BaseAgent):
 
                 self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
-                results_logger.save_log_statements(step=ep+1, actions=actions, rewards=rewards, train_loss=losses)
+                results_logger.save_log_statements(step=ep+1, actions=actions, rewards=rewards, train_loss=losses, epsilon=self.policy.current_epsilon)
                 print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")
                 # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
