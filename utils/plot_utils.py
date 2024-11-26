@@ -4,6 +4,52 @@ from matplotlib.patches import Patch
 import os
 
 
+def plot_standard_results(config):
+    plot_data_over_iterations(config.average_returns_path, 'Average Return', 'Iteration', config.eval_interval)
+    plot_data_over_iterations(config.fitness_path, 'Average Fitness', 'Iteration', config.eval_interval)
+    plot_data_over_iterations(config.loss_file, 'Average Loss', 'Iteration', config.log_interval)
+    plot_two_datasets_over_iterations(config.average_returns_path, 'Average Return', config.epsilon_values_path, 'Epsilon Of Policy', 'Iteration', config.eval_interval)
+    plot_two_datasets_over_iterations(config.fitness_path, 'Average Fitness', config.epsilon_values_path, 'Epsilon Of Policy', 'Iteration', config.eval_interval)
+
+
+def plot_discrete_actions(config):
+    plot_actions_over_iteration_intervals(config.interval_actions_counts_path, config.fitness_path,
+                                          'Iteration Intervals', 'Action Count',
+                                          'Action Distribution Over Iteration Intervals',
+                                          config.iteration_intervals,
+                                          config.label_iterations_intervals,
+                                          config.actions_descriptions)
+    plot_actions_with_values_over_iteration_intervals(config.action_counts_path,
+                                                      config.action_values_path,
+                                                      standard_pso_values_path=config.standard_pso_path,
+                                                      function_min_value=config.fDeltas[
+                                                          config.func_num - 1],
+                                                      num_actions=config.num_actions,
+                                                      action_names=config.actions_descriptions)
+
+
+def plot_continuous_actions(config):
+    if config.swarm_algorithm == "PMSO":
+        plot_average_continuous_actions_for_multiple_swarms(config.action_counts_path,
+                                                            config.action_values_path,
+                                                            standard_pso_values_path=config.standard_pso_path,
+                                                            function_min_value=config.fDeltas[
+                                                                config.func_num - 1],
+                                                            num_actions=config.num_actions,
+                                                            action_names=config.actions_descriptions,
+                                                            action_offset=config.continuous_action_offset,
+                                                            num_intervals=9)
+    else:
+        plot_average_continuous_actions_for_single_swarm(config.action_counts_path,
+                                                         config.action_values_path,
+                                                         standard_pso_values_path=config.standard_pso_path,
+                                                         function_min_value=config.fDeltas[
+                                                             config.func_num - 1],
+                                                         num_actions=config.num_actions,
+                                                         action_names=config.actions_descriptions,
+                                                         action_offset=config.continuous_action_offset,
+                                                         num_intervals=15)
+
 def plot_data_over_iterations(file_name, y_label, x_label, iteration_interval_scale):
     y_data = np.genfromtxt(file_name, delimiter=',')
     output_file_name = os.path.splitext(file_name)[0] + '_plot.png'
@@ -14,6 +60,7 @@ def plot_data_over_iterations(file_name, y_label, x_label, iteration_interval_sc
     plt.savefig(output_file_name, dpi='figure', format="png", metadata=None,
                 bbox_inches=None, pad_inches=0.1, facecolor='auto', edgecolor='auto')
     plt.close()
+
 
 def plot_two_datasets_over_iterations(file_name, y_label, file_name2, y_label2, x_label, iteration_interval_scale):
     y_data = np.genfromtxt(file_name, delimiter=',')
@@ -43,6 +90,7 @@ def plot_two_datasets_over_iterations(file_name, y_label, file_name2, y_label2, 
     fig.tight_layout()
     plt.savefig(output_file_name, dpi='figure', format="png", bbox_inches='tight')
     plt.close()
+
 
 def plot_actions_over_iteration_intervals(file_name, relative_fitness, x_label, y_label, title, iteration_intervals, label_iteration_intervals, action_names):
     action_counts = np.genfromtxt(file_name, delimiter=',')

@@ -1,16 +1,18 @@
 from agents.agent import BaseAgent
 import numpy as np
 import tensorflow as tf
+import gym
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
 from agents.model_networks.ddpg_model import ActorNetworkModel, CriticNetworkModel
 from utils.logging_utils import ContinuousActionsResultsLogger as ResultsLogger
 from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicy
-# from agents.utils.noise import OrnsteinUhlenbeckActionNoise
+
 
 class DDPGAgent(BaseAgent):
     def __init__(self, config):
         super(DDPGAgent, self).__init__(config)
         # TODO: Adjust states from 50 particles with 3 dimensions = 150 flattened array to 50 particles with 3 dimensions each.
+        self.results_logger = ResultsLogger(config)
 
         self.states = np.zeros([self.config.trace_length, self.config.observation_length])
 
@@ -19,10 +21,22 @@ class DDPGAgent(BaseAgent):
 
         self.critic_network = CriticNetworkModel(config)
         self.critic_network_target = CriticNetworkModel(config)
-        self.set_policy(OrnsteinUhlenbeckActionNoisePolicy(config))
+        self.policy = OrnsteinUhlenbeckActionNoisePolicy(config)
 
         self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer()
+
+    def build_environment(self):
+        if self.config.use_mock_data:
+            self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
+
+        if self.config.swarm_algorithm == "PMSO":
+            self.raw_env = gym.make("ContinuousMultiSwarmPsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
+        else:
+            self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
 
     def update_model_target_weights(self):
         if not self.config.use_mock_data:
@@ -64,8 +78,6 @@ class DDPGAgent(BaseAgent):
 
     def train(self):
         with self.writer.as_default():
-            results_logger = ResultsLogger(self.config)
-
             for ep in range(self.config.train_steps):
                 terminal, episode_reward = False, 0.0
                 actions, rewards = [], []
@@ -96,8 +108,8 @@ class DDPGAgent(BaseAgent):
 
                 self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
-                results_logger.save_log_statements(step=ep+1, actions=actions, rewards=rewards, train_loss=losses, epsilon=self.policy.current_epsilon)
+                self.results_logger.save_log_statements(step=ep+1, actions=actions, rewards=rewards, train_loss=losses, epsilon=self.policy.current_epsilon)
                 print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")
                 # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
-            results_logger.print_execution_time()
+            self.results_logger.print_execution_time()

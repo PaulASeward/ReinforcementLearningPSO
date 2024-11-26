@@ -2,6 +2,7 @@ import time
 import numpy as np
 import csv
 import tensorflow as tf
+from utils.plot_utils import plot_standard_results, plot_continuous_actions, plot_discrete_actions
 
 
 class ResultsLogger:
@@ -13,6 +14,9 @@ class ResultsLogger:
         self.returns = []
         self.fitness = []
         self.eval_interval_count = 0
+
+    def plot_results(self):
+        raise NotImplementedError
 
     def save_actions(self, actions):
         raise NotImplementedError
@@ -67,7 +71,6 @@ class ResultsLogger:
 
         return avg_return, avg_fitness
 
-
     def write_episode_actions_to_csv(self, actions_row):
         with open(self.config.action_counts_path, mode='a', newline='') as csv_file:
             csv.writer(csv_file).writerow(actions_row)
@@ -95,6 +98,10 @@ class DiscreteActionsResultsLogger(ResultsLogger):
             writer = csv.writer(file)
             writer.writerow(self.action_counts[self.eval_interval_count, :])
 
+    def plot_results(self):
+        plot_standard_results(self.config)
+        plot_discrete_actions(self.config)
+
 
 class ContinuousActionsResultsLogger(ResultsLogger):
     def __init__(self, config):
@@ -108,6 +115,10 @@ class ContinuousActionsResultsLogger(ResultsLogger):
         with open(self.config.interval_actions_counts_path, 'a') as file:
             writer = csv.writer(file)
             writer.writerow(self.action_counts[self.eval_interval_count])
+
+    def plot_results(self):
+        plot_standard_results(self.config)
+        plot_continuous_actions(self.config)
 
 
 def save_scalar(step, name, value, writer):
