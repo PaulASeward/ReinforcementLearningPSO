@@ -19,7 +19,7 @@ class Main:
     def train(self):
         self.agent.get_actions()
         self.agent.train()
-        self.agent.results_logger.plot_results()
+        self.plot()
 
     def plot(self):
         self.agent.results_logger.plot_results()
