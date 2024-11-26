@@ -12,76 +12,102 @@ class ResultsLogger:
         self.loss = []
         self.returns = []
         self.fitness = []
-
-        if self.config.discrete_action_space:
-            # For discrete action spaces, track counts per action
-            self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.num_actions), dtype=np.int32)
-        else:
-            # For continuous action spaces, store each action vector per evaluation interval
-            self.action_counts = [[] for _ in range(self.config.num_eval_intervals)]
-
         self.eval_interval_count = 0
+
+    def save_actions(self, actions):
+        raise NotImplementedError
+
+    def write_actions_at_eval_interval_to_csv(self):
+        raise NotImplementedError
+
+    def save_log_statements(self, step, actions, rewards, train_loss=None, epsilon=None):
+        self.save_actions(actions)
+        self.write_episode_actions_to_csv(actions)
+        self.write_episode_rewards_to_csv(rewards)
+        self.write_epsilon_to_csv(epsilon)
+
+        if step % self.config.log_interval == 0:
+            train_loss = self.store_results_at_log_interval(train_loss)
+            print('step = {0}: loss = {1}'.format(step, train_loss))
+
+        if step % self.config.eval_interval == 0:
+            avg_return, avg_fitness = self.store_results_at_eval_interval()
+            print('step = {0}: Average Return = {1} Average Fitness = {2}'.format(step, avg_return, avg_fitness))
 
     def print_execution_time(self):
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
 
-    def save_log_statements(self, step, actions, rewards, train_loss=None, epsilon=None):
-        if self.config.discrete_action_space:
-            for action in actions:
-                self.action_counts[self.eval_interval_count, action] += 1
+    def store_results_at_log_interval(self, train_loss=None):
+        if train_loss is None:
+            train_loss = 0.0
         else:
-            self.action_counts[self.eval_interval_count].append(actions)
+            train_loss = np.mean(train_loss)
+        self.loss.append(train_loss)
+        np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
+        return train_loss
 
-        self.store_episode_actions_to_csv(actions, rewards)
-        self.store_epsilon_to_csv(epsilon)
+    def store_results_at_eval_interval(self):
+        # Read the last eval_interval number of rows to calculate the total return per row. This can be used to then calculate the relative fitness and then compute averages.
+        rewards = np.genfromtxt(self.config.action_values_path, delimiter=',')
+        recent_rewards = rewards[-self.config.eval_interval:, :]
+        reward_sums = np.sum(recent_rewards, axis=1)
+        fitness = self.config.fDeltas[self.config.func_num - 1] - reward_sums
 
-        if step % self.config.log_interval == 0:
-            if train_loss is None:
-                train_loss = 0.0
-            else:
-                train_loss = np.mean(train_loss)
-            print('step = {0}: loss = {1}'.format(step, train_loss))
-            self.loss.append(train_loss)
-            np.savetxt(self.config.loss_file, self.loss, delimiter=", ", fmt='% s')
+        avg_return = np.mean(reward_sums)  # Total return of all episodes for an iteration
+        avg_fitness = np.mean(fitness)  # Furthest minimum value explored for an iteration
 
-        if step % self.config.eval_interval == 0:
+        self.returns.append(avg_return)
+        self.fitness.append(avg_fitness)
 
-            # Read the last eval_interval number of rows to calculate the total return per row. This can be used to then calculate the relative fitness and then compute averages.
-            rewards = np.genfromtxt(self.config.action_values_path, delimiter=',')
-            recent_rewards = rewards[-self.config.eval_interval:, :]
-            reward_sums = np.sum(recent_rewards, axis=1)
-            fitness = self.config.fDeltas[self.config.func_num - 1] - reward_sums
+        self.write_actions_at_eval_interval_to_csv()
+        self.eval_interval_count += 1
 
-            avg_return = np.mean(reward_sums)  # Total return of all episodes for an iteration
-            avg_fitness = np.mean(fitness)  # Furthest minimum value explored for an iteration
+        np.savetxt(self.config.average_returns_path, self.returns, delimiter=", ", fmt='% s')
+        np.savetxt(self.config.fitness_path, self.fitness, delimiter=", ", fmt='% s')
 
-            print('step = {0}: Average Return = {1} Average Fitness = {2}'.format(step, avg_return, avg_fitness))
-            self.returns.append(avg_return)
-            self.fitness.append(avg_fitness)
+        return avg_return, avg_fitness
 
-            with open(self.config.interval_actions_counts_path, 'a') as file:
-                writer = csv.writer(file)
-                if self.config.discrete_action_space:
-                    writer.writerow(self.action_counts[self.eval_interval_count, :])
-                else:
-                    writer.writerow(self.action_counts[self.eval_interval_count])
 
-            self.eval_interval_count += 1
-
-            np.savetxt(self.config.average_returns_path, self.returns, delimiter=", ", fmt='% s')
-            np.savetxt(self.config.fitness_path, self.fitness, delimiter=", ", fmt='% s')
-
-    def store_episode_actions_to_csv(self, actions_row, values_row):
+    def write_episode_actions_to_csv(self, actions_row):
         with open(self.config.action_counts_path, mode='a', newline='') as csv_file:
             csv.writer(csv_file).writerow(actions_row)
 
+    def write_episode_rewards_to_csv(self, rewards_row):
         with open(self.config.action_values_path, mode='a', newline='') as csv_file:
-            csv.writer(csv_file).writerow(values_row)
+            csv.writer(csv_file).writerow(rewards_row)
 
-    def store_epsilon_to_csv(self, epsilon):
+    def write_epsilon_to_csv(self, epsilon):
         with open(self.config.epsilon_values_path, mode='a', newline='') as csv_file:
             csv.writer(csv_file).writerow([epsilon])
 
+
+class DiscreteActionsResultsLogger(ResultsLogger):
+    def __init__(self, config):
+        super().__init__(config)
+        self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.num_actions), dtype=np.int32)
+
+    def save_actions(self, actions):
+        for action in actions:
+            self.action_counts[self.eval_interval_count, action] += 1
+
+    def write_actions_at_eval_interval_to_csv(self):
+        with open(self.config.interval_actions_counts_path, 'a') as file:
+            writer = csv.writer(file)
+            writer.writerow(self.action_counts[self.eval_interval_count, :])
+
+
+class ContinuousActionsResultsLogger(ResultsLogger):
+    def __init__(self, config):
+        super().__init__(config)
+        self.action_counts = [[] for _ in range(self.config.num_eval_intervals)]
+
+    def save_actions(self, actions):
+        self.action_counts[self.eval_interval_count].append(actions)
+
+    def write_actions_at_eval_interval_to_csv(self):
+        with open(self.config.interval_actions_counts_path, 'a') as file:
+            writer = csv.writer(file)
+            writer.writerow(self.action_counts[self.eval_interval_count])
 
 
 def save_scalar(step, name, value, writer):

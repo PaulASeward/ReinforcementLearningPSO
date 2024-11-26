@@ -20,8 +20,8 @@ class Config(object):
                700, 800, 900, 1000, 1100, 1200, 1300, 1400]
 
     # Output files
-    results_dir = "results"
-    # results_dir = "run_history/20241029/f11_ddpg_local_full_ou_noise"
+    # results_dir = "results"
+    results_dir = "run_history/20241126/f11_PMSO_DDPG"
 
     standard_pso_results_dir = "pso/standard_pso_results"
     os.makedirs(results_dir, exist_ok=True)
