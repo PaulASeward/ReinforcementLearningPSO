@@ -21,7 +21,7 @@ class Config(object):
 
     # Output files
     # results_dir = "results"
-    results_dir = "run_history/20241029/f11_dqn"
+    results_dir = "run_history/20241029/f11_ddpg"
 
     standard_pso_results_dir = "pso/standard_pso_results"
     os.makedirs(results_dir, exist_ok=True)
