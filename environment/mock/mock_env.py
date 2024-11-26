@@ -13,7 +13,7 @@ class MockEnv(py_environment.PyEnvironment):
     def __init__(self, config):
         super().__init__()
         self._num_actions = config.num_actions
-        self.actions_descriptions = config.action_names[:self._num_actions]
+        config.actions_descriptions = config.action_names[:self._num_actions]
         self._observ_size = config.swarm_size * 3  # Adjusted to match your mock data
         self._action_spec = array_spec.BoundedArraySpec(
             shape=(), dtype=np.int32, minimum=0, maximum=config.num_actions - 1, name='action')

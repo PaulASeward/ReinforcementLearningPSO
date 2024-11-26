@@ -20,8 +20,8 @@ class Config(object):
                700, 800, 900, 1000, 1100, 1200, 1300, 1400]
 
     # Output files
-    # results_dir = "results"
-    results_dir = "run_history/20241126/f11_PMSO_DDPG"
+    results_dir = "results"
+    # results_dir = "run_history/20241126/f11_PMSO_DDPG"
 
     standard_pso_results_dir = "pso/standard_pso_results"
     os.makedirs(results_dir, exist_ok=True)
@@ -67,7 +67,8 @@ class Config(object):
     upper_bound = 1.0
     lower_bound = -1.0
 
-    discrete_action_space = True
+    actions_descriptions = None
+    continuous_action_offset = None
 
     dir_save = "saved_session/"
     restore = False
@@ -168,10 +169,6 @@ class Config(object):
 
         if network_type is not None:
             self.network_type = network_type
-
-            if network_type == "DDPG":
-                self.discrete_action_space = False
-
             experiment = self.network_type + "_" + self.swarm_algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
             self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")

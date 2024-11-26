@@ -37,7 +37,7 @@ class PSOEnv(py_environment.PyEnvironment):
 
         self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=config.num_actions-1, name='action')
         self.actions = DiscreteActions(swarm=self.swarm, config=config)
-        self.actions_descriptions = self.actions.action_names[:self._num_actions]
+        config.actions_descriptions = self.actions.action_names[:self._num_actions]
 
         self._actions_count = 0
         self._episode_ended = False

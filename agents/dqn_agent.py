@@ -1,4 +1,5 @@
 from agents.agent import BaseAgent
+import gym
 import numpy as np
 import tensorflow as tf
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
@@ -9,6 +10,7 @@ from utils.logging_utils import DiscreteActionsResultsLogger as ResultsLogger
 class DQNAgent(BaseAgent):
     def __init__(self, config):
         super(DQNAgent, self).__init__(config)
+        self.results_logger = ResultsLogger(config)
         self.states = np.zeros([self.config.trace_length, self.config.observation_length])
         self.model = DQNModel(config)
         self.target_model = DQNModel(config)
@@ -16,10 +18,18 @@ class DQNAgent(BaseAgent):
         self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer()
 
+    def build_environment(self):
+        if self.config.use_mock_data:
+            self.raw_env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
+        else:
+            self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
+
+        return self.env
+
     def train(self):
         with self.writer.as_default():
-            results_logger = ResultsLogger(self.config)
-
             for ep in range(self.config.train_steps):
                 terminal, episode_reward = False, 0.0
                 actions, rewards = [], []
@@ -55,8 +65,8 @@ class DQNAgent(BaseAgent):
 
                     self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
-                results_logger.save_log_statements(step=ep+1, actions=actions, rewards=rewards, train_loss=losses, epsilon=self.policy.current_epsilon)
+                self.results_logger.save_log_statements(step=ep+1, actions=actions, rewards=rewards, train_loss=losses, epsilon=self.policy.current_epsilon)
                 print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")
                 # print(f"Actions: {actions}")
                 tf.summary.scalar("episode_reward", episode_reward, step=ep)
-            results_logger.print_execution_time()
+            self.results_logger.print_execution_time()
