@@ -20,7 +20,9 @@ class Config(object):
                700, 800, 900, 1000, 1100, 1200, 1300, 1400]
 
     # Output files
-    results_dir = "results"
+    # results_dir = "results"
+    results_dir = "run_history/20241029/f11_dqn"
+
     standard_pso_results_dir = "pso/standard_pso_results"
     os.makedirs(results_dir, exist_ok=True)
     swarm_locations_dir = os.path.join(results_dir, "swarm_locations")
@@ -99,6 +101,7 @@ class Config(object):
         self.func_num = None
         self.action_counts_path = None
         self.action_values_path = None
+        self.epsilon_values_path = None
         self.fitness_plot_path = None
         self.average_returns_plot_path = None
         self.fitness_path = None
@@ -177,6 +180,7 @@ class Config(object):
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
+            self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
             self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.func_num}.csv")
 
 

@@ -25,7 +25,7 @@ class ResultsLogger:
     def print_execution_time(self):
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
 
-    def save_log_statements(self, step, actions, rewards, train_loss=None):
+    def save_log_statements(self, step, actions, rewards, train_loss=None, epsilon=None):
         if self.config.discrete_action_space:
             for action in actions:
                 self.action_counts[self.eval_interval_count, action] += 1
@@ -33,6 +33,7 @@ class ResultsLogger:
             self.action_counts[self.eval_interval_count].append(actions)
 
         self.store_episode_actions_to_csv(actions, rewards)
+        self.store_epsilon_to_csv(epsilon)
 
         if step % self.config.log_interval == 0:
             if train_loss is None:
@@ -76,6 +77,10 @@ class ResultsLogger:
 
         with open(self.config.action_values_path, mode='a', newline='') as csv_file:
             csv.writer(csv_file).writerow(values_row)
+
+    def store_epsilon_to_csv(self, epsilon):
+        with open(self.config.epsilon_values_path, mode='a', newline='') as csv_file:
+            csv.writer(csv_file).writerow([epsilon])
 
 
 

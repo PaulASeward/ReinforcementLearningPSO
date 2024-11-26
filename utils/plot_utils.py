@@ -15,6 +15,35 @@ def plot_data_over_iterations(file_name, y_label, x_label, iteration_interval_sc
                 bbox_inches=None, pad_inches=0.1, facecolor='auto', edgecolor='auto')
     plt.close()
 
+def plot_two_datasets_over_iterations(file_name, y_label, file_name2, y_label2, x_label, iteration_interval_scale):
+    y_data = np.genfromtxt(file_name, delimiter=',')
+    y_data2 = np.genfromtxt(file_name2, delimiter=',')
+    iterations_y_data = range(0, len(y_data) * iteration_interval_scale, iteration_interval_scale)
+    iterations_y_data2 = range(0, len(y_data2))
+
+    output_file_name = os.path.splitext(file_name)[0] + '_dual_plot.png'
+
+    fig, ax1 = plt.subplots()
+
+    # Plot the first dataset on the primary y-axis
+    line1, = ax1.plot(iterations_y_data, y_data, label=y_label)
+    ax1.set_xlabel(x_label)
+    ax1.set_ylabel(y_label)
+
+    # Create a second y-axis for the second dataset
+    ax2 = ax1.twinx()
+    line2, = ax2.plot(iterations_y_data2, y_data2, 'r-', label=y_label2)
+    ax2.set_ylabel(y_label2)
+
+    # Combine both lines into a single legend
+    lines = [line1, line2]
+    labels = [y_label, y_label2]
+    ax1.legend(lines, labels, loc='upper left')
+
+    fig.tight_layout()
+    plt.savefig(output_file_name, dpi='figure', format="png", bbox_inches='tight')
+    plt.close()
+
 def plot_actions_over_iteration_intervals(file_name, relative_fitness, x_label, y_label, title, iteration_intervals, label_iteration_intervals, action_names):
     action_counts = np.genfromtxt(file_name, delimiter=',')
     relative_fitness_values = np.genfromtxt(relative_fitness, delimiter=',')
