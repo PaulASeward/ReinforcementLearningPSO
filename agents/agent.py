@@ -11,7 +11,9 @@ import environment.mock.mock_gym_env_discrete
 from environment.gym_env_discrete import DiscretePsoGymEnv
 
 from environment.env import PSOEnv
-from utils.plot_utils import plot_data_over_iterations, plot_two_datasets_over_iterations, plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals, plot_continuous_actions_over_iteration_intervals
+from utils.plot_utils import plot_data_over_iterations, plot_two_datasets_over_iterations, \
+    plot_actions_over_iteration_intervals, plot_actions_with_values_over_iteration_intervals, \
+    plot_average_continuous_actions_for_single_swarm, plot_average_continuous_actions_for_multiple_swarms
 from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy
 
 
@@ -31,7 +33,9 @@ class BaseAgent:
 
         self.build_environment()
         if config.policy == "ExponentialDecayGreedyEpsilon":
-            self.set_policy(ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.num_actions))
+            self.set_policy(
+                ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end,
+                                                    num_steps=config.train_steps, num_actions=config.num_actions))
 
     def set_policy(self, policy):
         self.policy = policy
@@ -53,7 +57,8 @@ class BaseAgent:
                 targets = self.target_model.predict(states)
 
                 next_q_values = self.target_model.predict(next_states).max(axis=1)
-                targets[range(self.config.batch_size), actions] = (rewards + (1 - done) * next_q_values * self.config.gamma)
+                targets[range(self.config.batch_size), actions] = (
+                            rewards + (1 - done) * next_q_values * self.config.gamma)
 
                 loss = self.model.train(states, targets)
                 losses.append(loss)
@@ -94,21 +99,52 @@ class BaseAgent:
         print(f"num_actions: {self.config.num_actions}")
 
         for index, description in enumerate(self.raw_env.actions_descriptions):
-            if index +1 <= self.config.num_actions:
-                action_no = str(index+1)
+            if index + 1 <= self.config.num_actions:
+                action_no = str(index + 1)
                 print(f"Action #{action_no} Description: {description}")
 
     def build_plots(self):
-        plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration', self.config.eval_interval)
+        plot_data_over_iterations(self.config.average_returns_path, 'Average Return', 'Iteration',
+                                  self.config.eval_interval)
         plot_data_over_iterations(self.config.fitness_path, 'Average Fitness', 'Iteration', self.config.eval_interval)
         plot_data_over_iterations(self.config.loss_file, 'Average Loss', 'Iteration', self.config.log_interval)
-        plot_two_datasets_over_iterations(self.config.average_returns_path, 'Average Return', self.config.epsilon_values_path, 'Epsilon Of Policy', 'Iteration', self.config.eval_interval)
-        plot_two_datasets_over_iterations(self.config.fitness_path, 'Average Fitness', self.config.epsilon_values_path, 'Epsilon Of Policy', 'Iteration', self.config.eval_interval)
+        plot_two_datasets_over_iterations(self.config.average_returns_path, 'Average Return',
+                                          self.config.epsilon_values_path, 'Epsilon Of Policy', 'Iteration',
+                                          self.config.eval_interval)
+        plot_two_datasets_over_iterations(self.config.fitness_path, 'Average Fitness', self.config.epsilon_values_path,
+                                          'Epsilon Of Policy', 'Iteration', self.config.eval_interval)
         if self.config.discrete_action_space:
-            plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, self.config.fitness_path, 'Iteration Intervals', 'Action Count', 'Action Distribution Over Iteration Intervals', self.config.iteration_intervals, self.config.label_iterations_intervals, self.raw_env.actions_descriptions)
-            plot_actions_with_values_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, standard_pso_values_path=self.config.standard_pso_path, function_min_value=self.config.fDeltas[self.config.func_num - 1], num_actions=self.config.num_actions, action_names=self.raw_env.actions_descriptions)
+            plot_actions_over_iteration_intervals(self.config.interval_actions_counts_path, self.config.fitness_path,
+                                                  'Iteration Intervals', 'Action Count',
+                                                  'Action Distribution Over Iteration Intervals',
+                                                  self.config.iteration_intervals,
+                                                  self.config.label_iterations_intervals,
+                                                  self.raw_env.actions_descriptions)
+            plot_actions_with_values_over_iteration_intervals(self.config.action_counts_path,
+                                                              self.config.action_values_path,
+                                                              standard_pso_values_path=self.config.standard_pso_path,
+                                                              function_min_value=self.config.fDeltas[
+                                                                  self.config.func_num - 1],
+                                                              num_actions=self.config.num_actions,
+                                                              action_names=self.raw_env.actions_descriptions)
         else:
             if self.config.swarm_algorithm == "PMSO":
-                x=1
+                plot_average_continuous_actions_for_multiple_swarms(self.config.action_counts_path,
+                                                                    self.config.action_values_path,
+                                                                    standard_pso_values_path=self.config.standard_pso_path,
+                                                                    function_min_value=self.config.fDeltas[
+                                                                        self.config.func_num - 1],
+                                                                    num_actions=self.config.num_actions,
+                                                                    action_names=self.raw_env.actions_descriptions,
+                                                                    action_offset=self.raw_env.actions_offset,
+                                                                    num_intervals=9)
             else:
-                plot_continuous_actions_over_iteration_intervals(self.config.action_counts_path, self.config.action_values_path, standard_pso_values_path=self.config.standard_pso_path, function_min_value=self.config.fDeltas[self.config.func_num - 1], num_actions=self.config.num_actions, action_names=self.raw_env.actions_descriptions, action_offset=self.raw_env.actions_offset, num_intervals=15)
+                plot_average_continuous_actions_for_single_swarm(self.config.action_counts_path,
+                                                                 self.config.action_values_path,
+                                                                 standard_pso_values_path=self.config.standard_pso_path,
+                                                                 function_min_value=self.config.fDeltas[
+                                                                     self.config.func_num - 1],
+                                                                 num_actions=self.config.num_actions,
+                                                                 action_names=self.raw_env.actions_descriptions,
+                                                                 action_offset=self.raw_env.actions_offset,
+                                                                 num_intervals=15)

@@ -41,6 +41,7 @@ class ContinuousMultiSwarmPsoGymEnv(gym.Env):
         self.swarm = PSOMultiSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
         self.actions = ContinuousMultiswarmActions(swarm=self.swarm, config=config)
         self.actions_descriptions = self.actions.action_names[:self._num_actions]
+        self.actions_offset = self.actions.action_offset
 
         self._actions_count = 0
         self._episode_ended = False

@@ -6,7 +6,17 @@ class ContinuousMultiswarmActions:
         self.swarm = swarm
         self.config = config
         self.subswarm_actions = [ContinuousActions(sub_swarm, config) for sub_swarm in self.swarm.sub_swarms]
-        self.action_names = [f"SubSwarm ${i+1} ${self.subswarm_actions[i].action_names}" for i in range(len(self.subswarm_actions))]
+        self.action_names = [
+            f"SubSwarm {i + 1} {action_name}"
+            for i, subswarm in enumerate(self.subswarm_actions)
+            for action_name in subswarm.action_names
+        ]
+        # self.action_offset = [self.swarm.config.w, self.swarm.config.c1, self.swarm.config.c2]
+        self.action_offset = [
+            offset
+            for subswarm in self.subswarm_actions
+            for offset in subswarm.action_offset
+        ]
 
     def __call__(self, action):
         # Restructure the flattened action from size(config.num_sub_swarms * 3) to size (config.num_sub_swarms, 3)

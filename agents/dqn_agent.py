@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
 from agents.model_networks.dqn_model import DQNModel
-from utils.logging_utils import ResultsLogger
+from utils.logging_utils import DiscreteActionsResultsLogger as ResultsLogger
 
 
 class DQNAgent(BaseAgent):

@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
 from agents.model_networks.ddpg_model import ActorNetworkModel, CriticNetworkModel
-from utils.logging_utils import ResultsLogger
+from utils.logging_utils import ContinuousActionsResultsLogger as ResultsLogger
 from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicy
 # from agents.utils.noise import OrnsteinUhlenbeckActionNoise
 
