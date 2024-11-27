@@ -14,7 +14,7 @@ class ContinuousPsoGymEnv(gym.Env):
 
     def __init__(self, config):
         self._func_num = config.func_num
-        self._num_actions = config.num_actions
+        self._action_dimensions = config.action_dimensions
         self._minimum = config.fDeltas[config.func_num - 1]
 
         self._max_episodes = config.num_episodes
@@ -31,12 +31,12 @@ class ContinuousPsoGymEnv(gym.Env):
         low_limits_action_space = np.array([-(config.w - config.w_min), -(config.c1 - config.c_min), -(config.c2 - config.c_min)])
         high_limits_action_space = np.array([config.w_max - config.w, config.c_max - config.c1, config.c_max - config.c2])
 
-        self.action_space = gym.spaces.Box(low=low_limits_action_space, high=high_limits_action_space, shape=(self._num_actions,), dtype=np.float32)
+        self.action_space = gym.spaces.Box(low=low_limits_action_space, high=high_limits_action_space, shape=(self._action_dimensions,), dtype=np.float32)
         self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
 
         self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
         self.actions = ContinuousActions(swarm=self.swarm, config=config)
-        config.actions_descriptions = self.actions.action_names[:self._num_actions]
+        config.actions_descriptions = self.actions.action_names[:self._action_dimensions]
         config.continuous_action_offset = self.actions.action_offset
 
         self._actions_count = 0

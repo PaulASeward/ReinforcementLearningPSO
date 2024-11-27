@@ -183,9 +183,8 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
 
 class OrnsteinUhlenbeckActionNoisePolicy(Policy):
     def __init__(self, config):
-        self.ou_noise = OrnsteinUhlenbeckActionNoise(config, size=config.num_actions)
+        self.ou_noise = OrnsteinUhlenbeckActionNoise(config, size=config.action_dimensions)
 
-        self.num_actions = config.num_actions
         # TODO: Should these bounds be dynamic depending on the dimension?
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound

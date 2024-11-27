@@ -100,6 +100,7 @@ class Config(object):
 
     def __init__(self):
         self.func_num = None
+        self.action_dimensions = None
         self.action_counts_path = None
         self.action_values_path = None
         self.epsilon_values_path = None
@@ -126,12 +127,15 @@ class Config(object):
     def clone(self):
         return copy.deepcopy(self)
 
-    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
+    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, action_dimensions=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
 
         if num_actions is not None:
             self.num_actions = num_actions
+
+        if action_dimensions is not None:
+            self.action_dimensions = action_dimensions
 
         if swarm_size is not None:
             self.swarm_size = swarm_size
@@ -165,7 +169,6 @@ class Config(object):
             self.swarm_algorithm = swarm_algorithm
             if swarm_algorithm == "PMSO":
                 self.num_sub_swarms = 5
-                self.num_actions *= self.num_sub_swarms
 
         if network_type is not None:
             self.network_type = network_type

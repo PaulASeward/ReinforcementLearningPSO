@@ -18,14 +18,14 @@ class ResultsLogger:
     def plot_results(self):
         raise NotImplementedError
 
-    def save_actions(self, actions_row):
+    def save_actions(self, step, actions_row):
         raise NotImplementedError
 
     def write_actions_at_eval_interval_to_csv(self):
         raise NotImplementedError
 
     def save_log_statements(self, step, actions, rewards, train_loss=None, epsilon=None):
-        self.save_actions(actions)
+        self.save_actions(step, actions)
         self.write_episode_rewards_to_csv(rewards)
         self.write_epsilon_to_csv(epsilon)
 
@@ -84,7 +84,7 @@ class DiscreteActionsResultsLogger(ResultsLogger):
         super().__init__(config)
         self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.num_actions), dtype=np.int32)
 
-    def save_actions(self, actions_row):
+    def save_actions(self, step, actions_row):
         for action in actions_row:
             self.action_counts[self.eval_interval_count, action] += 1
 
@@ -104,21 +104,18 @@ class DiscreteActionsResultsLogger(ResultsLogger):
 class ContinuousActionsResultsLogger(ResultsLogger):
     def __init__(self, config):
         super().__init__(config)
-        # TODO: Initialize this with more structure
-        self.action_counts = [[] for _ in range(self.config.num_eval_intervals)]
+        self.continuous_action_history = np.zeros((self.config.train_steps, self.config.num_episodes, self.config.action_dimensions), dtype=np.float32)
 
-    def save_actions(self, actions_row):
-        self.action_counts[self.eval_interval_count].append(actions_row)
+    def save_actions(self, step, actions_row):
+        for episode_idx, action in enumerate(actions_row):
+            self.continuous_action_history[step, episode_idx] = action
 
         # TODO: Save this in a different format
-        with open(self.config.action_counts_path, mode='a', newline='') as csv_file:
+        with open(self.config.continuous_action_history, mode='a', newline='') as csv_file:
             csv.writer(csv_file).writerow(actions_row)
 
     def write_actions_at_eval_interval_to_csv(self):
-        with open(self.config.interval_actions_counts_path, 'a') as file:
-            writer = csv.writer(file)
-            # TODO: Save this in a different format
-            writer.writerow(self.action_counts[self.eval_interval_count])
+        pass
 
     def plot_results(self):
         plot_standard_results(self.config)
