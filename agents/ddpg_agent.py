@@ -38,6 +38,14 @@ class DDPGAgent(BaseAgent):
             self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
             self.env = self.raw_env
 
+    def get_actions(self):
+        print(f"num_actions: {self.config.action_dimensions}")
+
+        for index, description in enumerate(self.config.actions_descriptions):
+            if index + 1 <= self.config.action_dimensions:
+                action_no = str(index + 1)
+                print(f"Action #{action_no} Description: {description}")
+
     def update_model_target_weights(self):
         if not self.config.use_mock_data:
             theta_a, theta_c = self.actor_network.model.get_weights(), self.critic_network.model.get_weights()

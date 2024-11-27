@@ -14,7 +14,7 @@ class ContinuousMultiSwarmPsoGymEnv(gym.Env):
 
     def __init__(self, config):
         self._func_num = config.func_num
-        self._num_actions = config.num_actions
+        self._action_dimensions = config.action_dimensions
         self._minimum = config.fDeltas[config.func_num - 1]
 
         self._max_episodes = config.num_episodes
@@ -34,13 +34,13 @@ class ContinuousMultiSwarmPsoGymEnv(gym.Env):
         high_limit_action_space = np.array([high_limit_subswarm_action_space for _ in range(config.num_sub_swarms)]).flatten()
 
         self.action_space = gym.spaces.Box(low=low_limit_action_space, high=high_limit_action_space,
-                                           shape=(self._num_actions,), dtype=np.float32)
+                                           shape=(self._action_dimensions,), dtype=np.float32)
         self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
                                                 shape=(self._observation_length,), dtype=np.float32)
 
         self.swarm = PSOMultiSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
         self.actions = ContinuousMultiswarmActions(swarm=self.swarm, config=config)
-        config.actions_descriptions = self.actions.action_names[:self._num_actions]
+        config.actions_descriptions = self.actions.action_names[:self._action_dimensions]
         config.continuous_action_offset = self.actions.action_offset
 
 

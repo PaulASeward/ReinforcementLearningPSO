@@ -14,7 +14,7 @@ class MockContinuousPsoGymEnv(gym.Env):
 
     def __init__(self, config):
         self._func_num = config.func_num
-        self._num_actions = config.num_actions
+        self._action_dimensions = config.action_dimensions
         self._minimum = config.fDeltas[config.func_num - 1]
 
         self._max_episodes = config.num_episodes
@@ -34,7 +34,7 @@ class MockContinuousPsoGymEnv(gym.Env):
         self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
         self.actions = ContinuousActions(swarm=self.swarm, config=config)
         config.continuous_action_offset = self.actions.action_offset
-        config.actions_descriptions = self.actions.action_names[:self._num_actions]
+        config.actions_descriptions = self.actions.action_names[:self._action_dimensions]
 
 
         self._actions_count = 0
