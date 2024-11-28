@@ -26,8 +26,8 @@ class ResultsLogger:
 
     def save_log_statements(self, step, actions, rewards, train_loss=None, epsilon=None):
         self.save_actions(step, actions)
-        self.write_episode_rewards_to_csv(rewards)
-        self.write_epsilon_to_csv(epsilon)
+        self._save_to_csv(rewards, self.config.action_values_path)
+        self._save_to_csv([epsilon], self.config.epsilon_values_path)
 
         if step % self.config.log_interval == 0:
             train_loss = self.store_results_at_log_interval(train_loss)
@@ -70,13 +70,12 @@ class ResultsLogger:
 
         return avg_return, avg_fitness
 
-    def write_episode_rewards_to_csv(self, rewards_row):
-        with open(self.config.action_values_path, mode='a', newline='') as csv_file:
-            csv.writer(csv_file).writerow(rewards_row)
+    def _save_to_numpy(self, path, data):
+        np.save(path, data)
 
-    def write_epsilon_to_csv(self, epsilon):
-        with open(self.config.epsilon_values_path, mode='a', newline='') as csv_file:
-            csv.writer(csv_file).writerow([epsilon])
+    def _save_to_csv(self, data_row, path):
+        with open(path, mode='a', newline='') as csv_file:
+            csv.writer(csv_file).writerow(data_row)
 
 
 class DiscreteActionsResultsLogger(ResultsLogger):
@@ -88,13 +87,10 @@ class DiscreteActionsResultsLogger(ResultsLogger):
         for action in actions_row:
             self.action_counts[self.eval_interval_count, action] += 1
 
-        with open(self.config.action_counts_path, mode='a', newline='') as csv_file:
-            csv.writer(csv_file).writerow(actions_row)
+        self._save_to_csv(actions_row, self.config.action_counts_path)
 
     def write_actions_at_eval_interval_to_csv(self):
-        with open(self.config.interval_actions_counts_path, 'a') as file:
-            writer = csv.writer(file)
-            writer.writerow(self.action_counts[self.eval_interval_count, :])
+        self._save_to_csv(self.action_counts[self.eval_interval_count, :], self.config.interval_actions_counts_path)
 
     def plot_results(self):
         plot_standard_results(self.config)
@@ -110,8 +106,9 @@ class ContinuousActionsResultsLogger(ResultsLogger):
         for episode_idx, action in enumerate(actions_row):
             self.continuous_action_history[step-1, episode_idx] = action
 
-        with open(self.config.continuous_action_history_path, mode='a', newline='') as csv_file:
-            csv.writer(csv_file).writerow(actions_row)
+        # Save to disk periodically
+        if step % self.config.log_interval == 0 or step == self.config.train_steps:
+            self._save_to_numpy(self.config.continuous_action_history_path, self.continuous_action_history)
 
     def write_actions_at_eval_interval_to_csv(self):
         pass

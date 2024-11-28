@@ -35,7 +35,7 @@ def plot_continuous_actions(config):
                                                             standard_pso_values_path=config.standard_pso_path,
                                                             function_min_value=config.fDeltas[
                                                                 config.func_num - 1],
-                                                            num_actions=config.num_actions,
+                                                            action_dimensions=config.action_dimensions,
                                                             action_names=config.actions_descriptions,
                                                             action_offset=config.continuous_action_offset,
                                                             num_intervals=9)
@@ -45,7 +45,7 @@ def plot_continuous_actions(config):
                                                          standard_pso_values_path=config.standard_pso_path,
                                                          function_min_value=config.fDeltas[
                                                              config.func_num - 1],
-                                                         num_actions=config.num_actions,
+                                                         action_dimensions=config.action_dimensions,
                                                          action_names=config.actions_descriptions,
                                                          action_offset=config.continuous_action_offset,
                                                          num_intervals=15)
@@ -138,17 +138,10 @@ def plot_actions_over_iteration_intervals(file_name, relative_fitness, x_label, 
     plt.close()
 
 
-def plot_average_continuous_actions_for_single_swarm(actions_counts_path, actions_values_path, standard_pso_values_path, function_min_value, num_actions, action_names, action_offset, num_intervals=9):
-    output_file_name = os.path.splitext(actions_counts_path)[0] + '_continuous.png'
-    with open(actions_counts_path, 'r') as file:
-        action_counts = []
-        for line in file:
-            # Remove brackets and split into individual elements
-            line = line.strip()[1:-1].split('],[')
-            row = [np.fromstring(array.strip(), sep=' ') for array in line]
-            action_counts.append(row)
+def plot_average_continuous_actions_for_single_swarm(continuous_action_history_path, actions_values_path, standard_pso_values_path, function_min_value, action_dimensions, action_names, action_offset, num_intervals=9):
+    output_file_name = os.path.splitext(continuous_action_history_path)[0] + '_single_swarm.png'
+    action_counts = np.load(continuous_action_history_path)
 
-    action_counts = np.array(action_counts)
     standard_pso_results = np.genfromtxt(standard_pso_values_path, delimiter=',', skip_header=1)
     standard_pso_distance = abs(function_min_value - standard_pso_results[:, 1])
     action_values = np.genfromtxt(actions_values_path, delimiter=',')
@@ -166,8 +159,8 @@ def plot_average_continuous_actions_for_single_swarm(actions_counts_path, action
     fig, axes = plt.subplots(nrows=num_rows, ncols=num_cols, figsize=(15, 6 * num_rows))
 
     # Create a legend for the actions using action names
-    legend_handles = [Patch(facecolor=f'C{i}') for i in range(num_actions)]
-    fig.legend(legend_handles, action_names[:num_actions], loc='upper right', title="Actions")
+    legend_handles = [Patch(facecolor=f'C{i}') for i in range(action_dimensions)]
+    fig.legend(legend_handles, action_names[:action_dimensions], loc='upper right', title="Actions")
 
     # Calculate the min and max values for the line graph
     min_line_value = 0  # Initialize with a high value
@@ -196,12 +189,13 @@ def plot_average_continuous_actions_for_single_swarm(actions_counts_path, action
         std_action_counts = np.std(interval_data, axis=0)
 
         # Plot each action dimension with a shaded area for the std deviation
-        for j in range(num_actions):
+        for j in range(action_dimensions):
             mean_counts = mean_action_counts[:, j]
             mean_with_offset = mean_counts + action_offset[j]
             std_dev_counts = std_action_counts[:, j]
             ax.plot(x_values, mean_with_offset, color=f'C{j}', label=action_names[j])
-            ax.fill_between(x_values, mean_with_offset - std_dev_counts, mean_with_offset + std_dev_counts, color=f'C{j}', alpha=0.3)
+            ax.fill_between(x_values, mean_with_offset - std_dev_counts, mean_with_offset + std_dev_counts,
+                            color=f'C{j}', alpha=0.3)
 
         # Add line graph overlay
         ax2 = ax.twinx()
@@ -226,17 +220,10 @@ def plot_average_continuous_actions_for_single_swarm(actions_counts_path, action
     plt.close()
 
 
-def plot_average_continuous_actions_for_multiple_swarms(actions_counts_path, actions_values_path, standard_pso_values_path, function_min_value, num_actions, action_names, action_offset, num_intervals=9):
-    output_file_name = os.path.splitext(actions_counts_path)[0] + 'multiple_swarms_continuous.png'
-    with open(actions_counts_path, 'r') as file:
-        action_counts = []
-        for line in file:
-            # Remove brackets and split into individual elements
-            line = line.strip()[1:-1].split('],[')
-            row = [np.fromstring(array.strip(), sep=' ') for array in line]
-            action_counts.append(row)
+def plot_average_continuous_actions_for_multiple_swarms(continuous_action_history_path, actions_values_path, standard_pso_values_path, function_min_value, action_dimensions, action_names, action_offset, num_intervals=9):
+    output_file_name = os.path.splitext(continuous_action_history_path)[0] + '_multiple_swarms.png'
+    action_counts = np.load(continuous_action_history_path)
 
-    action_counts = np.array(action_counts)
     standard_pso_results = np.genfromtxt(standard_pso_values_path, delimiter=',', skip_header=1)
     standard_pso_distance = abs(function_min_value - standard_pso_results[:, 1])
     action_values = np.genfromtxt(actions_values_path, delimiter=',')
@@ -254,8 +241,8 @@ def plot_average_continuous_actions_for_multiple_swarms(actions_counts_path, act
     fig, axes = plt.subplots(nrows=num_rows, ncols=num_cols, figsize=(15, 6 * num_rows))
 
     # Create a legend for the actions using action names
-    legend_handles = [Patch(facecolor=f'C{i}') for i in range(num_actions)]
-    fig.legend(legend_handles, action_names[:num_actions], loc='upper right', title="Actions")
+    legend_handles = [Patch(facecolor=f'C{i}') for i in range(action_dimensions)]
+    fig.legend(legend_handles, action_names[:action_dimensions], loc='upper right', title="Actions")
 
     # Calculate the min and max values for the line graph
     min_line_value = 0  # Initialize with a high value
@@ -284,7 +271,7 @@ def plot_average_continuous_actions_for_multiple_swarms(actions_counts_path, act
         std_action_counts = np.std(interval_data, axis=0)
 
         # Plot each action dimension with a shaded area for the std deviation
-        for j in range(num_actions):
+        for j in range(action_dimensions):
             mean_counts = mean_action_counts[:, j]
             mean_with_offset = mean_counts + action_offset[j]
             std_dev_counts = std_action_counts[:, j]

@@ -180,7 +180,7 @@ class Config(object):
             self.average_returns_path = os.path.join(self.results_dir, f"average_returns.csv")
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
-            self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.csv")
+            self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.npy")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
             self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
             self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.func_num}.csv")
