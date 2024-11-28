@@ -108,10 +108,9 @@ class ContinuousActionsResultsLogger(ResultsLogger):
 
     def save_actions(self, step, actions_row):
         for episode_idx, action in enumerate(actions_row):
-            self.continuous_action_history[step, episode_idx] = action
+            self.continuous_action_history[step-1, episode_idx] = action
 
-        # TODO: Save this in a different format
-        with open(self.config.continuous_action_history, mode='a', newline='') as csv_file:
+        with open(self.config.continuous_action_history_path, mode='a', newline='') as csv_file:
             csv.writer(csv_file).writerow(actions_row)
 
     def write_actions_at_eval_interval_to_csv(self):
