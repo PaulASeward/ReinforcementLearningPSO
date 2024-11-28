@@ -28,12 +28,7 @@ class ContinuousMultiSwarmPsoGymEnv(gym.Env):
         low_limits_obs_space = np.zeros(self._observation_length)  # 150-dimensional array with all elements set to 0
         high_limits_obs_space = np.full(self._observation_length, np.inf)
 
-        low_limit_subswarm_action_space = [-(config.w - config.w_min), -(config.c1 - config.c_min), -(config.c2 - config.c_min)]
-        high_limit_subswarm_action_space = [config.w_max - config.w, config.c_max - config.c1, config.c_max - config.c2]
-        low_limit_action_space = np.array([low_limit_subswarm_action_space for _ in range(config.num_sub_swarms)]).flatten()
-        high_limit_action_space = np.array([high_limit_subswarm_action_space for _ in range(config.num_sub_swarms)]).flatten()
-
-        self.action_space = gym.spaces.Box(low=low_limit_action_space, high=high_limit_action_space,
+        self.action_space = gym.spaces.Box(low=config.lower_bound, high=config.upper_bound,
                                            shape=(self._action_dimensions,), dtype=np.float32)
         self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
                                                 shape=(self._observation_length,), dtype=np.float32)

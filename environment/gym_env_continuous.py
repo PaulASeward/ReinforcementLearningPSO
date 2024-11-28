@@ -28,10 +28,7 @@ class ContinuousPsoGymEnv(gym.Env):
         low_limits_obs_space = np.zeros(self._observation_length)  # 150-dimensional array with all elements set to 0
         high_limits_obs_space = np.full(self._observation_length, np.inf)
 
-        low_limits_action_space = np.array([-(config.w - config.w_min), -(config.c1 - config.c_min), -(config.c2 - config.c_min)])
-        high_limits_action_space = np.array([config.w_max - config.w, config.c_max - config.c1, config.c_max - config.c2])
-
-        self.action_space = gym.spaces.Box(low=low_limits_action_space, high=high_limits_action_space, shape=(self._action_dimensions,), dtype=np.float32)
+        self.action_space = gym.spaces.Box(low=config.lower_bound, high=config.upper_bound, shape=(self._action_dimensions,), dtype=np.float32)
         self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
 
         self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
