@@ -1,7 +1,7 @@
 from agents.agent import BaseAgent
 import numpy as np
 import tensorflow as tf
-import gym
+import gymnasium as gym
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
 from agents.model_networks.ddpg_model import ActorNetworkModel, CriticNetworkModel
 from utils.logging_utils import ContinuousActionsResultsLogger as ResultsLogger

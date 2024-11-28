@@ -1,5 +1,5 @@
 from agents.agent import BaseAgent
-import gym
+import gymnasium as gym
 import numpy as np
 import tensorflow as tf
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
