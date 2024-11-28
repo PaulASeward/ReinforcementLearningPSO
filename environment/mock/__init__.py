@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 
 gym.register(
     id="MockContinuousPsoGymEnv-v0",

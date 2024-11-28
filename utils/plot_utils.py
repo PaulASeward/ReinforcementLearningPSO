@@ -141,10 +141,11 @@ def plot_actions_over_iteration_intervals(file_name, relative_fitness, x_label, 
 def plot_average_continuous_actions_for_single_swarm(continuous_action_history_path, actions_values_path, standard_pso_values_path, function_min_value, action_dimensions, action_names, action_offset, num_intervals=9):
     output_file_name = os.path.splitext(continuous_action_history_path)[0] + '_single_swarm.png'
     action_counts = np.load(continuous_action_history_path)
-
     standard_pso_results = np.genfromtxt(standard_pso_values_path, delimiter=',', skip_header=1)
     standard_pso_distance = abs(function_min_value - standard_pso_results[:, 1])
     action_values = np.genfromtxt(actions_values_path, delimiter=',')
+    # Fill in the action values with zeros to match the length of the action counts
+    action_values = np.pad(action_values, ((0, len(action_counts) - len(action_values)), (0, 0)), 'constant')
     cumulative_rewards = np.cumsum(action_values, axis=1)
 
     num_episodes = action_counts.shape[1]
@@ -227,6 +228,8 @@ def plot_average_continuous_actions_for_multiple_swarms(continuous_action_histor
     standard_pso_results = np.genfromtxt(standard_pso_values_path, delimiter=',', skip_header=1)
     standard_pso_distance = abs(function_min_value - standard_pso_results[:, 1])
     action_values = np.genfromtxt(actions_values_path, delimiter=',')
+    # Fill in the action values with zeros to match the length of the action counts
+    action_values = np.pad(action_values, ((0, len(action_counts) - len(action_values)), (0, 0)), 'constant')
     cumulative_rewards = np.cumsum(action_values, axis=1)
 
     num_episodes = action_counts.shape[1]
