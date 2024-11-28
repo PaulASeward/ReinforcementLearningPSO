@@ -27,16 +27,20 @@ class DDPGAgent(BaseAgent):
         self.replay_buffer = ReplayBuffer()
 
     def build_environment(self):
-        if self.config.use_mock_data:
-            self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
-
         if self.config.swarm_algorithm == "PMSO":
-            self.raw_env = gym.make("ContinuousMultiSwarmPsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
+            if self.config.use_mock_data:
+                self.raw_env = gym.make("MockContinuousPmsoGymEnv-v0", config=self.config)
+                self.env = self.raw_env
+            else:
+                self.raw_env = gym.make("ContinuousMultiSwarmPsoGymEnv-v0", config=self.config)
+                self.env = self.raw_env
         else:
-            self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
+            if self.config.use_mock_data:
+                self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
+                self.env = self.raw_env
+            else:
+                self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
+                self.env = self.raw_env
 
     def get_actions(self):
         print(f"num_actions: {self.config.action_dimensions}")

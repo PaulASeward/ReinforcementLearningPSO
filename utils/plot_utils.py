@@ -30,7 +30,7 @@ def plot_discrete_actions(config):
 
 def plot_continuous_actions(config):
     if config.swarm_algorithm == "PMSO":
-        plot_average_continuous_actions_for_multiple_swarms(config.action_counts_path,
+        plot_average_continuous_actions_for_multiple_swarms(config.continuous_action_history_path,
                                                             config.action_values_path,
                                                             standard_pso_values_path=config.standard_pso_path,
                                                             function_min_value=config.fDeltas[
@@ -40,7 +40,7 @@ def plot_continuous_actions(config):
                                                             action_offset=config.continuous_action_offset,
                                                             num_intervals=9)
     else:
-        plot_average_continuous_actions_for_single_swarm(config.action_counts_path,
+        plot_average_continuous_actions_for_single_swarm(config.continuous_action_history_path,
                                                          config.action_values_path,
                                                          standard_pso_values_path=config.standard_pso_path,
                                                          function_min_value=config.fDeltas[
