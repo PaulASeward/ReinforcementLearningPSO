@@ -61,8 +61,7 @@ class BaseAgent:
     def train(self):
         with self.writer.as_default():
             for ep in range(self.config.train_steps):
-                terminal = False
-                actions, rewards, swarm_observations = [], [], []
+                actions, rewards, swarm_observations, terminal = [], [], [], False
 
                 self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
 

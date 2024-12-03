@@ -79,10 +79,6 @@ class DDPGAgent(BaseAgent):
             self.actor_network_target.model.set_weights(theta_a_targ)
             self.critic_network_target.model.set_weights(theta_c_targ)
 
-    def update_states(self, next_state):
-        self.states = np.roll(self.states, -1, axis=0)
-        self.states[-1] = next_state
-
     def replay_experience(self, experience_length=10):
         losses = []
         if not self.config.use_mock_data:
