@@ -108,6 +108,8 @@ class Config(object):
         self.fitness_plot_path = None
         self.average_returns_plot_path = None
         self.fitness_path = None
+        self.episode_results_path = None
+        self.training_step_results_path = None
         self.average_returns_path = None
         self.loss_file = None
         self.interval_actions_counts_path = None
@@ -179,6 +181,8 @@ class Config(object):
             self.loss_file = os.path.join(self.results_dir, f"average_training_loss.csv")
             self.average_returns_path = os.path.join(self.results_dir, f"average_returns.csv")
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
+            self.episode_results_path = os.path.join(self.results_dir, f"episode_results.csv")
+            self.training_step_results_path = os.path.join(self.results_dir, f"episode_results.csv")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
             self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.npy")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")

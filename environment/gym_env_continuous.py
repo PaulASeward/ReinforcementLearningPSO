@@ -62,9 +62,7 @@ class ContinuousPsoGymEnv(gym.Env):
         return self._episode_ended
 
     def _get_info(self):
-        return {
-            "metadata": None
-        }
+        return self.swarm.get_swarm_observation()
 
     def reset(self, seed=None, return_info=None, options=None):
         # We need the following line to seed self.np_random

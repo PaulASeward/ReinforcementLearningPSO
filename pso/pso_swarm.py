@@ -104,6 +104,15 @@ class PSOSwarm:
 
         return np.concatenate([self.velocity_magnitudes, self.relative_fitnesses, self.average_batch_counts], axis=0)
 
+    def get_swarm_observation(self):
+        return {
+            "w": self.w,
+            "c1": self.c1,
+            "c2": self.c2,
+            "abs_max_velocity": self.abs_max_velocity,
+            "abs_max_position": self.abs_max_position
+        }
+
     def get_current_best_fitness(self):
         return self.gbest_val
     
