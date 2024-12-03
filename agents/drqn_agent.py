@@ -1,6 +1,10 @@
 from agents.agent import BaseAgent
+from environment.mock.mock_env import MockEnv
+from environment.env import PSOEnv
+from tf_agents.environments import tf_py_environment
 import gymnasium as gym
 
+import tensorflow as tf
 import numpy as np
 from agents.utils.experience_buffer import ExperienceBufferRecurrent as ReplayBuffer
 from agents.model_networks.drqn_model import DRQNModel
@@ -17,16 +21,6 @@ class DRQNAgent(BaseAgent):
 
         self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer()
-
-    def build_environment(self):
-        if self.config.use_mock_data:
-            self.raw_env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
-        else:
-            self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
-
-        return self.env
 
     def update_states(self, next_state):
         self.states = np.roll(self.states, -1, axis=0)
