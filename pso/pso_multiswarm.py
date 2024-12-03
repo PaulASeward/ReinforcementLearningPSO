@@ -111,6 +111,10 @@ class PSOMultiSwarm:
         multiswarm_observation = np.concatenate(sub_swarm_observations, axis=0)
         return multiswarm_observation
 
+    def get_swarm_observation(self):
+        sub_swarm_observations = [sub_swarm.get_swarm_observation() for sub_swarm in self.sub_swarms]
+        return sub_swarm_observations
+
     def get_current_best_fitness(self):
         return self.gbest_val
 

@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 from datetime import datetime
 from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy
-
+import numpy as np
 
 class BaseAgent:
     def __init__(self, config):
@@ -26,14 +26,13 @@ class BaseAgent:
     def build_environment(self):
         raise NotImplementedError
 
+    def get_q_values(self, state):
+        raise NotImplementedError
+
     def update_model_target_weights(self):
         if not self.config.use_mock_data:
             weights = self.model.model.get_weights()
             self.target_model.model.set_weights(weights)
-
-    # def update_states(self, next_state):
-    #     self.states = np.roll(self.states, -1, axis=0)
-    #     self.states[-1] = next_state
 
     def replay_experience(self, experience_length=10):
         losses = []
@@ -58,3 +57,39 @@ class BaseAgent:
             if index + 1 <= self.config.num_actions:
                 action_no = str(index + 1)
                 print(f"Action #{action_no} Description: {description}")
+
+    def train(self):
+        with self.writer.as_default():
+            for ep in range(self.config.train_steps):
+                terminal = False
+                actions, rewards, swarm_observations = [], [], []
+
+                self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
+
+                self.policy.reset()
+                observation, swarm_info = self.env.reset()
+                state = np.reshape(observation, (1, self.config.observation_length))
+
+                while not terminal:
+                    q_values = self.get_q_values(state)
+                    action = self.policy.select_action(q_values)
+                    next_observation, reward, terminal, swarm_info = self.env.step(action)
+
+                    next_state = np.reshape(next_observation, (1, self.config.observation_length))
+                    self.replay_buffer.add([state, action, reward * self.config.discount_factor, next_state, terminal])
+
+                    state = next_state
+                    actions.append(action)
+                    rewards.append(reward)
+                    swarm_observations.append(swarm_info)
+
+                losses = None
+                if self.replay_buffer.size() >= self.config.batch_size:
+                    losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
+
+                self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
+
+                self.results_logger.save_log_statements(step=ep + 1, actions=actions, rewards=rewards,
+                                                        train_loss=losses, epsilon=self.policy.current_epsilon,
+                                                        swarm_observations=swarm_observations)
+            self.results_logger.print_execution_time()

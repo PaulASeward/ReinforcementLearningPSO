@@ -24,10 +24,14 @@ class ResultsLogger:
     def write_actions_at_eval_interval_to_csv(self):
         raise NotImplementedError
 
-    def save_log_statements(self, step, actions, rewards, train_loss=None, epsilon=None):
+    def save_log_statements(self, step, actions, rewards, train_loss=None, epsilon=None, swarm_observations=None):
         self.save_actions(step, actions)
         self._save_to_csv(rewards, self.config.action_values_path)
         self._save_to_csv([epsilon], self.config.epsilon_values_path)
+
+        cumulative_episode_reward = np.sum(rewards)
+        print(f"Step #{step} Reward:{cumulative_episode_reward} Current Epsilon: {epsilon}")
+        tf.summary.scalar("episode_reward", cumulative_episode_reward, step=step-1)
 
         if step % self.config.log_interval == 0:
             train_loss = self.store_results_at_log_interval(train_loss)

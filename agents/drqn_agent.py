@@ -2,6 +2,7 @@ from agents.agent import BaseAgent
 from environment.mock.mock_env import MockEnv
 from environment.env import PSOEnv
 from tf_agents.environments import tf_py_environment
+import gymnasium as gym
 
 import numpy as np
 import tensorflow as tf
@@ -23,13 +24,22 @@ class DRQNAgent(BaseAgent):
 
     def build_environment(self):
         if self.config.use_mock_data:
-            self.raw_env = MockEnv(self.config)  # Mock environment
-            self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
+            self.raw_env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
         else:
-            self.raw_env = PSOEnv(self.config)  # Raw environment
-            self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
+            self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
 
         return self.env
+    # def build_environment(self):
+    #     if self.config.use_mock_data:
+    #         self.raw_env = MockEnv(self.config)  # Mock environment
+    #         self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
+    #     else:
+    #         self.raw_env = PSOEnv(self.config)  # Raw environment
+    #         self.env = tf_py_environment.TFPyEnvironment(self.raw_env)  # Training environment
+    #
+    #     return self.env
 
     def update_states(self, next_state):
         self.states = np.roll(self.states, -1, axis=0)
@@ -38,26 +48,32 @@ class DRQNAgent(BaseAgent):
     def train(self):
         with self.writer.as_default():
             for ep in range(self.config.train_steps):
-                terminal, episode_reward = False, 0
+                terminal = False
                 actions, rewards = [], []
 
                 self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
-                current_state = self.env.reset()
-                self.update_states(current_state.observation)  # Check states array update
+                # current_state = self.env.reset()
+                observation, swarm_info = self.env.reset()
+
+                # self.update_states(current_state.observation)  # Check states array update
+                self.update_states(observation)  # Check states array update
 
                 while not terminal:
-                    q_values = self.model.get_action_q_values(np.reshape(self.states, [1, self.config.trace_length, self.config.observation_length]))
+                    input_state = np.reshape(self.states, [1, self.config.trace_length, self.config.observation_length])
+                    q_values = self.model.get_action_q_values(input_state)
                     action = self.policy.select_action(q_values)
-                    step_type, reward, discount, next_state = self.env.step(action)
 
-                    reward = reward.numpy()[0]
-                    terminal = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
+                    next_observation, reward, terminal, info = self.env.step(action)
+                    next_state = np.reshape(next_observation, [1, self.config.trace_length, self.config.observation_length])
+
+                    # step_type, reward, discount, next_state = self.env.step(action)
+                    # reward = reward.numpy()[0]
+                    # terminal = bool(1 - discount)  # done is 0 (not done) if discount=1.0, and 1 if discount = 0.0
 
                     prev_states = self.states
                     self.update_states(next_state)  # Updates the states array removing oldest when adding newest for sliding window
                     self.replay_buffer.add([prev_states, action, reward * self.config.discount_factor, self.states, terminal])
 
-                    episode_reward += reward
                     actions.append(action)
                     rewards.append(reward)
 
@@ -68,7 +84,4 @@ class DRQNAgent(BaseAgent):
                 self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
                 self.results_logger.save_log_statements(step=ep+1, actions=actions, rewards=rewards, train_loss=losses, epsilon=self.policy.current_epsilon)
-                print(f"Step #{ep+1} Reward:{episode_reward} Current Epsilon: {self.policy.current_epsilon}")
-                # print(f"Actions: {actions}")
-                tf.summary.scalar("episode_reward", episode_reward, step=ep)
             self.results_logger.print_execution_time()
