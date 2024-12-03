@@ -1,4 +1,5 @@
 import tensorflow as tf
+import gymnasium as gym
 import os
 from datetime import datetime
 from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy
@@ -24,10 +25,17 @@ class BaseAgent:
             self.policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.num_actions)
 
     def build_environment(self):
-        raise NotImplementedError
+        if self.config.use_mock_data:
+            self.raw_env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
+        else:
+            self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
+
+            return self.env
 
     def get_q_values(self, state):
-        raise NotImplementedError
+        return self.model.get_action_q_values(state)
 
     def update_model_target_weights(self):
         if not self.config.use_mock_data:

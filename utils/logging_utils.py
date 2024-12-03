@@ -41,12 +41,15 @@ class ResultsLogger:
         else:
             train_loss = np.mean(train_loss)
 
+        for ep_dict in swarm_observations_dicts:
+            print(ep_dict)
+
         cumulative_episode_reward = np.sum(rewards)
         fitness = self.config.fDeltas[self.config.func_num - 1] - cumulative_episode_reward
 
         self._save_to_csv(rewards, self.config.action_values_path)
         swarm_observations = np.array([swarm_observations_dicts], dtype=object)  # Convert dict to array
-        # self.swarm_episode_observations = np.vstack([self.swarm_episode_observations, swarm_observations])
+        self.swarm_episode_observations = np.vstack([self.swarm_episode_observations, swarm_observations])
 
         self._save_to_csv([epsilon], self.config.epsilon_values_path)  # TODO: remove
         self._save_to_csv([self.step, epsilon, cumulative_episode_reward, fitness, train_loss], self.config.training_step_results_path)
