@@ -1,9 +1,7 @@
 import os
-
+import copy
 
 class Config(object):
-    network_type = "DQN"
-    swarm_algorithm = "PSO"
     use_mock_data = False
 
     # AGENT PARAMETERS
@@ -23,6 +21,8 @@ class Config(object):
 
     # Output files
     results_dir = "results"
+    # results_dir = "run_history/20241126/f11_PMSO_DDPG"
+
     standard_pso_results_dir = "pso/standard_pso_results"
     os.makedirs(results_dir, exist_ok=True)
     swarm_locations_dir = os.path.join(results_dir, "swarm_locations")
@@ -64,10 +64,11 @@ class Config(object):
     ou_sigma = 0.5
     ou_dt = 1e-2
     tau = 0.005
-    upper_bound = 1.0
-    lower_bound = -1.0
+    upper_bound = None
+    lower_bound = None
 
-    discrete_action_space = True
+    actions_descriptions = None
+    continuous_action_offset = None
 
     dir_save = "saved_session/"
     restore = False
@@ -99,11 +100,17 @@ class Config(object):
 
     def __init__(self):
         self.func_num = None
+        self.action_dimensions = None
+        self.experiment_config_path = None
         self.action_counts_path = None
+        self.continuous_action_history_path = None
         self.action_values_path = None
+        self.epsilon_values_path = None
         self.fitness_plot_path = None
         self.average_returns_plot_path = None
         self.fitness_path = None
+        self.episode_results_path = None
+        self.training_step_results_path = None
         self.average_returns_path = None
         self.loss_file = None
         self.interval_actions_counts_path = None
@@ -116,17 +123,30 @@ class Config(object):
         self.iterations = None
         self.swarm_size = None
         self.num_actions = None
+        self.swarm_algorithm = None
+        self.num_sub_swarms = None
+        self.network_type = None
+        self.dim = None
 
-    def update_properties(self, network_type=None, func_num=None, num_actions=None, swarm_size=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
+    def clone(self):
+        return copy.deepcopy(self)
+
+    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, action_dimensions=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
 
         if num_actions is not None:
             self.num_actions = num_actions
 
+        if action_dimensions is not None:
+            self.action_dimensions = action_dimensions
+
         if swarm_size is not None:
             self.swarm_size = swarm_size
             self.observation_length = self.swarm_size * 3
+
+        if dimensions is not None:
+            self.dim = dimensions
 
         if num_episodes is not None:
             self.num_episodes = num_episodes
@@ -149,36 +169,40 @@ class Config(object):
             self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
             self.label_iterations_intervals = range(0, train_steps + self.eval_interval, self.train_steps // 20)
 
+        if swarm_algorithm is not None:
+            self.swarm_algorithm = swarm_algorithm
+            if swarm_algorithm == "PMSO":
+                self.num_sub_swarms = 5
+
         if network_type is not None:
             self.network_type = network_type
-
-            if network_type == "DDPG":
-                self.discrete_action_space = False
-
             experiment = self.network_type + "_" + self.swarm_algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
+            self.experiment_config_path = os.path.join(self.results_dir, f"experiment_config.json")
             self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
             self.loss_file = os.path.join(self.results_dir, f"average_training_loss.csv")
             self.average_returns_path = os.path.join(self.results_dir, f"average_returns.csv")
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
+            self.episode_results_path = os.path.join(self.results_dir, f"episode_results.csv")
+            self.training_step_results_path = os.path.join(self.results_dir, f"step_results.csv")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
+            self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.npy")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
+            self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
             self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.func_num}.csv")
 
 
 class PSOConfig(Config):
-    swarm_algorithm = "PSO"
     topology = 'global'
-
-    dim = 30
+    is_sub_swarm = False
 
     w = 0.729844  # Inertia weight
     w_min = 0.43  # Min of 5 decreases of 10%
     w_max = 1.175  # Max of 5 increases of 10%
     c1 = 2.05 * w  # Social component Learning Factor
     c2 = 2.05 * w  # Cognitive component Learning Factor
-    c_min = 1.21  # Min of 5 decreases of 10%
-    c_max = 3.30  # Max of 5 increases of 10%
+    c_min = 0.883  # Min of 5 decreases of 10%
+    c_max = 2.409  # Max of 5 increases of 10%
     rangeF = 100
     v_min = 59.049
     v_max = 161.051
@@ -186,7 +210,3 @@ class PSOConfig(Config):
     replacement_threshold_min = 0.5
     replacement_threshold_max = 1.0
     replacement_threshold_decay = 0.95
-
-# def save_config(config_file, config_dict):
-#     with open(config_file, 'w') as fp:
-#         json.dump(config_dict, fp)

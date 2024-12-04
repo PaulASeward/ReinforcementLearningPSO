@@ -26,6 +26,9 @@ class Policy:
     def reset(self):
         pass
 
+    def restart(self):
+        pass
+
 
 class UniformRandomPolicy(Policy):
     """
@@ -124,7 +127,7 @@ class LinearDecayGreedyEpsilonPolicy(Policy):
         else:
             return np.argmax(q_values)
 
-    def reset(self):
+    def restart(self):
         """Start the decay over at the start value."""
         self.step = 0
 
@@ -176,17 +179,14 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
         else:
             return np.argmax(q_values)
 
-    def reset(self):
+    def restart(self):
         """Start the decay over at the start value."""
         self.step = 0
 
 
 class OrnsteinUhlenbeckActionNoisePolicy(Policy):
     def __init__(self, config):
-        self.ou_noise = OrnsteinUhlenbeckActionNoise(config, size=config.num_actions)
-
-        self.num_actions = config.num_actions
-        # TODO: Should these bounds be dynamic depending on the dimension?
+        self.ou_noise = OrnsteinUhlenbeckActionNoise(config, size=config.action_dimensions)
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound
 
@@ -202,12 +202,9 @@ class OrnsteinUhlenbeckActionNoisePolicy(Policy):
         epsilon = max(self.current_epsilon, self.epsilon_end)
 
         if np.random.rand() < epsilon:
-            return np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
-        else:
-            return q_values
+            q_values += self.ou_noise()
 
-        # action = np.clip(q_values + self.ou_noise(), self.lower_bound, self.upper_bound)
-        # return action
+        return np.clip(q_values, self.lower_bound, self.upper_bound)
 
     def reset(self):
         self.ou_noise.reset()

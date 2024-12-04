@@ -1,9 +1,7 @@
-from typing import Dict, Optional, Tuple
-
-import gym
+import gymnasium as gym
 import numpy as np
 from pso.cec_benchmark_functions import CEC_functions
-from environment.actions.actions import DiscreteActions
+from environment.actions.discrete_actions import DiscreteActions
 from pso.pso_swarm import PSOSwarm
 
 
@@ -33,7 +31,7 @@ class DiscretePsoGymEnv(gym.Env):
 
         self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
         self.actions = DiscreteActions(swarm=self.swarm, config=config)
-        self.actions_descriptions = self.actions.action_names[:self._num_actions]
+        config.actions_descriptions = self.actions.action_names[:self._num_actions]
 
         self._actions_count = 0
         self._episode_ended = False
@@ -63,9 +61,7 @@ class DiscretePsoGymEnv(gym.Env):
         return self._episode_ended
 
     def _get_info(self):
-        return {
-            "metadata": None
-        }
+        return self.swarm.get_swarm_observation()
 
     def reset(self, seed=None, return_info=None, options=None):
         # We need the following line to seed self.np_random

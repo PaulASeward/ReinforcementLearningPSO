@@ -1,9 +1,7 @@
-from typing import Dict, Optional, Tuple
-
-import gym
+import gymnasium as gym
 import numpy as np
 from pso.cec_benchmark_functions import CEC_functions
-from environment.actions.actions import ContinuousActions
+from environment.actions.continuous_actions import ContinuousActions
 from pso.pso_swarm import PSOSwarm
 
 
@@ -14,7 +12,7 @@ class MockContinuousPsoGymEnv(gym.Env):
 
     def __init__(self, config):
         self._func_num = config.func_num
-        self._num_actions = config.num_actions
+        self._action_dimensions = config.action_dimensions
         self._minimum = config.fDeltas[config.func_num - 1]
 
         self._max_episodes = config.num_episodes
@@ -28,13 +26,14 @@ class MockContinuousPsoGymEnv(gym.Env):
         low_limits_obs_space = np.zeros(self._observation_length)  # 150-dimensional array with all elements set to 0
         high_limits_obs_space = np.full(self._observation_length, np.inf)
 
-        self.action_space = gym.spaces.Box(low=np.array([-(config.w - config.w_min), -(config.c1 - config.c_min), -(config.c2 - config.c_min)]), high=np.array([config.w_max - config.w, config.c_max - config.c1, config.c_max - config.c2]), shape=(3,), dtype=np.float32)
+        self.action_space = gym.spaces.Box(low=config.lower_bound, high=config.upper_bound, shape=(3,), dtype=np.float32)
         self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
 
         self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
         self.actions = ContinuousActions(swarm=self.swarm, config=config)
-        self.actions_descriptions = self.actions.action_names[:self._num_actions]
-        self.actions_offset = self.actions.action_offset
+        config.continuous_action_offset = self.actions.action_offset
+        config.actions_descriptions = self.actions.action_names[:self._action_dimensions]
+
 
         self._actions_count = 0
         self._episode_ended = False
@@ -67,9 +66,7 @@ class MockContinuousPsoGymEnv(gym.Env):
         return self._episode_ended
 
     def _get_info(self):
-        return {
-            "metadata": None
-        }
+        return self.swarm.get_swarm_observation()
 
     def reset(self, seed=None, return_info=None, options=None):
         # We need the following line to seed self.np_random
