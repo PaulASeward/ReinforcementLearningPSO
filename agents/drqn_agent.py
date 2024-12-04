@@ -1,5 +1,4 @@
 from agents.agent import BaseAgent
-from environment.mock.mock_env import MockEnv
 from environment.env import PSOEnv
 from tf_agents.environments import tf_py_environment
 import gymnasium as gym

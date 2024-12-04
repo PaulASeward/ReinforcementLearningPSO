@@ -41,8 +41,8 @@ class ResultsLogger:
         else:
             train_loss = np.mean(train_loss)
 
-        for ep_dict in swarm_observations_dicts:
-            print(ep_dict)
+        # for ep_dict in swarm_observations_dicts:
+        #     print(ep_dict)
 
         cumulative_episode_reward = np.sum(rewards)
         fitness = self.config.fDeltas[self.config.func_num - 1] - cumulative_episode_reward
