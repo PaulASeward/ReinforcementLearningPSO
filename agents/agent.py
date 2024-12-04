@@ -2,8 +2,10 @@ import tensorflow as tf
 import gymnasium as gym
 import os
 from datetime import datetime
+from environment.gym_env_discrete import DiscretePsoGymEnv
 from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy
 import numpy as np
+
 
 class BaseAgent:
     def __init__(self, config):
