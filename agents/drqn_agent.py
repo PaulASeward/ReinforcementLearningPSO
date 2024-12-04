@@ -1,9 +1,5 @@
 from agents.agent import BaseAgent
-from environment.env import PSOEnv
-from tf_agents.environments import tf_py_environment
-import gymnasium as gym
 
-import tensorflow as tf
 import numpy as np
 from agents.utils.experience_buffer import ExperienceBufferRecurrent as ReplayBuffer
 from agents.model_networks.drqn_model import DRQNModel

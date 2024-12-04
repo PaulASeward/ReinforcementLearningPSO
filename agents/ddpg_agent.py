@@ -1,6 +1,8 @@
 from agents.agent import BaseAgent
 import numpy as np
-import tensorflow as tf
+from environment.gym_env_continuous import ContinuousPsoGymEnv
+from environment.gym_multiswarm_env_continuous import ContinuousMultiSwarmPsoGymEnv
+
 import gymnasium as gym
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
 from agents.model_networks.ddpg_model import ActorNetworkModel, CriticNetworkModel
