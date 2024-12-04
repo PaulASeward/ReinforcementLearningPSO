@@ -62,7 +62,7 @@ scp -r run_history/<currentdate_f#> pseward@cedar.computecanada.ca:scratch/
 ```
 
 Copying from ComputeCanada to Local Machine
-```
+```20241119_f11_drqn_decay_rate
 scp -r pseward@cedar.computecanada.ca:scratch/<currentdate_f#>/results run_history/
 ```
 

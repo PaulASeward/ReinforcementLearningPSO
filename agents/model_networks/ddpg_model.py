@@ -19,7 +19,7 @@ class ActorNetworkModel(BaseModel):
                 Input((self.config.observation_length,), dtype=tf.float32),
                 Dense(600, activation=tf.nn.leaky_relu, kernel_initializer=last_init),
                 Dense(300, activation=tf.nn.leaky_relu, kernel_initializer=last_init),
-                Dense(self.config.num_actions, activation="tanh", kernel_initializer=last_init),
+                Dense(self.config.action_dimensions, activation="tanh", kernel_initializer=last_init),
             ]
         )
 
@@ -61,7 +61,7 @@ class CriticNetworkModel(BaseModel):
         state_out = Dense(300, activation=tf.nn.leaky_relu, kernel_initializer=last_init)(state_out)
 
         # Action as input
-        action_input = Input(shape=(self.config.num_actions,), dtype=tf.float32)
+        action_input = Input(shape=(self.config.action_dimensions,), dtype=tf.float32)
         action_out = Dense(300, activation=tf.nn.leaky_relu, kernel_initializer=last_init)(
             Lambda(lambda x: x / self.action_high)(action_input))
 

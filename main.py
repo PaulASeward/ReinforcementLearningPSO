@@ -2,7 +2,6 @@ from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
 from agents.ddpg_agent import DDPGAgent
 from config import PSOConfig
-import sys
 import argparse
 
 
@@ -19,10 +18,10 @@ class Main:
     def train(self):
         self.agent.get_actions()
         self.agent.train()
-        self.agent.build_plots()
+        self.plot()
 
     def plot(self):
-        self.agent.build_plots()
+        self.agent.results_logger.plot_results()
 
     # def evaluate(self, num_episodes, checkpoint_dir):
     #     self.agent.evaluate(num_episodes, checkpoint_dir)
@@ -30,12 +29,13 @@ class Main:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run DQN Agent on PSO Algorithm")
-    parser.add_argument("--network_type", type=str, default="DQN",help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
-    parser.add_argument("--swarm_algorithm", type=str, default="PSO", help="The metaheuristic swarm algorithm to use. Currently only pso is supported")
+    parser.add_argument("--network_type", type=str, default="DQN", help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
+    parser.add_argument("--swarm_algorithm", type=str, default="PSO", help="The metaheuristic swarm algorithm to use. Currently only PSO or PMSO is supported")
     parser.add_argument("--func_num", type=int, default=11, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
     parser.add_argument("--dim", type=int, default=30,help="The number of dimensions in the search space. Default is 30.")
     parser.add_argument("--swarm_size", type=int, default=50, help="The number of particles in the swarm. Default is 50.")
-    parser.add_argument("--num_actions", type=int, default=3, help="The number of actions to choose from in the action space. Default is 5.")
+    parser.add_argument("--num_actions", type=int, default=5, help="The number of actions to choose from in the action space. Default is 5.")
+    parser.add_argument("--action_dimensions", type=int, default=3, help="The number of actions to choose from in the action space. Default is 15.")
     parser.add_argument("--num_episodes", type=int, default=20, help="The number of episodes in each Reinforcement Learning Iterations before terminating.")
     parser.add_argument("--num_swarm_obs_intervals", type=int, default=10, help="The number of swarm observation intervals. Ex) At 10 evenly spaced observation intervals, observations in the swarm will be collected. Default is 10.")
     parser.add_argument("--swarm_obs_interval_length", type=int, default=30, help="The number of observations per episode conducted in the swarm. Ex) Particle Best Replacement Counts are averaged over the last _ observations before an episode terminates and action is decided. Default is 30.")
@@ -44,23 +44,17 @@ if __name__ == "__main__":
     parser.add_argument("--steps", type=int, default=2000, help="number of iterations to train")
     args, remaining = parser.parse_known_args()
 
-    if args.swarm_algorithm == "PSO":
-        config = PSOConfig()
-        config.train = args.train
-        config.use_mock_data = args.mock
-        config.dim = args.dim
-        config.swarm_algorithm = args.swarm_algorithm
-        config.num_actions = args.num_actions
-    else:
-        print("Unsupported swarm algorithm type: ", args.swarm_algorithm)
-        sys.exit(1)
+    config = PSOConfig()
+    config.train = args.train
+    config.use_mock_data = args.mock
 
+    assert args.swarm_algorithm in ["PSO", "PMSO"], "Please specify a swarm_algorithm of either PSO or PMSO"
     assert args.network_type in ["DQN", "DRQN", "DDPG"], "Please specify a network_type of either DQN, DRQN, or DDPG"
     assert args.func_num in list(range(1, 29)), "Please specify a func_num from 1-28"
     assert args.dim in [2, 5, 10, 20, 20, 30, 40, 50, 60, 70, 80, 90, 100], "Please specify a dim from 2,5,10,20,30,40,50,60,70,80,90,100"
 
-    config.update_properties(network_type=args.network_type, func_num=args.func_num, num_actions=args.num_actions,
-                             swarm_size=args.swarm_size, num_episodes=args.num_episodes,
+    config.update_properties(network_type=args.network_type, swarm_algorithm=args.swarm_algorithm, func_num=args.func_num, num_actions=args.num_actions,
+                             action_dimensions=args.action_dimensions, swarm_size=args.swarm_size, dimensions=args.dim, num_episodes=args.num_episodes,
                              num_swarm_obs_intervals=args.num_swarm_obs_intervals,
                              swarm_obs_interval_length=args.swarm_obs_interval_length, train_steps=args.steps)
 
