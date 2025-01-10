@@ -164,9 +164,9 @@ class PSOMultiSwarm:
 
     def optimize(self):
         for obs_interval_idx in range(self.config.num_swarm_obs_intervals):
-            for _ in range(self.config.swarm_obs_interval_length):
+            for iteration_idx in range(self.config.swarm_obs_interval_length):
                 for sub_swarm in self.sub_swarms:
-                    sub_swarm.optimize_single_iteration(self.gbest_pos)
+                    sub_swarm.optimize_single_iteration(self.gbest_pos, iteration_idx)
             for sub_swarm in self.sub_swarms:
                 sub_swarm.store_and_reset_batch_counts(obs_interval_idx)
 

@@ -2,6 +2,7 @@ from agents.agent import BaseAgent
 import numpy as np
 from environment.gym_env_continuous import ContinuousPsoGymEnv
 from environment.gym_multiswarm_env_continuous import ContinuousMultiSwarmPsoGymEnv
+from tf_agents.environments import tf_py_environment
 
 import gymnasium as gym
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
@@ -91,7 +92,7 @@ class DDPGAgent(BaseAgent):
                 next_actions = self.actor_network_target.model(next_states)
                 next_q_values = self.critic_network_target.model([next_states, next_actions])
 
-                # Use Bellman Equation! (recursive definition of q-values)
+                # Use Bellman Equation. (recursive definition of q-values)
                 q_values_target = rewards + (1 - done) * self.config.gamma * next_q_values
 
                 self.critic_network.model.fit([states, actions], q_values_target, batch_size=self.config.batch_size, epochs=1, verbose=0, shuffle=False)
