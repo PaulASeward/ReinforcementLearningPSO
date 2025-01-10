@@ -205,11 +205,11 @@ class PSOSwarm:
     def optimize(self):
         for obs_interval_idx in range(self.num_swarm_obs_intervals):
             for iteration_idx in range(self.swarm_obs_interval_length):
-                self.optimize_single_iteration(self.gbest_pos, iteration_idx)
+                self.optimize_single_iteration(self.gbest_pos, obs_interval_idx, iteration_idx)
             self.store_and_reset_batch_counts(obs_interval_idx)
 
-    def optimize_single_iteration(self, global_leader, iteration_idx):
-        if iteration_idx <= self.swarm_obs_interval_length * 0.20:
+    def optimize_single_iteration(self, global_leader, obs_interval, iteration_idx):
+        if obs_interval == 0 and iteration_idx < self.swarm_obs_interval_length * 0.10:
             self.perturb_velocities = False
             self.perturb_positions = False
 
