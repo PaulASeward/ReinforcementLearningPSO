@@ -186,7 +186,7 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
 
 class OrnsteinUhlenbeckActionNoisePolicy(Policy):
     def __init__(self, config):
-        self.ou_noise = OrnsteinUhlenbeckActionNoise(config, size=config.action_dimensions)
+        self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.action_dimensions)
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound
 

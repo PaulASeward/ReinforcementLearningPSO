@@ -10,7 +10,6 @@ import numpy as np
 class BaseAgent:
     def __init__(self, config):
         self.replay_buffer = None
-        self.states = None
         self.target_model = None
         self.model = None
         self.policy = None
@@ -45,6 +44,9 @@ class BaseAgent:
             self.target_model.model.set_weights(weights)
 
     def replay_experience(self, experience_length=10):
+        if self.replay_buffer.size() < self.config.batch_size:
+            return None  # Not enough experience to replay yet.
+
         losses = []
         if not self.config.use_mock_data:
             for _ in range(experience_length):  # Why size 10?
@@ -68,37 +70,37 @@ class BaseAgent:
                 action_no = str(index + 1)
                 print(f"Action #{action_no} Description: {description}")
 
+    def initialize_current_state(self):
+        self.policy.reset()
+        observation, swarm_info = self.env.reset()
+        return np.reshape(observation, (1, self.config.observation_length))
+
+    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
+        next_state = np.reshape(next_observation, (1, self.config.observation_length))
+        self.replay_buffer.add([current_state, action, reward*self.config.discount_factor, next_state, terminal])
+        return next_state
+
     def train(self):
         with self.writer.as_default():
-            for ep in range(self.config.train_steps):
+            for step in range(self.config.train_steps):
                 actions, rewards, swarm_observations, terminal = [], [], [], False
-
-                self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
-
-                self.policy.reset()
-                observation, swarm_info = self.env.reset()
-                state = np.reshape(observation, (1, self.config.observation_length))
+                current_state = self.initialize_current_state()
 
                 while not terminal:
-                    q_values = self.get_q_values(state)
+                    q_values = self.get_q_values(current_state)
                     action = self.policy.select_action(q_values)
                     next_observation, reward, terminal, swarm_info = self.env.step(action)
 
-                    next_state = np.reshape(next_observation, (1, self.config.observation_length))
-                    self.replay_buffer.add([state, action, reward * self.config.discount_factor, next_state, terminal])
+                    current_state = self.update_memory_and_state(current_state, action, reward, next_observation, terminal)
 
-                    state = next_state
                     actions.append(action)
                     rewards.append(reward)
                     swarm_observations.append(swarm_info)
 
-                losses = None
-                if self.replay_buffer.size() >= self.config.batch_size:
-                    losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
-
+                losses = self.replay_experience()
                 self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
-                self.results_logger.save_log_statements(step=ep + 1, actions=actions, rewards=rewards,
+                self.results_logger.save_log_statements(step=step + 1, actions=actions, rewards=rewards,
                                                         train_loss=losses, epsilon=self.policy.current_epsilon,
                                                         swarm_observations=swarm_observations)
             self.results_logger.print_execution_time()
