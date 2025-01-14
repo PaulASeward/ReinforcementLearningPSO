@@ -72,8 +72,8 @@ class DDPGAgent(BaseAgent):
 
     def update_model_target_weights(self):
         if not self.config.use_mock_data:
-            theta_a, theta_c = self.actor_network.model.get_weights(), self.critic_network.model.get_weights()
-            theta_a_targ, theta_c_targ = self.actor_network_target.model.get_weights(), self.critic_network_target.model.get_weights()
+            # Get the weights of the actor and critic networks
+            theta_a, theta_c, theta_a_targ, theta_c_targ = self.actor_network.model.get_weights(), self.critic_network.model.get_weights(), self.actor_network_target.model.get_weights(), self.critic_network_target.model.get_weights()
 
             # mixing factor tau : we gradually shift the weights...
             theta_a_targ = [theta_a[i] * self.config.tau + theta_a_targ[i] * (1 - self.config.tau) for i in range(len(theta_a))]
@@ -83,6 +83,9 @@ class DDPGAgent(BaseAgent):
             self.critic_network_target.model.set_weights(theta_c_targ)
 
     def replay_experience(self, experience_length=10):
+        if self.replay_buffer.size() < self.config.batch_size:
+            return None  # Not enough experience to replay yet.
+
         losses = []
         if not self.config.use_mock_data:
             for _ in range(experience_length):  # Why size 10?

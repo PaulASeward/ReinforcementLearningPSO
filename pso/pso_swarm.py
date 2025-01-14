@@ -209,7 +209,8 @@ class PSOSwarm:
             self.store_and_reset_batch_counts(obs_interval_idx)
 
     def optimize_single_iteration(self, global_leader, obs_interval, iteration_idx):
-        if obs_interval == 0 and iteration_idx < self.swarm_obs_interval_length * 0.10:
+        # if obs_interval == 0 and iteration_idx < self.swarm_obs_interval_length * 0.10:
+        if obs_interval == 0 and iteration_idx == 0:  # Only perturb velocities in the first iteration of the first observation interval
             self.perturb_velocities = False
             self.perturb_positions = False
 

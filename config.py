@@ -1,6 +1,9 @@
 import os
 import copy
 
+import numpy as np
+
+
 class Config(object):
     use_mock_data = False
 
@@ -57,13 +60,15 @@ class Config(object):
     # train_start = 20000
 
     # DDPG TRAINING PARAMETERS
-    # ou_mean = 1
-    ou_mean = 0.0
+    # ou_mu = 1
+    ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    # ou_sigma = 0.2
-    ou_sigma = 0.5
+    ou_sigma = 0.2
+    # ou_sigma = 0.5
     ou_dt = 1e-2
-    tau = 0.005
+
+    # tau = 0.005
+    tau = 0.125
     upper_bound = None
     lower_bound = None
 
@@ -140,6 +145,7 @@ class Config(object):
 
         if action_dimensions is not None:
             self.action_dimensions = action_dimensions
+            self.ou_mu = np.zeros(self.action_dimensions)
 
         if swarm_size is not None:
             self.swarm_size = swarm_size

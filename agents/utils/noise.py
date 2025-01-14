@@ -4,7 +4,7 @@ import numpy as np
 class OrnsteinUhlenbeckActionNoise(object):
     """
     An Ornstein Uhlenbeck action noise, this is designed to approximate Brownian motion with friction.
-    Based on http://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
+    Based on https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py
     :param config.mean: the mean of the noise
     :param config.sigma: the scale of the noise
     :param config.theta: the rate of mean reversion
@@ -19,7 +19,7 @@ class OrnsteinUhlenbeckActionNoise(object):
             initial_noise=None,
     ):
         self._theta = config.ou_theta
-        self._mu = config.ou_mean
+        self._mu = config.ou_mu
         self._sigma = config.ou_sigma
         self._dt = config.ou_dt
 
@@ -27,14 +27,10 @@ class OrnsteinUhlenbeckActionNoise(object):
         self.initial_noise = initial_noise
         self.noise_prev = np.zeros(self._size)
         self.reset()
-        super(OrnsteinUhlenbeckActionNoise, self).__init__()
 
     def __call__(self) -> np.ndarray:
-        noise = (
-                self.noise_prev
-                + self._theta * (self._mu - self.noise_prev) * self._dt
-                + self._sigma * np.sqrt(self._dt) * np.random.normal(size=self._size)
-        )
+        noise = self.noise_prev + self._theta * (self._mu - self.noise_prev) * self._dt + self._sigma * np.sqrt(self._dt) * np.random.normal(size=self._size)
+
         self.noise_prev = noise
         return noise
 

@@ -6,44 +6,44 @@ class DiscreteActions:
     def __init__(self, swarm, config):
         self.swarm = swarm
         self.config = config
-        self.action_methods = {
-            0: self.do_nothing,
-            1: self.inject_small_perturbations_to_slow_particles,
-            2: self.inject_small_perturbations_to_all_particles,
-            3: self.inject_small_perturbations_to_fast_particles,
-            4: self.inject_medium_perturbations_to_slow_particles,
-            5: self.inject_medium_perturbations_to_all_particles,
-            6: self.inject_medium_perturbations_to_fast_particles,
-            7: self.inject_large_perturbations_to_slow_particles,
-            8: self.inject_large_perturbations_to_all_particles,
-            9: self.inject_large_perturbations_to_fast_particles,
-        }
-
-        self.action_names = ['Do nothing',
-                             'Slightly perturb slow particles velocity',
-                             'Slightly perturb all particles velocity',
-                             'Slightly perturb fast particles velocity',
-                             'Moderately perturb slow particles velocity',
-                             'Moderately perturb all particles velocity',
-                             'Moderately perturb fast particles velocity',
-                             'Large perturb slow particles velocity',
-                             'Large perturb all particles velocity',
-                             'Large perturb fast particles velocity']
-
-
         # self.action_methods = {
         #     0: self.do_nothing,
-        #     1: self.increase_inertia,
-        #     2: self.decrease_inertia,
-        #     3: self.increase_social_factor,
-        #     4: self.decrease_social_factor,
+        #     1: self.inject_small_perturbations_to_slow_particles,
+        #     2: self.inject_small_perturbations_to_all_particles,
+        #     3: self.inject_small_perturbations_to_fast_particles,
+        #     4: self.inject_medium_perturbations_to_slow_particles,
+        #     5: self.inject_medium_perturbations_to_all_particles,
+        #     6: self.inject_medium_perturbations_to_fast_particles,
+        #     7: self.inject_large_perturbations_to_slow_particles,
+        #     8: self.inject_large_perturbations_to_all_particles,
+        #     9: self.inject_large_perturbations_to_fast_particles,
         # }
         #
         # self.action_names = ['Do nothing',
-        #                      'Increase inertia',
-        #                      'Decrease inertia',
-        #                      'Increase social factor',
-        #                      'Decrease social factor', ]
+        #                      'Slightly perturb slow particles velocity',
+        #                      'Slightly perturb all particles velocity',
+        #                      'Slightly perturb fast particles velocity',
+        #                      'Moderately perturb slow particles velocity',
+        #                      'Moderately perturb all particles velocity',
+        #                      'Moderately perturb fast particles velocity',
+        #                      'Large perturb slow particles velocity',
+        #                      'Large perturb all particles velocity',
+        #                      'Large perturb fast particles velocity']
+
+
+        self.action_methods = {
+            0: self.do_nothing,
+            1: self.increase_inertia,
+            2: self.decrease_inertia,
+            3: self.increase_social_factor,
+            4: self.decrease_social_factor,
+        }
+
+        self.action_names = ['Do nothing',
+                             'Increase inertia',
+                             'Decrease inertia',
+                             'Increase social factor',
+                             'Decrease social factor', ]
 
     def __call__(self, action):
         if not isinstance(action, int):
