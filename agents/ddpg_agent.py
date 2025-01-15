@@ -17,8 +17,6 @@ class DDPGAgent(BaseAgent):
         # TODO: Adjust states from 50 particles with 3 dimensions = 150 flattened array to 50 particles with 3 dimensions each.
         self.results_logger = ResultsLogger(config)
 
-        self.states = np.zeros([self.config.trace_length, self.config.observation_length])
-
         self.actor_network = ActorNetworkModel(config)
         self.actor_network_target = ActorNetworkModel(config)
 
@@ -58,14 +56,6 @@ class DDPGAgent(BaseAgent):
             else:
                 self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
                 self.env = self.raw_env
-
-    def get_actions(self):
-        print(f"num_actions: {self.config.action_dimensions}")
-
-        for index, description in enumerate(self.config.actions_descriptions):
-            if index + 1 <= self.config.action_dimensions:
-                action_no = str(index + 1)
-                print(f"Action #{action_no} Description: {description}")
 
     def get_q_values(self, state):
         return self.actor_network.get_action_q_values(state)

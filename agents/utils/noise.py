@@ -41,28 +41,12 @@ class OrnsteinUhlenbeckActionNoise(object):
         self.noise_prev = self.initial_noise if self.initial_noise is not None else np.zeros_like(self._size)
 
 
-class OUActionNoise:
-    def __init__(self, config, x_initial=None):
-        self.theta = config.ou_theta
-        self.mean = np.zeros(1)
-        self._sigma = float(config.ou_sigma) * np.ones(1)
-        self._dt = config.ou_dt
-        self.x_initial = x_initial
-        self.reset()
+class NormalNoise:
+    def __init__(self, config, size):
+        self._mu = config.ou_mu
+        self._size = size
+        self._sigma = config.ou_sigma
 
     def __call__(self):
-        x = (
-                self.x_prev
-                + self.theta * (self.mean - self.x_prev) * self._dt
-                + self._sigma * np.sqrt(self._dt) * np.random.normal(size=self.mean.shape)
-        )
+        return np.random.normal(scale=self._sigma, size=self._size)
 
-        # Store x into x_prev. Makes next noise dependent on current one
-        self.x_prev = x
-        return x
-
-    def reset(self):
-        if self.x_initial is not None:
-            self.x_prev = self.x_initial
-        else:
-            self.x_prev = np.zeros_like(self.mean)

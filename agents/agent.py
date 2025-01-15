@@ -54,8 +54,9 @@ class BaseAgent:
                 targets = self.target_model.predict(states)
 
                 next_q_values = self.target_model.predict(next_states).max(axis=1)
-                targets[range(self.config.batch_size), actions] = (
-                            rewards + (1 - done) * next_q_values * self.config.gamma)
+
+                q_values_target = rewards + (1 - done) * self.config.gamma * next_q_values
+                targets[range(self.config.batch_size), actions] = q_values_target
 
                 loss = self.model.train(states, targets)
                 losses.append(loss)
@@ -77,7 +78,8 @@ class BaseAgent:
 
     def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
         next_state = np.reshape(next_observation, (1, self.config.observation_length))
-        self.replay_buffer.add([current_state, action, reward*self.config.discount_factor, next_state, terminal])
+        # self.replay_buffer.add([current_state, action, reward*self.config.discount_factor, next_state, terminal])
+        self.replay_buffer.add([current_state, action, reward, next_state, terminal])
         return next_state
 
     def train(self):
