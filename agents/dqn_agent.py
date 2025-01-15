@@ -9,7 +9,7 @@ class DQNAgent(BaseAgent):
     def __init__(self, config):
         super(DQNAgent, self).__init__(config)
         self.results_logger = ResultsLogger(config)
-        self.states = np.zeros([self.config.trace_length, self.config.observation_length])
+
         self.model = DQNModel(config)
         self.target_model = DQNModel(config)
 
