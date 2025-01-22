@@ -29,7 +29,7 @@ class Main:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run DQN Agent on PSO Algorithm")
-    parser.add_argument("--network_type", type=str, default="DRQN", help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
+    parser.add_argument("--network_type", type=str, default="DDPG", help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
     parser.add_argument("--swarm_algorithm", type=str, default="PSO", help="The metaheuristic swarm algorithm to use. Currently only PSO or PMSO is supported")
     parser.add_argument("--func_num", type=int, default=11, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
     parser.add_argument("--dim", type=int, default=30,help="The number of dimensions in the search space. Default is 30.")

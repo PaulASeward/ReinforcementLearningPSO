@@ -71,6 +71,12 @@ class Config(object):
     tau = 0.125
     upper_bound = None
     lower_bound = None
+    actor_layers = (400, 300)
+    critic_layers = (48, 24)
+    action_dim = None
+    state_shape = None
+    action_bound = None
+    action_shift = None
 
     actions_descriptions = None
     continuous_action_offset = None

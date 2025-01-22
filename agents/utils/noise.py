@@ -50,3 +50,6 @@ class NormalNoise:
     def __call__(self):
         return np.random.normal(scale=self._sigma, size=self._size)
 
+    def reset(self):
+        pass
+
