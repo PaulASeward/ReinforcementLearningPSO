@@ -8,7 +8,7 @@ import gymnasium as gym
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
 from agents.model_networks.ddpg_model import ActorNetworkModel, CriticNetworkModel
 from utils.logging_utils import ContinuousActionsResultsLogger as ResultsLogger
-from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicy
+from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicy, OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling
 
 
 class DDPGAgent(BaseAgent):
@@ -22,17 +22,21 @@ class DDPGAgent(BaseAgent):
 
         self.critic_network = CriticNetworkModel(config)
         self.critic_network_target = CriticNetworkModel(config)
-        self.policy = OrnsteinUhlenbeckActionNoisePolicy(config)
+        # self.policy = OrnsteinUhlenbeckActionNoisePolicy(config)
+        self.policy = OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(config)
 
         self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer()
 
     def build_environment(self):
         if self.config.swarm_algorithm == "PMSO":
-            low_limit_subswarm_action_space = [-(self.config.w - self.config.w_min), -(self.config.c1 - self.config.c_min),
-                                               -(self.config.c2 - self.config.c_min)]
-            high_limit_subswarm_action_space = [self.config.w_max - self.config.w, self.config.c_max - self.config.c1,
-                                                self.config.c_max - self.config.c2]
+            # low_limit_subswarm_action_space = [-(self.config.w - self.config.w_min), -(self.config.c1 - self.config.c_min),
+            #                                    -(self.config.c2 - self.config.c_min)]
+            # high_limit_subswarm_action_space = [self.config.w_max - self.config.w, self.config.c_max - self.config.c1,
+            #                                     self.config.c_max - self.config.c2]
+            low_limit_subswarm_action_space = [self.config.w_min, self.config.c_min, self.config.c_min]
+            high_limit_subswarm_action_space = [self.config.w_max, self.config.c_max, self.config.c_max]
+
             self.config.lower_bound = np.array(
                 [low_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)]).flatten()
             self.config.upper_bound = np.array(
@@ -45,10 +49,12 @@ class DDPGAgent(BaseAgent):
                 self.raw_env = gym.make("ContinuousMultiSwarmPsoGymEnv-v0", config=self.config)
                 self.env = self.raw_env
         else:
-            self.config.lower_bound = np.array(
-                [-(self.config.w - self.config.w_min), -(self.config.c1 - self.config.c_min), -(self.config.c2 - self.config.c_min)])
-            self.config.upper_bound = np.array(
-                [self.config.w_max - self.config.w, self.config.c_max - self.config.c1, self.config.c_max - self.config.c2])
+            # self.config.lower_bound = np.array(
+            #     [-(self.config.w - self.config.w_min), -(self.config.c1 - self.config.c_min), -(self.config.c2 - self.config.c_min)])
+            # self.config.upper_bound = np.array(
+            #     [self.config.w_max - self.config.w, self.config.c_max - self.config.c1, self.config.c_max - self.config.c2])
+            self.config.lower_bound = np.array([self.config.w_min, self.config.c_min, self.config.c_min])
+            self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max])
 
             if self.config.use_mock_data:
                 self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
@@ -56,6 +62,13 @@ class DDPGAgent(BaseAgent):
             else:
                 self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
                 self.env = self.raw_env
+
+        self.config.state_shape = self.env.observation_space.shape
+        self.config.action_dim = self.env.action_space.shape[0]
+        self.config.action_bound = (self.env.action_space.high - self.env.action_space.low) / 2
+        self.config.action_shift = (self.env.action_space.high + self.env.action_space.low) / 2
+        z=1
+
 
     def get_q_values(self, state):
         return self.actor_network.get_action_q_values(state)

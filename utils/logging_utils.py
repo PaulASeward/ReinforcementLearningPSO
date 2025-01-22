@@ -149,6 +149,9 @@ class ContinuousActionsResultsLogger(ResultsLogger):
         for episode_idx, action in enumerate(actions_row):
             self.continuous_action_history[self.step-1, episode_idx] = action
 
+        # Print Average Action in each dimension:
+        print(f"Step #{self.step} Average Action: {np.mean(actions_row, axis=0)}")
+
         # Save to disk periodically
         if self.step % self.config.log_interval == 0 or self.step == self.config.train_steps:
             self._save_to_numpy(self.config.continuous_action_history_path, self.continuous_action_history)

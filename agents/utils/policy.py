@@ -1,7 +1,7 @@
 """RL Policy classes."""
 
 import numpy as np
-from agents.utils.noise import OrnsteinUhlenbeckActionNoise
+from agents.utils.noise import OrnsteinUhlenbeckActionNoise, NormalNoise
 
 
 class Policy:
@@ -186,9 +186,11 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
 
 class OrnsteinUhlenbeckActionNoisePolicy(Policy):
     def __init__(self, config):
-        self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.action_dimensions)
+        # self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.action_dimensions)
+        self.ou_noise = NormalNoise(config=config, size=config.action_dimensions)
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound
+        self.action_bound = config.action_bound
 
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start
@@ -202,10 +204,83 @@ class OrnsteinUhlenbeckActionNoisePolicy(Policy):
         epsilon = max(self.current_epsilon, self.epsilon_end)
 
         if np.random.rand() < epsilon:
-            q_values += self.ou_noise()
+            # q_values += self.ou_noise()
+            q_values += self.ou_noise() * self.action_bound  # Scale the noise by the action bound
 
-        return np.clip(q_values, self.lower_bound, self.upper_bound)
+        action = np.clip(q_values, self.lower_bound, self.upper_bound)
+        return action
 
     def reset(self):
         self.ou_noise.reset()
+
+
+class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
+    def __init__(self, config):
+        self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.action_dimensions)
+        # self.ou_noise = NormalNoise(config=config, size=config.action_dimensions)
+        self.lower_bound = config.lower_bound
+        self.upper_bound = config.upper_bound
+        self.action_bound = config.action_bound
+
+        self.current_epsilon = config.epsilon_start
+        self.epsilon_start = config.epsilon_start
+        self.epsilon_end = config.epsilon_end
+        self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        self.step = 0
+
+    def select_action(self, q_values, **kwargs):
+        self.step += 1
+        self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
+        epsilon = max(self.current_epsilon, self.epsilon_end)
+
+        noise = self.ou_noise() * epsilon * self.action_bound
+        q_values += noise
+        action = np.clip(q_values, self.lower_bound, self.upper_bound)
+        return action
+
+    def reset(self):
+        self.ou_noise.reset()
+
+
+# class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
+#     def __init__(self, config):
+#         # Either OU or Normal noise, as you had before
+#         self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.action_dimensions)
+#         # self.ou_noise = NormalNoise(config=config, size=config.action_dimensions)
+#
+#         self.lower_bound = config.lower_bound
+#         self.upper_bound = config.upper_bound
+#         self.action_bound = config.action_bound
+#
+#         self.noise_scale_start = config.epsilon_start
+#         self.noise_scale_end = config.epsilon_end
+#         self.current_epsilon = config.epsilon_start
+#
+#         self.decay_rate = (
+#             np.log(self.noise_scale_start / self.noise_scale_end) / config.train_steps
+#         )
+#         # Linear decay:
+#         # self.decay_rate = (self.noise_scale_start - self.noise_scale_end) / config.train_steps
+#
+#         self.step = 0
+#
+#     def select_action(self, q_values, **kwargs):
+#         self.step += 1
+#
+#         current_noise_scale = self.noise_scale_start * np.exp(-self.decay_rate * self.step)
+#         self.current_epsilon = current_noise_scale
+#         # Linear decay:
+#         # current_noise_scale = max(
+#         #     self.noise_scale_end,
+#         #     self.noise_scale_start - self.decay_rate * self.step
+#         # )
+#
+#         noise = self.ou_noise() * current_noise_scale * self.action_bound
+#         q_values += noise
+#         action = np.clip(q_values, self.lower_bound, self.upper_bound)
+#         return action
+#
+#     def reset(self):
+#         self.ou_noise.reset()
+
 
