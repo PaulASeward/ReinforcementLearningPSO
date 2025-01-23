@@ -233,7 +233,7 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
         self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
         epsilon = max(self.current_epsilon, self.epsilon_end)
 
-        noise = self.ou_noise() * epsilon * self.action_bound
+        noise = self.ou_noise() * epsilon
         q_values += noise
         action = np.clip(q_values, self.lower_bound, self.upper_bound)
         return action
