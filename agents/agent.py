@@ -78,8 +78,8 @@ class BaseAgent:
 
     def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
         next_state = np.reshape(next_observation, (1, self.config.observation_length))
-        # self.replay_buffer.add([current_state, action, reward*self.config.discount_factor, next_state, terminal])
-        self.replay_buffer.add([current_state, action, reward, next_state, terminal])
+        self.replay_buffer.add([current_state, action, reward*self.config.discount_factor, next_state, terminal])
+        # self.replay_buffer.add([current_state, action, reward, next_state, terminal])
         return next_state
 
     def train(self):

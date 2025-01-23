@@ -63,16 +63,17 @@ class Config(object):
     # ou_mu = 1
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.2
-    # ou_sigma = 0.5
+    # ou_sigma = 0.2
+    ou_sigma = 0.5
     ou_dt = 1e-2
 
-    # tau = 0.005
-    tau = 0.125
+    tau = 0.005
+    # tau = 0.125
     upper_bound = None
     lower_bound = None
     actor_layers = (400, 300)
-    critic_layers = (48, 24)
+    # critic_layers = (48, 24)
+    critic_layers = (600, 300)
     action_dim = None
     state_shape = None
     action_bound = None

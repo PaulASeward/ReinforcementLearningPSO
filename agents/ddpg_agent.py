@@ -30,12 +30,12 @@ class DDPGAgent(BaseAgent):
 
     def build_environment(self):
         if self.config.swarm_algorithm == "PMSO":
-            # low_limit_subswarm_action_space = [-(self.config.w - self.config.w_min), -(self.config.c1 - self.config.c_min),
-            #                                    -(self.config.c2 - self.config.c_min)]
-            # high_limit_subswarm_action_space = [self.config.w_max - self.config.w, self.config.c_max - self.config.c1,
-            #                                     self.config.c_max - self.config.c2]
-            low_limit_subswarm_action_space = [self.config.w_min, self.config.c_min, self.config.c_min]
-            high_limit_subswarm_action_space = [self.config.w_max, self.config.c_max, self.config.c_max]
+            low_limit_subswarm_action_space = [-(self.config.w - self.config.w_min), -(self.config.c1 - self.config.c_min),
+                                               -(self.config.c2 - self.config.c_min)]
+            high_limit_subswarm_action_space = [self.config.w_max - self.config.w, self.config.c_max - self.config.c1,
+                                                self.config.c_max - self.config.c2]
+            # low_limit_subswarm_action_space = [self.config.w_min, self.config.c_min, self.config.c_min]
+            # high_limit_subswarm_action_space = [self.config.w_max, self.config.c_max, self.config.c_max]
 
             self.config.lower_bound = np.array(
                 [low_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)]).flatten()
@@ -49,12 +49,12 @@ class DDPGAgent(BaseAgent):
                 self.raw_env = gym.make("ContinuousMultiSwarmPsoGymEnv-v0", config=self.config)
                 self.env = self.raw_env
         else:
-            # self.config.lower_bound = np.array(
-            #     [-(self.config.w - self.config.w_min), -(self.config.c1 - self.config.c_min), -(self.config.c2 - self.config.c_min)])
-            # self.config.upper_bound = np.array(
-            #     [self.config.w_max - self.config.w, self.config.c_max - self.config.c1, self.config.c_max - self.config.c2])
-            self.config.lower_bound = np.array([self.config.w_min, self.config.c_min, self.config.c_min])
-            self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max])
+            self.config.lower_bound = np.array(
+                [-(self.config.w - self.config.w_min), -(self.config.c1 - self.config.c_min), -(self.config.c2 - self.config.c_min)])
+            self.config.upper_bound = np.array(
+                [self.config.w_max - self.config.w, self.config.c_max - self.config.c1, self.config.c_max - self.config.c2])
+            # self.config.lower_bound = np.array([self.config.w_min, self.config.c_min, self.config.c_min])
+            # self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max])
 
             if self.config.use_mock_data:
                 self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
