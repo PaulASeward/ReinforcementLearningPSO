@@ -63,17 +63,17 @@ class Config(object):
     # ou_mu = 1
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    # ou_sigma = 0.2
-    ou_sigma = 0.5
+    ou_sigma = 0.1
+    # ou_sigma = 0.5
     ou_dt = 1e-2
 
-    tau = 0.005
-    # tau = 0.125
+    # tau = 0.005
+    tau = 0.125
     upper_bound = None
     lower_bound = None
     actor_layers = (400, 300)
-    # critic_layers = (48, 24)
-    critic_layers = (600, 300)
+    critic_layers = (96, 48)
+    # critic_layers = (600, 300)
     action_dim = None
     state_shape = None
     action_bound = None
@@ -85,21 +85,16 @@ class Config(object):
     dir_save = "saved_session/"
     restore = False
 
-    # random_start = 10
-    # test_step = 5000
-
     # LEARNING PARAMETERS
     discount_factor = 0.01
     gamma = 0.99
     learning_rate = 0.001
-    # learning_rate = 0.00025
-    learning_rate_minimum = 0.00025
     lr_method = "adam"
-    lr_decay = 0.97
-    keep_prob = 0.8
 
-    state = None
-    mem_size = 800000
+    # learning_rate = 0.00025
+    # learning_rate_minimum = 0.00025
+    # lr_decay = 0.97
+    # keep_prob = 0.8
 
     # LSTM PARAMETERS
     num_lstm_layers = 1

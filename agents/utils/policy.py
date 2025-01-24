@@ -190,7 +190,6 @@ class OrnsteinUhlenbeckActionNoisePolicy(Policy):
         self.ou_noise = NormalNoise(config=config, size=config.action_dimensions)
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound
-        self.action_bound = config.action_bound
 
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start
@@ -205,7 +204,7 @@ class OrnsteinUhlenbeckActionNoisePolicy(Policy):
 
         if np.random.rand() < epsilon:
             # q_values += self.ou_noise()
-            q_values += self.ou_noise() * self.action_bound  # Scale the noise by the action bound
+            q_values += self.ou_noise()  # Scale the noise by the action bound
 
         action = np.clip(q_values, self.lower_bound, self.upper_bound)
         return action
@@ -220,7 +219,6 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
         # self.ou_noise = NormalNoise(config=config, size=config.action_dimensions)
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound
-        self.action_bound = config.action_bound
 
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start

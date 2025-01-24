@@ -26,10 +26,7 @@ class BaseModel:
         # Learning parameters
         self.gamma = config.gamma
         self.learning_rate = config.learning_rate
-        self.learning_rate_minimum = config.learning_rate_minimum
         self.lr_method = config.lr_method
-        self.lr_decay = config.lr_decay
-        self.keep_prob = config.keep_prob
 
         # Training parameters
         self.batch_size = config.batch_size
