@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras import Model
 from keras.layers import Input, Dense, BatchNormalization, Add, Lambda, Concatenate
 from agents.model_networks.base_model import BaseModel
+from tensorflow.keras.optimizers import Adam
 
 
 class ActorNetworkModel(BaseModel):
@@ -10,6 +11,8 @@ class ActorNetworkModel(BaseModel):
         # self.action_high = self.config.c_max
         self.action_high = 1
         super(ActorNetworkModel, self).__init__(config, "actor")
+        self.add_optimizer(config.lr_method, config.actor_learning_rate)
+
 
     def nn_model(self):
         # Initialize weights between -3e-3 and 3e-3
@@ -42,8 +45,8 @@ class ActorNetworkModel(BaseModel):
         # output = Lambda(lambda x: x + shift_factor)(output)  # TODO: Update the shift to the dynamic shift factors.
 
         model = Model(inputs=state_input, outputs=output)
-
-        model.compile(loss=self.compute_loss, optimizer=self.optimizer)
+        optimizer = Adam(learning_rate=self.config.actor_learning_rate)
+        model.compile(loss=self.compute_loss, optimizer=optimizer)
 
         return model
 
@@ -98,6 +101,8 @@ class CriticNetworkModel(BaseModel):
         # self.action_high = self.config.c_max
         self.action_high = 1
         super(CriticNetworkModel, self).__init__(config, "critic")
+        self.add_optimizer(config.lr_method, config.critic_learning_rate)
+
 
     def nn_model(self):
         init = tf.random_normal_initializer(stddev=0.0005)
@@ -118,8 +123,8 @@ class CriticNetworkModel(BaseModel):
         output = Dense(1, name="Output", kernel_initializer=init)(x)
         model = Model(inputs=inputs, outputs=output)
 
-        # TODO: IS THIS NEEDED?
-        model.compile(loss=self.compute_loss, optimizer=self.optimizer)
+        optimizer = Adam(learning_rate=self.config.critic_learning_rate)
+        model.compile(loss=self.compute_loss, optimizer=optimizer)
         return model
 
     # def nn_model(self):
@@ -153,15 +158,15 @@ class CriticNetworkModel(BaseModel):
     #     return model
 
     @tf.function
-    def train(self, states, actions, q_values_targets):
+    def train(self, states, actions, q_values_targets, ISWeights=1.0):
         with tf.GradientTape() as tape:
             q_values = self.model([states, actions])
             td_error = q_values - q_values_targets
-            critic_loss = tf.reduce_mean(1.0 * tf.math.square(td_error))
+            critic_loss = tf.reduce_mean(ISWeights * tf.math.square(td_error))
 
         critic_grad = tape.gradient(critic_loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(critic_grad, self.model.trainable_variables))
-        return critic_loss
+        return critic_loss, td_error
 
     # def train(self, states, actions, targets):
     #     history = self.model.fit([states, actions], targets, epochs=1, verbose=0)

@@ -15,7 +15,7 @@ class DRQNAgent(BaseAgent):
         self.target_model = DRQNModel(config)
 
         self.update_model_target_weights()
-        self.replay_buffer = ReplayBuffer()
+        self.replay_buffer = ReplayBuffer(config=config)
 
     def update_episode_states(self, next_observation):
         self.episode_states = np.roll(self.episode_states, -1, axis=0)

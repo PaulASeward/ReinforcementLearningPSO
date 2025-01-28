@@ -43,13 +43,13 @@ class BaseAgent:
             weights = self.model.model.get_weights()
             self.target_model.model.set_weights(weights)
 
-    def replay_experience(self, experience_length=10):
+    def replay_experience(self):
         if self.replay_buffer.size() < self.config.batch_size:
-            return None  # Not enough experience to replay yet.
+            return None, None, None  # Not enough experience to replay yet.
 
         losses = []
         if not self.config.use_mock_data:
-            for _ in range(experience_length):  # Why size 10?
+            for _ in range(self.config.replay_experience_length):
                 states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
                 targets = self.target_model.predict(states)
 
@@ -61,7 +61,7 @@ class BaseAgent:
                 loss = self.model.train(states, targets)
                 losses.append(loss)
 
-        return losses
+        return losses, None, None
 
     def get_actions(self):
         print(f"num_actions: {self.config.num_actions}")
@@ -78,8 +78,8 @@ class BaseAgent:
 
     def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
         next_state = np.reshape(next_observation, (1, self.config.observation_length))
-        self.replay_buffer.add([current_state, action, reward*self.config.gamma, next_state, terminal])
-        # self.replay_buffer.add([current_state, action, reward, next_state, terminal])
+        # self.replay_buffer.add([current_state, action, reward*self.config.gamma, next_state, terminal])
+        self.replay_buffer.add([current_state, action, reward, next_state, terminal])
         return next_state
 
     def train(self):
@@ -99,10 +99,10 @@ class BaseAgent:
                     rewards.append(reward)
                     swarm_observations.append(swarm_info)
 
-                losses = self.replay_experience()
+                [losses, actor_losses, critic_losses] = self.replay_experience()
                 self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
                 self.results_logger.save_log_statements(step=step + 1, actions=actions, rewards=rewards,
                                                         train_loss=losses, epsilon=self.policy.current_epsilon,
-                                                        swarm_observations=swarm_observations)
+                                                        swarm_observations=swarm_observations, actor_losses=actor_losses, critic_losses=critic_losses)
             self.results_logger.print_execution_time()

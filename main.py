@@ -39,14 +39,16 @@ if __name__ == "__main__":
     parser.add_argument("--num_episodes", type=int, default=20, help="The number of episodes in each Reinforcement Learning Iterations before terminating.")
     parser.add_argument("--num_swarm_obs_intervals", type=int, default=10, help="The number of swarm observation intervals. Ex) At 10 evenly spaced observation intervals, observations in the swarm will be collected. Default is 10.")
     parser.add_argument("--swarm_obs_interval_length", type=int, default=30, help="The number of observations per episode conducted in the swarm. Ex) Particle Best Replacement Counts are averaged over the last _ observations before an episode terminates and action is decided. Default is 30.")
-    parser.add_argument("--train", type=bool, default=True, help="Whether to train a network or to examine a given network")
+    parser.add_argument("--train", type=bool, default=False, help="Whether to train a network or to examine a given network")
     parser.add_argument("--mock", type=bool, default=False, help="To use a mock data environment for testing")
+    parser.add_argument("--priority_replay", type=bool, default=True, help="To use a priority replay buffer for training")
     parser.add_argument("--steps", type=int, default=2000, help="number of iterations to train")
     args, remaining = parser.parse_known_args()
 
     config = PSOConfig()
     config.train = args.train
     config.use_mock_data = args.mock
+    config.use_priority_replay = args.priority_replay
 
     assert args.swarm_algorithm in ["PSO", "PMSO"], "Please specify a swarm_algorithm of either PSO or PMSO"
     assert args.network_type in ["DQN", "DRQN", "DDPG"], "Please specify a network_type of either DQN, DRQN, or DDPG"
@@ -55,8 +57,8 @@ if __name__ == "__main__":
 
     config.update_properties(network_type=args.network_type, swarm_algorithm=args.swarm_algorithm, func_num=args.func_num, num_actions=args.num_actions,
                              action_dimensions=args.action_dimensions, swarm_size=args.swarm_size, dimensions=args.dim, num_episodes=args.num_episodes,
-                             num_swarm_obs_intervals=args.num_swarm_obs_intervals,
-                             swarm_obs_interval_length=args.swarm_obs_interval_length, train_steps=args.steps)
+                             num_swarm_obs_intervals=args.num_swarm_obs_intervals, swarm_obs_interval_length=args.swarm_obs_interval_length,
+                             train_steps=args.steps)
 
     print("==== Experiment: ", config.experiment)
     print("==== Args used:")

@@ -15,6 +15,8 @@ class ResultsLogger:
         self.last_log_interval_time = self.start_time
 
         self.average_loss = []
+        self.average_actor_loss = []
+        self.average_critic_loss = []
         self.average_returns = []
         self.average_fitness = []
 
@@ -60,13 +62,13 @@ class ResultsLogger:
     def write_actions_at_eval_interval_to_csv(self):
         raise NotImplementedError
 
-    def save_log_statements(self, step, actions, rewards, train_loss=None, epsilon=None, swarm_observations=None):
+    def save_log_statements(self, step, actions, rewards, train_loss=None, epsilon=None, swarm_observations=None, actor_losses=None, critic_losses=None):
         self.step = step
         self.save_actions(actions)
         self.save_step_results(epsilon, rewards, train_loss, swarm_observations)
 
         if step % self.config.log_interval == 0:
-            self.store_results_at_log_interval(train_loss)
+            self.store_results_at_log_interval(train_loss, actor_losses, critic_losses)
 
         if step % self.config.eval_interval == 0:
             self.store_results_at_eval_interval()
@@ -74,7 +76,7 @@ class ResultsLogger:
     def print_execution_time(self):
         print(f"--- Execution took {(time.time() - self.start_time) / 3600} hours ---")
 
-    def store_results_at_log_interval(self, train_loss=None):
+    def store_results_at_log_interval(self, train_loss=None, actor_losses=None, critic_losses=None):
         if train_loss is None:
             train_loss = 0.0
         else:
@@ -144,6 +146,26 @@ class ContinuousActionsResultsLogger(ResultsLogger):
     def __init__(self, config):
         super().__init__(config)
         self.continuous_action_history = np.zeros((self.config.train_steps, self.config.num_episodes, self.config.action_dimensions), dtype=np.float32)
+
+    def store_results_at_log_interval(self, train_loss=None, actor_losses=None, critic_losses=None):
+        losses = [(train_loss, self.average_loss), (actor_losses, self.average_actor_loss), (critic_losses, self.average_critic_loss)]
+
+        for loss_pair, file in zip(losses, [self.config.loss_file, self.config.actor_loss_file, self.config.critic_loss_file]):
+            loss, avg_loss = loss_pair
+            if loss is None:
+                loss = 0.0
+            else:
+                loss = np.mean(loss)
+            avg_loss.append(loss)
+            np.savetxt(file, avg_loss, delimiter=", ", fmt='% s')
+
+        # Calculate average episode time
+        current_time = time.time()
+        log_interval_run_time = current_time - self.last_log_interval_time
+        self.last_log_interval_time = current_time
+        average_episode_time = log_interval_run_time / self.config.log_interval
+
+        print(f"Step #{self.step} Loss:{train_loss} Average Episode Time: {average_episode_time / 60} minutes")
 
     def save_actions(self, actions_row):
         for episode_idx, action in enumerate(actions_row):

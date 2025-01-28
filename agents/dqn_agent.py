@@ -14,4 +14,4 @@ class DQNAgent(BaseAgent):
         self.target_model = DQNModel(config)
 
         self.update_model_target_weights()
-        self.replay_buffer = ReplayBuffer()
+        self.replay_buffer = ReplayBuffer(config=config)
