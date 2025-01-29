@@ -97,7 +97,7 @@ class Config(object):
     # LEARNING PARAMETERS
     # discount_factor = 0.01
     # gamma = 0.99
-    gamma = 0.75
+    gamma = 0.10
     learning_rate = 0.001
     lr_method = "adam"
 

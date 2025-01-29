@@ -29,20 +29,9 @@ class ActorNetworkModel(BaseModel):
 
         # Output layer
         unscaled_output = Dense(self.config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)
-        # scaling_factor = self.config.upper_bound * np.ones(self.config.action_dimensions)  # TODO: Update action_high into the dynamic scaling max.
-        # e.g. half-range:
         scaling_factor = (self.config.upper_bound - self.config.lower_bound) / 2.0
-        # e.g. midpoint:
         shift_factor = (self.config.upper_bound + self.config.lower_bound) / 2.0
         output = Lambda(lambda x: x * scaling_factor + shift_factor)(unscaled_output)
-
-        # scaling_factor = self.config.action_dimensions * self.action_high
-        # output = Lambda(lambda x: x * scaling_factor)(unscaled_output)
-        # output = Lambda(lambda x: x * 1)(unscaled_output)
-
-        # # Shift the output to practical range of the action space
-        # shift_factor = self.config.action_shift
-        # output = Lambda(lambda x: x + shift_factor)(output)  # TODO: Update the shift to the dynamic shift factors.
 
         model = Model(inputs=state_input, outputs=output)
         optimizer = Adam(learning_rate=self.config.actor_learning_rate)
