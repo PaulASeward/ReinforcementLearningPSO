@@ -96,7 +96,7 @@ class DDPGAgent(BaseAgent):
         total_losses = []
         if not self.config.use_mock_data:
             for _ in range(self.config.replay_experience_length):
-                ISWeights = None
+                ISWeights = 1.0
                 tree_idx = None
                 if self.config.use_priority_replay:
                     tree_idx, samples, ISWeights = self.replay_buffer.sample(self.config.batch_size)
