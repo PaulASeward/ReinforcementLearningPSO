@@ -70,18 +70,19 @@ class Config(object):
     # ou_mu = 1
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.1
+    ou_sigma = 0.5
     # ou_sigma = 0.5
     ou_dt = 1e-2
 
-    tau = 0.005
+    tau = 0.01
     # tau = 0.125
     upper_bound = None
     lower_bound = None
-    actor_layers = (400, 300)
-    actor_learning_rate = 1e-5
-    critic_learning_rate = 1e-4
-    critic_layers = (96, 48)
+    # actor_layers = (400, 300)
+    actor_layers = (32,16)
+    actor_learning_rate = 1e-7
+    critic_learning_rate = 1e-5
+    critic_layers = (8, 16, 32)
     # critic_layers = (600, 300)
     action_dim = None
     state_shape = None
@@ -97,7 +98,7 @@ class Config(object):
     # LEARNING PARAMETERS
     # discount_factor = 0.01
     # gamma = 0.99
-    gamma = 0.10
+    gamma = 0.85
     learning_rate = 0.001
     lr_method = "adam"
 

@@ -9,10 +9,7 @@ from tensorflow.keras.optimizers import Adam
 class ActorNetworkModel(BaseModel):
     def __init__(self, config):
         # self.action_high = self.config.c_max
-        self.action_high = 1
         super(ActorNetworkModel, self).__init__(config, "actor")
-        self.add_optimizer(config.lr_method, config.actor_learning_rate)
-
 
     def nn_model(self):
         # Initialize weights between -3e-3 and 3e-3
@@ -34,8 +31,8 @@ class ActorNetworkModel(BaseModel):
         output = Lambda(lambda x: x * scaling_factor + shift_factor)(unscaled_output)
 
         model = Model(inputs=state_input, outputs=output)
-        optimizer = Adam(learning_rate=self.config.actor_learning_rate)
-        model.compile(loss=self.compute_loss, optimizer=optimizer)
+        self.optimizer = Adam(learning_rate=self.config.actor_learning_rate)
+        # model.compile(loss=self.compute_loss, optimizer=optimizer)
 
         return model
 
@@ -88,10 +85,7 @@ class ActorNetworkModel(BaseModel):
 class CriticNetworkModel(BaseModel):
     def __init__(self, config):
         # self.action_high = self.config.c_max
-        self.action_high = 1
         super(CriticNetworkModel, self).__init__(config, "critic")
-        self.add_optimizer(config.lr_method, config.critic_learning_rate)
-
 
     def nn_model(self):
         init = tf.random_normal_initializer(stddev=0.0005)
@@ -112,8 +106,8 @@ class CriticNetworkModel(BaseModel):
         output = Dense(1, name="Output", kernel_initializer=init)(x)
         model = Model(inputs=inputs, outputs=output)
 
-        optimizer = Adam(learning_rate=self.config.critic_learning_rate)
-        model.compile(loss=self.compute_loss, optimizer=optimizer)
+        self.optimizer = Adam(learning_rate=self.config.critic_learning_rate)
+        # model.compile(loss=self.compute_loss, optimizer=optimizer)
         return model
 
     # def nn_model(self):
