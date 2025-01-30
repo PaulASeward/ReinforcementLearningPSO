@@ -9,9 +9,9 @@ class DQNAgent(BaseAgent):
     def __init__(self, config):
         super(DQNAgent, self).__init__(config)
         self.results_logger = ResultsLogger(config)
-        self.states = np.zeros([self.config.trace_length, self.config.observation_length])
+
         self.model = DQNModel(config)
         self.target_model = DQNModel(config)
 
         self.update_model_target_weights()
-        self.replay_buffer = ReplayBuffer()
+        self.replay_buffer = ReplayBuffer(config=config)

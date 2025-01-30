@@ -29,6 +29,10 @@ def plot_discrete_actions(config):
 
 
 def plot_continuous_actions(config):
+    plot_data_over_iterations(config.actor_loss_file, 'Average Actor Loss', 'Iteration', config.log_interval)
+    plot_data_over_iterations(config.critic_loss_file, 'Average Critic Loss', 'Iteration', config.log_interval)
+
+
     if config.swarm_algorithm == "PMSO":
         plot_average_continuous_actions_for_multiple_swarms(config.continuous_action_history_path,
                                                             config.action_values_path,

@@ -36,7 +36,8 @@ class ContinuousActions:
         self.action_names = ['Inertia Param',
                              'Social Param',
                              'Cognitive Param']
-        self.action_offset = [self.swarm.config.w, self.swarm.config.c1, self.swarm.config.c2]
+        # self.action_offset = [self.swarm.config.w, self.swarm.config.c1, self.swarm.config.c2]
+        self.action_offset = [0,0,0]
 
     def __call__(self, action):
         """

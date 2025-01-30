@@ -112,8 +112,10 @@ class PSOMultiSwarm:
         return multiswarm_observation
 
     def get_swarm_observation(self):
-        sub_swarm_observations = [sub_swarm.get_swarm_observation() for sub_swarm in self.sub_swarms]
-        return sub_swarm_observations
+        swarm_observation = {}
+        for i, sub_swarm in enumerate(self.sub_swarms):
+            swarm_observation[f"sub_swarm_{i}"] = sub_swarm.get_observation()
+        return swarm_observation
 
     def get_current_best_fitness(self):
         return self.gbest_val
@@ -164,9 +166,9 @@ class PSOMultiSwarm:
 
     def optimize(self):
         for obs_interval_idx in range(self.config.num_swarm_obs_intervals):
-            for _ in range(self.config.swarm_obs_interval_length):
+            for iteration_idx in range(self.config.swarm_obs_interval_length):
                 for sub_swarm in self.sub_swarms:
-                    sub_swarm.optimize_single_iteration(self.gbest_pos)
+                    sub_swarm.optimize_single_iteration(self.gbest_pos, obs_interval_idx, iteration_idx)
             for sub_swarm in self.sub_swarms:
                 sub_swarm.store_and_reset_batch_counts(obs_interval_idx)
 

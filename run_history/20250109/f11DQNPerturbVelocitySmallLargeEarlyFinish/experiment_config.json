@@ -1,0 +1,39 @@
+func_num: 11
+action_dimensions: 3
+experiment_config_path: results/experiment_config.json
+action_counts_path: results/actions_counts.csv
+continuous_action_history_path: results/continuous_action_history.npy
+action_values_path: results/actions_values.csv
+epsilon_values_path: results/epsilon_values.csv
+fitness_plot_path: None
+average_returns_plot_path: None
+fitness_path: results/average_fitness.csv
+episode_results_path: results/episode_results.csv
+training_step_results_path: results/step_results.csv
+average_returns_path: results/average_returns.csv
+loss_file: results/average_training_loss.csv
+interval_actions_counts_path: results/interval_actions_counts.csv
+standard_pso_path: pso/standard_pso_results/f11.csv
+experiment: DQN_PSO_F11
+num_eval_intervals: 40
+label_iterations_intervals: range(0, 2050, 100)
+iteration_intervals: range(50, 2050, 50)
+obs_per_episode: 300
+iterations: range(0, 2000, 50)
+swarm_size: 50
+num_actions: 7
+swarm_algorithm: PSO
+num_sub_swarms: None
+network_type: DQN
+dim: 30
+train: False
+use_mock_data: False
+observation_length: 150
+num_episodes: 20
+trace_length: 20
+num_swarm_obs_intervals: 10
+swarm_obs_interval_length: 30
+train_steps: 2000
+log_interval: 20
+eval_interval: 50
+actions_descriptions: ['Do nothing', 'Slightly perturb slow particles velocity', 'Slightly perturb all particles velocity', 'Slightly perturb fast particles velocity', 'Large perturb slow particles velocity', 'Large perturb all particles velocity', 'Large perturb fast particles velocity']
