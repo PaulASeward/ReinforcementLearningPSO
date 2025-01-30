@@ -3,7 +3,6 @@ import numpy as np
 import tensorflow as tf
 
 from environment.gym_env_continuous import ContinuousPsoGymEnv
-from environment.gym_multiswarm_env_continuous import ContinuousMultiSwarmPsoGymEnv
 from tf_agents.environments import tf_py_environment
 
 import gymnasium as gym
@@ -33,10 +32,6 @@ class DDPGAgent(BaseAgent):
 
     def build_environment(self):
         if self.config.swarm_algorithm == "PMSO":
-            # low_limit_subswarm_action_space = [-(self.config.w - self.config.w_min), -(self.config.c1 - self.config.c_min),
-            #                                    -(self.config.c2 - self.config.c_min)]
-            # high_limit_subswarm_action_space = [self.config.w_max - self.config.w, self.config.c_max - self.config.c1,
-            #                                     self.config.c_max - self.config.c2]
             low_limit_subswarm_action_space = [self.config.w_min, self.config.c_min, self.config.c_min]
             high_limit_subswarm_action_space = [self.config.w_max, self.config.c_max, self.config.c_max]
 
@@ -44,30 +39,18 @@ class DDPGAgent(BaseAgent):
                 [low_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)], dtype=np.float32).flatten()
             self.config.upper_bound = np.array(
                 [high_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)], dtype=np.float32).flatten()
-
-            if self.config.use_mock_data:
-                self.raw_env = gym.make("MockContinuousPmsoGymEnv-v0", config=self.config)
-                self.env = self.raw_env
-            else:
-                self.raw_env = gym.make("ContinuousMultiSwarmPsoGymEnv-v0", config=self.config)
-                self.env = self.raw_env
         else:
-            # self.config.lower_bound = np.array(
-            #     [-(self.config.w - self.config.w_min), -(self.config.c1 - self.config.c_min), -(self.config.c2 - self.config.c_min)], dtype=np.float32)
-            # self.config.upper_bound = np.array(
-            #     [self.config.w_max - self.config.w, self.config.c_max - self.config.c1, self.config.c_max - self.config.c2], dtype=np.float32)
             self.config.lower_bound = np.array([self.config.w_min, self.config.c_min, self.config.c_min], dtype=np.float32)
             self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max], dtype=np.float32)
 
-            if self.config.use_mock_data:
-                self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
-                self.env = self.raw_env
-            else:
-                self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
-                self.env = self.raw_env
+        if self.config.use_mock_data:
+            self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
+        else:
+            self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
+            self.env = self.raw_env
 
         self.config.state_shape = self.env.observation_space.shape
-
 
     def get_q_values(self, state):
         return self.actor_network.get_action_q_values(state)

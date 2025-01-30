@@ -1,8 +1,9 @@
 import gymnasium as gym
 import numpy as np
 from pso.cec_benchmark_functions import CEC_functions
-from environment.actions.continuous_actions import ContinuousActions
+from environment.actions.continuous_actions import ContinuousActions, ContinuousMultiswarmActions
 from pso.pso_swarm import PSOSwarm
+from pso.pso_multiswarm import PSOMultiSwarm
 
 
 class ContinuousPsoGymEnv(gym.Env):
@@ -29,8 +30,12 @@ class ContinuousPsoGymEnv(gym.Env):
         self.action_space = gym.spaces.Box(low=config.lower_bound, high=config.upper_bound, shape=(self._action_dimensions,), dtype=np.float32)
         self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
 
-        self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
-        self.actions = ContinuousActions(swarm=self.swarm, config=config)
+        if config.swarm_algorithm == "PMSO":
+            self.swarm = PSOMultiSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
+            self.actions = ContinuousMultiswarmActions(swarm=self.swarm, config=config)
+        else:
+            self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
+            self.actions = ContinuousActions(swarm=self.swarm, config=config)
         config.actions_descriptions = self.actions.action_names[:self._action_dimensions]
         config.continuous_action_offset = self.actions.action_offset
 

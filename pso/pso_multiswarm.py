@@ -112,8 +112,10 @@ class PSOMultiSwarm:
         return multiswarm_observation
 
     def get_swarm_observation(self):
-        sub_swarm_observations = [sub_swarm.get_swarm_observation() for sub_swarm in self.sub_swarms]
-        return sub_swarm_observations
+        swarm_observation = {}
+        for i, sub_swarm in enumerate(self.sub_swarms):
+            swarm_observation[f"sub_swarm_{i}"] = sub_swarm.get_observation()
+        return swarm_observation
 
     def get_current_best_fitness(self):
         return self.gbest_val
