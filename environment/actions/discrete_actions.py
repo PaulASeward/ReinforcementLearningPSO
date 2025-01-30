@@ -1,10 +1,36 @@
 import numpy as np
+from enum import Enum
 
 
 class DiscreteActions:
     def __init__(self, swarm, config):
         self.swarm = swarm
         self.config = config
+        # self.action_methods = {
+        #     0: self.do_nothing,
+        #     1: self.inject_small_perturbations_to_slow_particles,
+        #     2: self.inject_small_perturbations_to_all_particles,
+        #     3: self.inject_small_perturbations_to_fast_particles,
+        #     4: self.inject_medium_perturbations_to_slow_particles,
+        #     5: self.inject_medium_perturbations_to_all_particles,
+        #     6: self.inject_medium_perturbations_to_fast_particles,
+        #     7: self.inject_large_perturbations_to_slow_particles,
+        #     8: self.inject_large_perturbations_to_all_particles,
+        #     9: self.inject_large_perturbations_to_fast_particles,
+        # }
+        #
+        # self.action_names = ['Do nothing',
+        #                      'Slightly perturb slow particles velocity',
+        #                      'Slightly perturb all particles velocity',
+        #                      'Slightly perturb fast particles velocity',
+        #                      'Moderately perturb slow particles velocity',
+        #                      'Moderately perturb all particles velocity',
+        #                      'Moderately perturb fast particles velocity',
+        #                      'Large perturb slow particles velocity',
+        #                      'Large perturb all particles velocity',
+        #                      'Large perturb fast particles velocity']
+
+
         self.action_methods = {
             0: self.do_nothing,
             1: self.increase_inertia,
@@ -64,6 +90,15 @@ class DiscreteActions:
 
         self.swarm.update_swarm_valuations_and_bests()
 
+    def reset_particles_using_lattice(self):
+        grid_points = int(np.cbrt(self.swarm.swarm_size))  # Assuming cubic grid
+        lattice = np.linspace(-1 * self.swarm.rangeF, self.swarm.rangeF, grid_points)
+        positions = np.array(np.meshgrid(*([lattice] * self.swarm.dimension))).T.reshape(-1, self.swarm.dimension)
+        np.random.shuffle(positions)
+        self.swarm.X[:positions.shape[0]] = positions[:self.swarm.swarm_size]
+        self.swarm.V = np.zeros_like(self.swarm.V)
+        self.swarm.update_swarm_valuations_and_bests()
+
     def increase_all_velocities(self):
         self.swarm.V = self.swarm.V * 1.10
         self.swarm.V = np.clip(self.swarm.V, -self.swarm.abs_max_velocity, self.swarm.abs_max_velocity)
@@ -74,6 +109,33 @@ class DiscreteActions:
     def _calculate_average_velocity(self):
         self.swarm.update_velocity_maginitude()
         return np.mean(self.swarm.velocity_magnitudes)
+
+    def inject_small_perturbations_to_slow_particles(self):
+        self.swarm.inject_random_perturbations_to_velocities(selection_type=0, factor=0.05)
+
+    def inject_medium_perturbations_to_slow_particles(self):
+        self.swarm.inject_random_perturbations_to_velocities(selection_type=0, factor=0.20)
+
+    def inject_large_perturbations_to_slow_particles(self):
+        self.swarm.inject_random_perturbations_to_velocities(selection_type=0, factor=0.50)
+
+    def inject_small_perturbations_to_fast_particles(self):
+        self.swarm.inject_random_perturbations_to_velocities(selection_type=1, factor=0.05)
+
+    def inject_medium_perturbations_to_fast_particles(self):
+        self.swarm.inject_random_perturbations_to_velocities(selection_type=1, factor=0.20)
+
+    def inject_large_perturbations_to_fast_particles(self):
+        self.swarm.inject_random_perturbations_to_velocities(selection_type=1, factor=0.50)
+
+    def inject_small_perturbations_to_all_particles(self):
+        self.swarm.inject_random_perturbations_to_velocities(selection_type=2, factor=0.05)
+
+    def inject_medium_perturbations_to_all_particles(self):
+        self.swarm.inject_random_perturbations_to_velocities(selection_type=2, factor=0.20)
+
+    def inject_large_perturbations_to_all_particles(self):
+        self.swarm.inject_random_perturbations_to_velocities(selection_type=2, factor=0.50)
 
     def increase_velocities_of_slow_velocities(self):
         avg_velocity = self._calculate_average_velocity()

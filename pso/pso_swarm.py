@@ -17,6 +17,12 @@ class PSOSwarm:
         self.dimension = config.dim
         self.swarm_size = config.swarm_size
         self.rangeF = config.rangeF
+        self.perturb_velocities = False
+        self.perturb_velocity_factor = None
+        self.perturb_velocity_particle_selection = None
+        self.perturb_positions = False
+        self.perturb_position_factor = None
+        self.perturb_position_particle_selection = None
 
         # Threshold Params
         self.gbest_replacement_threshold, self.pbest_replacement_threshold = config.replacement_threshold, config.replacement_threshold
@@ -86,6 +92,42 @@ class PSOSwarm:
 
         self.update_relative_fitnesses()
         self.update_velocity_maginitude()
+
+    def _inject_random_perturbations_to_velocities(self, selection_type, factor):
+        self.update_velocity_maginitude()
+        avg_velocity = np.mean(self.velocity_magnitudes)
+
+        # Determine the particles to select based on the selection type
+        if selection_type == 0:  # Slow half particles
+            selected_particles = self.velocity_magnitudes < avg_velocity
+        elif selection_type == 1:  # Fast half particles
+            selected_particles = self.velocity_magnitudes >= avg_velocity
+        elif selection_type == 2:  # All particles
+            selected_particles = np.ones(self.velocity_magnitudes.shape, dtype=bool)  # Select all particles
+        else:
+            raise ValueError("Invalid selection type")
+
+        selected_particles_reshaped = selected_particles[:, np.newaxis]  # Reshape for broadcasting
+
+        # Generate random perturbations based on the factor
+        random_perturbations = np.random.uniform(
+            low=-factor * self.abs_max_velocity,
+            high=factor * self.abs_max_velocity,
+            size=self.V.shape
+        )
+
+        # Apply perturbations to the selected particles
+        perturbed_velocities = self.V + random_perturbations
+        perturbed_velocities = np.clip(perturbed_velocities, -self.abs_max_velocity, self.abs_max_velocity)
+
+        # Update velocities and the swarm
+        self.V = np.where(selected_particles_reshaped, perturbed_velocities, self.V)
+        self.update_swarm_valuations_and_bests()
+
+    def inject_random_perturbations_to_velocities(self, selection_type, factor):
+        self.perturb_velocities = True
+        self.perturb_velocity_factor = factor
+        self.perturb_velocity_particle_selection = selection_type
 
     def update_relative_fitnesses(self):
         self.relative_fitnesses = (self.P_vals - self.gbest_val) / np.abs(self.P_vals)
@@ -162,12 +204,19 @@ class PSOSwarm:
 
     def optimize(self):
         for obs_interval_idx in range(self.num_swarm_obs_intervals):
-            for _ in range(self.swarm_obs_interval_length):
-                self.optimize_single_iteration(self.gbest_pos)
+            for iteration_idx in range(self.swarm_obs_interval_length):
+                self.optimize_single_iteration(self.gbest_pos, obs_interval_idx, iteration_idx)
             self.store_and_reset_batch_counts(obs_interval_idx)
 
-    def optimize_single_iteration(self, global_leader):
+    def optimize_single_iteration(self, global_leader, obs_interval, iteration_idx):
+        # if obs_interval == 0 and iteration_idx < self.swarm_obs_interval_length * 0.10:
+        if obs_interval == 0 and iteration_idx == 0:  # Only perturb velocities in the first iteration of the first observation interval
+            self.perturb_velocities = False
+            self.perturb_positions = False
+
         self.update_velocities(global_leader)  # Input global leader particle position
+        if self.perturb_velocities:
+            self._inject_random_perturbations_to_velocities(self.perturb_velocity_particle_selection, self.perturb_velocity_factor)
         self.update_positions()
         self.update_pbests()
         self.update_gbest()

@@ -1,8 +1,12 @@
 import os
 import copy
 
+import numpy as np
+
+
 class Config(object):
     use_mock_data = False
+    use_priority_replay = False
 
     # AGENT PARAMETERS
     num_episodes = 20
@@ -13,6 +17,8 @@ class Config(object):
     train_steps = 20000
     log_interval = 200
     eval_interval = 500
+
+    replay_experience_length = 10
 
     # EXPERIMENT PARAMETERS
     fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
@@ -46,26 +52,41 @@ class Config(object):
     # epsilon_decay = float((epsilon_start - epsilon_end)) / float(epsilon_decay_episodes)
     epsilon_decay = 0.995
 
-    # DQN TRAINING PARAMETERS
+    # Replay Buffer
+    buffer_size = 10000
     batch_size = 64
+    replay_priority_capacity = 100000
+    replay_priority_epsilon = 0.01  # small amount to avoid zero priority
+    replay_priority_alpha = 0.7  # [0~1] convert the importance of TD error to priority
+    replay_priority_beta = 0.5  # importance-sampling, from initial value increasing to 1
+    replay_priority_beta_increment = 0.001
+    replay_priority_beta_max_abs_error = 1.0  # clipped abs error
+
+    # DRQN TRAINING PARAMETERS
     trace_length = 10
     history_len = 4
-    # frame_skip = 4
-    # max_steps = 10000
-    # train_freq = 8
-    # update_freq = 10000
-    # train_start = 20000
 
     # DDPG TRAINING PARAMETERS
-    # ou_mean = 1
-    ou_mean = 0.0
+    # ou_mu = 1
+    ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    # ou_sigma = 0.2
     ou_sigma = 0.5
     ou_dt = 1e-2
-    tau = 0.005
+
+    tau = 0.01
+    # tau = 0.125
     upper_bound = None
     lower_bound = None
+    # actor_layers = (400, 300)
+    actor_layers = (32,16)
+    actor_learning_rate = 1e-7
+    critic_learning_rate = 1e-5
+    critic_layers = (8, 16, 32)
+    # critic_layers = (600, 300)
+    action_dim = None
+    state_shape = None
+    action_bound = None
+    action_shift = None
 
     actions_descriptions = None
     continuous_action_offset = None
@@ -73,21 +94,17 @@ class Config(object):
     dir_save = "saved_session/"
     restore = False
 
-    # random_start = 10
-    # test_step = 5000
-
     # LEARNING PARAMETERS
-    discount_factor = 0.01
-    gamma = 0.99
+    # discount_factor = 0.01
+    # gamma = 0.99
+    gamma = 0.85
     learning_rate = 0.001
-    # learning_rate = 0.00025
-    learning_rate_minimum = 0.00025
     lr_method = "adam"
-    lr_decay = 0.97
-    keep_prob = 0.8
 
-    state = None
-    mem_size = 800000
+    # learning_rate = 0.00025
+    # learning_rate_minimum = 0.00025
+    # lr_decay = 0.97
+    # keep_prob = 0.8
 
     # LSTM PARAMETERS
     num_lstm_layers = 1
@@ -113,6 +130,8 @@ class Config(object):
         self.training_step_results_path = None
         self.average_returns_path = None
         self.loss_file = None
+        self.actor_loss_file = None
+        self.critic_loss_file = None
         self.interval_actions_counts_path = None
         self.standard_pso_path = None
         self.experiment = None
@@ -140,6 +159,7 @@ class Config(object):
 
         if action_dimensions is not None:
             self.action_dimensions = action_dimensions
+            self.ou_mu = np.zeros(self.action_dimensions)
 
         if swarm_size is not None:
             self.swarm_size = swarm_size
@@ -181,6 +201,8 @@ class Config(object):
             self.experiment_config_path = os.path.join(self.results_dir, f"experiment_config.json")
             self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
             self.loss_file = os.path.join(self.results_dir, f"average_training_loss.csv")
+            self.actor_loss_file = os.path.join(self.results_dir, f"actor_loss.csv")
+            self.critic_loss_file = os.path.join(self.results_dir, f"critic_loss.csv")
             self.average_returns_path = os.path.join(self.results_dir, f"average_returns.csv")
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
             self.episode_results_path = os.path.join(self.results_dir, f"episode_results.csv")

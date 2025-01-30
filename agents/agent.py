@@ -10,7 +10,6 @@ import numpy as np
 class BaseAgent:
     def __init__(self, config):
         self.replay_buffer = None
-        self.states = None
         self.target_model = None
         self.model = None
         self.policy = None
@@ -44,21 +43,25 @@ class BaseAgent:
             weights = self.model.model.get_weights()
             self.target_model.model.set_weights(weights)
 
-    def replay_experience(self, experience_length=10):
+    def replay_experience(self):
+        if self.replay_buffer.size() < self.config.batch_size:
+            return None, None, None  # Not enough experience to replay yet.
+
         losses = []
         if not self.config.use_mock_data:
-            for _ in range(experience_length):  # Why size 10?
+            for _ in range(self.config.replay_experience_length):
                 states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
                 targets = self.target_model.predict(states)
 
                 next_q_values = self.target_model.predict(next_states).max(axis=1)
-                targets[range(self.config.batch_size), actions] = (
-                            rewards + (1 - done) * next_q_values * self.config.gamma)
+
+                q_values_target = rewards + (1 - done) * self.config.gamma * next_q_values
+                targets[range(self.config.batch_size), actions] = q_values_target
 
                 loss = self.model.train(states, targets)
                 losses.append(loss)
 
-        return losses
+        return losses, None, None
 
     def get_actions(self):
         print(f"num_actions: {self.config.num_actions}")
@@ -68,37 +71,38 @@ class BaseAgent:
                 action_no = str(index + 1)
                 print(f"Action #{action_no} Description: {description}")
 
+    def initialize_current_state(self):
+        self.policy.reset()
+        observation, swarm_info = self.env.reset()
+        return np.reshape(observation, (1, self.config.observation_length))
+
+    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
+        next_state = np.reshape(next_observation, (1, self.config.observation_length))
+        # self.replay_buffer.add([current_state, action, reward*self.config.gamma, next_state, terminal])
+        self.replay_buffer.add([current_state, action, reward, next_state, terminal])
+        return next_state
+
     def train(self):
         with self.writer.as_default():
-            for ep in range(self.config.train_steps):
+            for step in range(self.config.train_steps):
                 actions, rewards, swarm_observations, terminal = [], [], [], False
-
-                self.states = np.zeros([self.config.trace_length, self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
-
-                self.policy.reset()
-                observation, swarm_info = self.env.reset()
-                state = np.reshape(observation, (1, self.config.observation_length))
+                current_state = self.initialize_current_state()
 
                 while not terminal:
-                    q_values = self.get_q_values(state)
+                    q_values = self.get_q_values(current_state)
                     action = self.policy.select_action(q_values)
                     next_observation, reward, terminal, swarm_info = self.env.step(action)
 
-                    next_state = np.reshape(next_observation, (1, self.config.observation_length))
-                    self.replay_buffer.add([state, action, reward * self.config.discount_factor, next_state, terminal])
+                    current_state = self.update_memory_and_state(current_state, action, reward, next_observation, terminal)
 
-                    state = next_state
                     actions.append(action)
                     rewards.append(reward)
                     swarm_observations.append(swarm_info)
 
-                losses = None
-                if self.replay_buffer.size() >= self.config.batch_size:
-                    losses = self.replay_experience()  # Only replay experience once there is enough in buffer to sample.
-
+                [losses, actor_losses, critic_losses] = self.replay_experience()
                 self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
 
-                self.results_logger.save_log_statements(step=ep + 1, actions=actions, rewards=rewards,
+                self.results_logger.save_log_statements(step=step + 1, actions=actions, rewards=rewards,
                                                         train_loss=losses, epsilon=self.policy.current_epsilon,
-                                                        swarm_observations=swarm_observations)
+                                                        swarm_observations=swarm_observations, actor_losses=actor_losses, critic_losses=critic_losses)
             self.results_logger.print_execution_time()
