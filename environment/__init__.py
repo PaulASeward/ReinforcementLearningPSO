@@ -6,11 +6,6 @@ gym.register(
 )
 
 gym.register(
-    id="ContinuousMultiSwarmPsoGymEnv-v0",
-    entry_point="environment.gym_multiswarm_env_continuous:ContinuousMultiSwarmPsoGymEnv",
-)
-
-gym.register(
     id="DiscretePsoGymEnv-v0",
     entry_point="environment.gym_env_discrete:DiscretePsoGymEnv",
 )
