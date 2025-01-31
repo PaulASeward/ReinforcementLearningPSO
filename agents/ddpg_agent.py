@@ -113,29 +113,3 @@ class DDPGAgent(BaseAgent):
                 critic_losses.append(critic_loss)
 
         return total_losses, actor_losses, critic_losses
-
-
-    # def replay_experience(self):
-    #     if self.replay_buffer.size() < self.config.batch_size:
-    #         return None  # Not enough experience to replay yet.
-    #
-    #     losses = []
-    #     if not self.config.use_mock_data:
-    #         for _ in range(self.config.replay_experience_length):
-    #             states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
-    #
-    #             # ---------------------------- update critic ---------------------------- #
-    #             next_actions = self.actor_network_target.model(next_states)
-    #             next_q_values = self.critic_network_target.model([next_states, next_actions])
-    #
-    #             # Use Bellman Equation. (recursive definition of q-values)
-    #             q_values_target = rewards + (1 - done) * self.config.gamma * next_q_values
-    #
-    #             self.critic_network.model.fit([states, actions], q_values_target, batch_size=self.config.batch_size, epochs=1, verbose=0, shuffle=False)
-    #
-    #             # ---------------------------- update actor ---------------------------- #
-    #             action_loss = self.actor_network.train(states, self.critic_network.model)
-    #
-    #             losses.append(action_loss)
-    #
-    #     return losses

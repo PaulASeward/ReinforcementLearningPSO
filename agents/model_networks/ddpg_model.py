@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Model
-from keras.layers import Input, Dense, BatchNormalization, Lambda, Concatenate
+from keras.layers import Input, Dense, BatchNormalization, Lambda, Concatenate, Attention, LayerNormalization
 from agents.model_networks.base_model import BaseModel
 from tensorflow.keras.optimizers import Adam
 
@@ -18,7 +18,10 @@ class ActorNetworkModel(BaseModel):
         state_input = Input(shape=self.config.state_shape, dtype=tf.float32)
 
         # Hidden layers
-        x = Dense(self.config.actor_layers[0], name="L0", activation=tf.nn.leaky_relu, kernel_initializer=init)(state_input)
+        attention_output = Attention(use_scale=True)([state_input, state_input])  # Self-attention mechanism
+        attention_output = LayerNormalization()(attention_output)  # Apply normalization after attention
+
+        x = Dense(self.config.actor_layers[0], name="L0", activation=tf.nn.leaky_relu, kernel_initializer=init)(attention_output)
         for index in range(1, len(self.config.actor_layers)):
             x = Dense(self.config.actor_layers[index], name=f"L{index}", activation=tf.nn.leaky_relu, kernel_initializer=init)(x)
             # x = BatchNormalization()(x)
@@ -60,9 +63,15 @@ class CriticNetworkModel(BaseModel):
         state_input = Input(shape=self.config.state_shape, dtype=tf.float32)
         action_input = Input(shape=action_input_shape, dtype=tf.float32)
         inputs = [state_input, action_input]
-        concat = Concatenate(axis=-1)(inputs)
 
         # Hidden layers
+        attention_output = Attention(use_scale=True)([state_input, state_input])  # Self-attention mechanism
+        attention_output = LayerNormalization()(attention_output)  # Apply normalization after attention
+
+        # Concatenate the state and action input after attention mechanism
+        concat = Concatenate(axis=-1)([attention_output, action_input])
+        # concat = Concatenate(axis=-1)(inputs)
+
         x = Dense(self.config.critic_layers[0], name="L0", activation=tf.nn.leaky_relu, kernel_initializer=init)(concat)
         for index in range(1, len(self.config.critic_layers)):
             x = Dense(self.config.critic_layers[index], name=f"L{index}", activation=tf.nn.leaky_relu, kernel_initializer=init)(x)
