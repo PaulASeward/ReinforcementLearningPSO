@@ -163,7 +163,7 @@ class Config(object):
 
         if swarm_size is not None:
             self.swarm_size = swarm_size
-            self.observation_length = self.swarm_size * 3
+            self.observation_length = self.swarm_size * 3 + 1
 
         if dimensions is not None:
             self.dim = dimensions

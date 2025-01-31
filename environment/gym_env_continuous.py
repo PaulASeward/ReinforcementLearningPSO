@@ -46,9 +46,13 @@ class ContinuousPsoGymEnv(gym.Env):
         self._best_fitness = None
         self.current_best_f = None
 
-
     def _get_obs(self):
-        return self.swarm.get_observation().astype(np.float32)
+        # return self.swarm.get_observation().astype(np.float32)
+        swarm_observation = self.swarm.get_observation()
+        current_episode_percent = self._actions_count / self._max_episodes
+        observation = np.append(swarm_observation, current_episode_percent)
+
+        return observation.astype(np.float32)
 
     def _get_reward(self):
         self.current_best_f = self.swarm.get_current_best_fitness()

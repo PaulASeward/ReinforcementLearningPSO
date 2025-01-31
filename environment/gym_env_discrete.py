@@ -42,7 +42,13 @@ class DiscretePsoGymEnv(gym.Env):
 
 
     def _get_obs(self):
-        return self.swarm.get_observation()
+        # return self.swarm.get_observation()
+        swarm_observation = self.swarm.get_observation()
+        current_episode_percent = self._actions_count / self._max_episodes
+        observation = np.append(swarm_observation, current_episode_percent)
+
+        return observation.astype(np.float32)
+
 
     def _get_reward(self):
         self.current_best_f = self.swarm.get_current_best_fitness()
