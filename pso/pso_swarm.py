@@ -39,7 +39,7 @@ class PSOSwarm:
 
         self.velocity_magnitudes = None
         self.relative_fitnesses = None
-        self.average_batch_counts = None
+        self.average_pbest_replacement_counts = None
         self.pbest_replacement_counts = None
 
         self.P_vals = None
@@ -83,7 +83,7 @@ class PSOSwarm:
         # Static class variables to track P_vals replacements
         self.pbest_replacement_counts = np.zeros(self.swarm_size)
         self.pbest_replacement_batchcounts = np.zeros((self.num_swarm_obs_intervals, self.swarm_size))
-        self.average_batch_counts = np.zeros(self.swarm_size)
+        self.average_pbest_replacement_counts = np.zeros(self.swarm_size)
 
     def update_swarm_valuations_and_bests(self):
         self.P_vals = self.eval(self.P)  # Vector of particle's current valuation of its best position based on Function Eval
@@ -135,16 +135,26 @@ class PSOSwarm:
     def update_velocity_maginitude(self):
         self.velocity_magnitudes = np.linalg.norm(self.V, axis=1)
 
-    def update_batch_counts(self):
+    def update_average_pbest_replacement_counts(self):
         # Calculate the average batch count for each particle
-        self.average_batch_counts = np.mean(self.pbest_replacement_batchcounts, axis=0)
+        self.average_pbest_replacement_counts = np.mean(self.pbest_replacement_batchcounts, axis=0)
 
     def get_observation(self):
         self.update_relative_fitnesses()
         self.update_velocity_maginitude()
-        self.update_batch_counts()
+        self.update_average_pbest_replacement_counts()
 
-        return np.concatenate([self.velocity_magnitudes, self.relative_fitnesses, self.average_batch_counts], axis=0)
+        # obs = np.concatenate([self.velocity_magnitudes, self.relative_fitnesses, self.average_pbest_replacement_counts], axis=0)
+
+        obs_stack = np.column_stack([
+            self.velocity_magnitudes,
+            self.relative_fitnesses,
+            self.average_pbest_replacement_counts
+        ])
+
+        # Flatten to ensure the observations are in the required 1D format
+        obs =  obs_stack.flatten()
+        return obs
 
     def get_swarm_observation(self):
         return {
@@ -203,6 +213,7 @@ class PSOSwarm:
         self.pbest_replacement_counts = np.zeros(self.swarm_size)
 
     def optimize(self):
+        x=1
         for obs_interval_idx in range(self.num_swarm_obs_intervals):
             for iteration_idx in range(self.swarm_obs_interval_length):
                 self.optimize_single_iteration(self.gbest_pos, obs_interval_idx, iteration_idx)
