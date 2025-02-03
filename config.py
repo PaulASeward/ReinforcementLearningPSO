@@ -70,7 +70,7 @@ class Config(object):
     # ou_mu = 1
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.5
+    ou_sigma = 0.8
     ou_dt = 1e-2
 
     tau = 0.01
@@ -78,9 +78,10 @@ class Config(object):
     upper_bound = None
     lower_bound = None
     # actor_layers = (400, 300)
+    use_attention_layer = True
     actor_layers = (32,16)
-    actor_learning_rate = 1e-7
-    critic_learning_rate = 1e-5
+    actor_learning_rate = 1e-5
+    critic_learning_rate = 1e-3
     critic_layers = (8, 16, 32)
     # critic_layers = (600, 300)
     action_dim = None
@@ -219,11 +220,13 @@ class PSOConfig(Config):
     is_sub_swarm = False
 
     w = 0.729844  # Inertia weight
-    w_min = 0.43  # Min of 5 decreases of 10%
+    w_min = 0.33  # Min of 5 decreases of 10%
+    # w_min = 0.43  # Min of 5 decreases of 10%
     w_max = 1.175  # Max of 5 increases of 10%
     c1 = 2.05 * w  # Social component Learning Factor
     c2 = 2.05 * w  # Cognitive component Learning Factor
-    c_min = 0.883  # Min of 5 decreases of 10%
+    # c_min = 0.883  # Min of 5 decreases of 10%
+    c_min = 0.583  # Min of 5 decreases of 10%
     c_max = 2.409  # Max of 5 increases of 10%
     rangeF = 100
     v_min = 59.049
