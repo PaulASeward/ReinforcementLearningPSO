@@ -34,8 +34,18 @@ class ResultsLogger:
 
     def save_config(self):
         with open(self.config.experiment_config_path, 'w') as f:
-            for key, value in vars(self.config).items():
+            # Get instance attributes
+            config_vars = vars(self.config)
+
+            # Get class attributes (excluding built-ins)
+            class_vars = {k: v for k, v in self.config.__class__.__dict__.items() if not k.startswith("__")}
+
+            # Merge both
+            all_vars = {**class_vars, **config_vars}
+
+            for key, value in all_vars.items():
                 f.write(f"{key}: {value}\n")
+
 
     def save_step_results(self, epsilon, rewards, train_loss=None, swarm_observations_dicts=None):
         if train_loss is None:
