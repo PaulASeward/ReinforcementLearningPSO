@@ -1,7 +1,7 @@
 from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
 from agents.ddpg_agent import DDPGAgent
-from config import PSOConfig
+from config import Config
 import argparse
 
 
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--steps", type=int, default=2000, help="number of iterations to train")
     args, remaining = parser.parse_known_args()
 
-    config = PSOConfig()
+    config = Config()
     config.train = args.train
     config.use_mock_data = args.mock
     config.use_priority_replay = args.priority_replay

@@ -70,7 +70,7 @@ class Config(object):
     # ou_mu = 1
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.8
+    ou_sigma = 0.6
     ou_dt = 1e-2
 
     tau = 0.01
@@ -80,8 +80,8 @@ class Config(object):
     # actor_layers = (400, 300)
     use_attention_layer = True
     actor_layers = (32,16)
-    actor_learning_rate = 1e-5
-    critic_learning_rate = 1e-3
+    actor_learning_rate = 1e-8
+    critic_learning_rate = 1e-6
     critic_layers = (8, 16, 32)
     # critic_layers = (600, 300)
     action_dim = None
@@ -115,6 +115,27 @@ class Config(object):
 
     # EVALUATION PARAMETERS
     # number_evaluations = 10000
+
+    # PSO Config:
+    topology = 'global'
+    is_sub_swarm = False
+
+    w = 0.729844  # Inertia weight
+    w_min = 0.33  # Min of 5 decreases of 10%
+    # w_min = 0.43  # Min of 5 decreases of 10%
+    w_max = 1.175  # Max of 5 increases of 10%
+    c1 = 2.05 * w  # Social component Learning Factor
+    c2 = 2.05 * w  # Cognitive component Learning Factor
+    # c_min = 0.883  # Min of 5 decreases of 10%
+    c_min = 0.583  # Min of 5 decreases of 10%
+    c_max = 2.409  # Max of 5 increases of 10%
+    rangeF = 100
+    v_min = 59.049
+    v_max = 161.051
+    replacement_threshold = 1.0
+    replacement_threshold_min = 0.5
+    replacement_threshold_max = 1.0
+    replacement_threshold_decay = 0.95
 
     def __init__(self):
         self.func_num = None
@@ -213,25 +234,3 @@ class Config(object):
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
             self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
             self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.func_num}.csv")
-
-
-class PSOConfig(Config):
-    topology = 'global'
-    is_sub_swarm = False
-
-    w = 0.729844  # Inertia weight
-    w_min = 0.33  # Min of 5 decreases of 10%
-    # w_min = 0.43  # Min of 5 decreases of 10%
-    w_max = 1.175  # Max of 5 increases of 10%
-    c1 = 2.05 * w  # Social component Learning Factor
-    c2 = 2.05 * w  # Cognitive component Learning Factor
-    # c_min = 0.883  # Min of 5 decreases of 10%
-    c_min = 0.583  # Min of 5 decreases of 10%
-    c_max = 2.409  # Max of 5 increases of 10%
-    rangeF = 100
-    v_min = 59.049
-    v_max = 161.051
-    replacement_threshold = 1.0
-    replacement_threshold_min = 0.5
-    replacement_threshold_max = 1.0
-    replacement_threshold_decay = 0.95
