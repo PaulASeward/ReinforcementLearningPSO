@@ -213,7 +213,6 @@ class PSOSwarm:
         self.pbest_replacement_counts = np.zeros(self.swarm_size)
 
     def optimize(self):
-        x=1
         for obs_interval_idx in range(self.num_swarm_obs_intervals):
             for iteration_idx in range(self.swarm_obs_interval_length):
                 self.optimize_single_iteration(self.gbest_pos, obs_interval_idx, iteration_idx)

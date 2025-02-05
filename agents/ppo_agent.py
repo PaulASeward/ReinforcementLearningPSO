@@ -30,13 +30,13 @@ class PPOAgent(BaseAgent):
         Perform the PPO update: fetch the entire on-policy batch from PPOBuffer,
         then run gradient descent for a certain number of epochs on policy and value networks.
         """
-        obs, act, adv, ret, logp_old  = self.trajectory_buffer.get()
-        pi_losses, v_losses, kls = [], [], []
+        observation_buffer, action_buffer, return_buffer, advantage_buffer, logprobability_buffer = self.trajectory_buffer.get()
+        policy_losses, value_losses, kls = [], [], []
 
         # Update the policy for a certain number of iterations
         for _ in range(self.config.train_policy_iterations):
-            loss_pi, kl = self.actor_network.train(obs, act, logp_old, adv)
-            pi_losses.append(loss_pi)
+            policy_loss, kl = self.actor_network.train(observation_buffer, action_buffer, logprobability_buffer, advantage_buffer)
+            policy_losses.append(policy_loss)
             kls.append(kl)
             if kl > 1.5 * self.config.target_kl:
                 # Early stopping if KL grows too big
@@ -44,15 +44,14 @@ class PPOAgent(BaseAgent):
 
         # Update the value function for a certain number of iterations
         for _ in range(self.config.train_value_iterations):
-            loss_v = self.critic_network.train(obs, ret)
-            v_losses.append(loss_v)
+            value_loss = self.critic_network.train(observation_buffer, return_buffer)
+            value_losses.append(value_loss)
 
-        kls = np.mean(kls if len(kls) > 0 else [0.0])
-        self.current_kl = kls
+        self.current_kl = np.mean(kls if len(kls) > 0 else [0.0])
 
-        pi_loss, value_loss = np.mean(pi_losses), np.mean(v_losses)
-        total_loss = pi_loss + value_loss
-        return total_loss, pi_loss, value_loss
+        avg_policy_loss, avg_value_loss = np.mean(policy_losses), np.mean(value_losses)
+        total_loss = avg_policy_loss + avg_value_loss
+        return total_loss, avg_policy_loss, avg_value_loss
 
     def update_model_target_weights(self):
         self.trajectory_buffer.finish_path(0)
