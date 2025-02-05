@@ -5,6 +5,7 @@ import numpy as np
 
 
 class Config(object):
+    use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
 
@@ -234,6 +235,11 @@ class Config(object):
                 self.num_sub_swarms = 5
 
         if network_type is not None:
+            if network_type in ["DQN", "DRQN"]:
+                self.use_discrete_env = True
+            else:
+                self.use_discrete_env = False
+
             self.network_type = network_type
             experiment = self.network_type + "_" + self.swarm_algorithm + "_F" + str(self.func_num)
             self.experiment = experiment

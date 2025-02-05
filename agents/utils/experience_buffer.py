@@ -255,9 +255,4 @@ class PPOBuffer:
         adv_std = np.std(self.adv_buf)
         self.adv_buf = (self.adv_buf - adv_mean) / (adv_std + 1e-8)
 
-        data = dict(obs=self.obs_buf,
-                    act=self.act_buf,
-                    ret=self.ret_buf,
-                    adv=self.adv_buf,
-                    logp=self.logp_buf)
-        return data
+        return [self.obs_buf, self.act_buf, self.ret_buf, self.adv_buf, self.logp_buf]
