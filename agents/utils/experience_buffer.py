@@ -227,13 +227,13 @@ class PPOBuffer:
         of the trajectory, using GAE.
         """
         path_slice = slice(self.path_start_idx, self.ptr)
-        rews = np.append(self.rew_buf[path_slice], last_val)
-        vals = np.append(self.val_buf[path_slice], last_val)
+        rewards = np.append(self.rew_buf[path_slice], last_val)
+        values = np.append(self.val_buf[path_slice], last_val)
 
         # the advantage estimation
         gae = 0
-        for i in reversed(range(len(rews) - 1)):
-            delta = rews[i] + self.gamma * vals[i+1] - vals[i]
+        for i in reversed(range(len(rewards) - 1)):
+            delta = rewards[i] + self.gamma * values[i+1] - values[i]
             gae = delta + self.gamma * self.lam * gae
             self.adv_buf[path_slice][i] = gae
 

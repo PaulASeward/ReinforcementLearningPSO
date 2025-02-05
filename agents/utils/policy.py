@@ -228,10 +228,11 @@ class PPOPolicy(Policy):
 
     def select_action(self, current_state, **kwargs):
         self.step += 1
-        self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
-        epsilon = max(self.current_epsilon, self.epsilon_end)
+        # self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
 
-        raw_action, raw_logp = self.actor_network.sample_action(current_state)
+        raw_action, raw_logp, avg_std = self.actor_network.sample_action(current_state)
+        self.current_epsilon = avg_std
+
         action = raw_action.numpy()[0]
         self.logp = raw_logp.numpy()[0]
 

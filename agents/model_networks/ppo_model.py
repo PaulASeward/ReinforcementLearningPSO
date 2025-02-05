@@ -1,9 +1,33 @@
 import numpy as np
 import tensorflow as tf
+import keras
 from tensorflow.keras import Model
 from keras.layers import Input, Dense, BatchNormalization, Lambda, Concatenate, Attention, LayerNormalization
 from agents.model_networks.base_model import BaseModel
 from tensorflow.keras.optimizers import Adam
+
+
+class LogStdLayer(tf.keras.layers.Layer):
+    def __init__(self, action_dim):
+        super(LogStdLayer, self).__init__()
+        self.action_dim = action_dim
+
+    def build(self, input_shape):
+        # Initializes a single trainable vector of shape [action_dim]
+        self.log_std = self.add_weight(
+            name='log_std',
+            shape=(self.action_dim,),
+            initializer=tf.constant_initializer(-0.5),
+            trainable=True
+        )
+        super(LogStdLayer, self).build(input_shape)
+
+    def call(self, inputs):
+        # Expand and broadcast log_std to match the batch dimension
+        batch_size = tf.shape(inputs)[0]
+        log_std_expanded = tf.expand_dims(self.log_std, axis=0)        # shape [1, action_dim]
+        log_std_tiled = tf.tile(log_std_expanded, [batch_size, 1])     # shape [batch_size, action_dim]
+        return log_std_tiled
 
 
 class ActorNetworkModel(BaseModel):
@@ -26,8 +50,9 @@ class ActorNetworkModel(BaseModel):
 
         # For continuous actions, output a mean plus log_std
         mean = Dense(self.config.action_dimensions, activation=None)(x)
-        log_std = tf.Variable(initial_value=-0.5 * tf.ones(self.config.action_dimensions, dtype=tf.float32),
-                              trainable=True, name="log_std")
+        log_std = LogStdLayer(self.config.action_dimensions)(x)
+        # log_std = tf.Variable(initial_value=-0.5 * tf.ones(self.config.action_dimensions, dtype=tf.float32),
+        #                       trainable=True, name="log_std")
 
         model = Model(inputs=initial_input, outputs=[mean, log_std])
         self.optimizer = Adam(learning_rate=self.config.actor_learning_rate)
@@ -44,7 +69,9 @@ class ActorNetworkModel(BaseModel):
         pi_distribution = tf.random.normal(shape=tf.shape(mean)) * std + mean
         logp = self.gaussian_likelihood(pi_distribution, mean, log_std)
 
-        return pi_distribution, logp
+        avg_std = tf.reduce_mean(std)
+
+        return pi_distribution, logp, avg_std
 
     @staticmethod
     def gaussian_likelihood(x, mu, log_std):
@@ -55,31 +82,31 @@ class ActorNetworkModel(BaseModel):
         return tf.reduce_sum(pre_sum, axis=1)
 
     @tf.function
-    def train(self, obs, act, logp_old, adv):
+    def train(self, observation_buffer, action_buffer, logprobability_buffer, advantage_buffer):
         """
         The PPO clipping objective for the policy.
         """
         with tf.GradientTape() as tape:
-            mean, log_std = self.model(obs, training=True)
-            logp = self.gaussian_likelihood(act, mean, log_std)
-            ratio = tf.exp(logp - logp_old)
+            mean, log_std = self.model(observation_buffer, training=True)
+            logp = self.gaussian_likelihood(action_buffer, mean, log_std)
+            ratio = tf.exp(logp - logprobability_buffer)
 
             # PPO objective
-            clip_adv = tf.where(
-                adv >= 0,
-                (1 + self.config.clip_ratio) * adv,
-                (1 - self.config.clip_ratio) * adv
+            min_advantage = tf.where(
+                advantage_buffer >= 0,
+                (1 + self.config.clip_ratio) * advantage_buffer,
+                (1 - self.config.clip_ratio) * advantage_buffer
             )
-            obj = tf.minimum(ratio * adv, clip_adv)
-            loss_pi = -tf.reduce_mean(obj)
+
+            policy_loss = -tf.reduce_mean(tf.minimum(ratio * advantage_buffer, min_advantage))
 
             # Approximate KL for early stopping
-            approx_kl = tf.reduce_mean(logp_old - logp)
+            approx_kl = tf.reduce_mean(logprobability_buffer - logp)
 
-        grads = tape.gradient(loss_pi, self.model.trainable_variables)
+        grads = tape.gradient(policy_loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
-        return loss_pi, approx_kl
+        return policy_loss, approx_kl
 
 
 class CriticNetworkModel(BaseModel):
@@ -107,14 +134,14 @@ class CriticNetworkModel(BaseModel):
         return model
 
     @tf.function
-    def train(self, obs, ret):
+    def train(self, observation_buffer, return_buffer):
         """
         Simple MSE loss for value function: L = mean( (V(s) - ret)^2 ).
         """
         with tf.GradientTape() as tape:
-            value_pred = self.model(obs, training=True)
-            loss_v = tf.reduce_mean((ret - value_pred) ** 2)
+            value_pred = self.model(observation_buffer, training=True)
+            value_loss = tf.reduce_mean((return_buffer - value_pred) ** 2)
 
-        grads = tape.gradient(loss_v, self.model.trainable_variables)
+        grads = tape.gradient(value_loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
-        return loss_v
+        return value_loss

@@ -104,8 +104,10 @@ class Config(object):
 
     # policy_learning_rate = 3e-4
     # value_function_learning_rate = 1e-3
-    train_policy_iterations = 80
-    train_value_iterations = 80
+    # train_policy_iterations = 80
+    # train_value_iterations = 80
+    train_policy_iterations = 10
+    train_value_iterations = 10
 
     actions_descriptions = None
     continuous_action_offset = None
