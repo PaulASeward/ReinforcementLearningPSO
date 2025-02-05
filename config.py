@@ -67,10 +67,10 @@ class Config(object):
     history_len = 4
 
     # DDPG TRAINING PARAMETERS
-    # ou_mu = 1
+    use_ou_noise = False
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.6
+    ou_sigma = 0.3
     ou_dt = 1e-2
 
     tau = 0.01
@@ -79,10 +79,14 @@ class Config(object):
     lower_bound = None
     # actor_layers = (400, 300)
     use_attention_layer = True
-    actor_layers = (32,16)
-    actor_learning_rate = 1e-8
-    critic_learning_rate = 1e-6
-    critic_layers = (8, 16, 32)
+    # actor_layers = (32,16)
+    actor_layers = (64,32)
+    # actor_learning_rate = 1e-8
+    # critic_learning_rate = 1e-6
+    actor_learning_rate = 1e-5
+    critic_learning_rate = 1e-4
+    # critic_layers = (8, 16, 32)
+    critic_layers = (16, 32, 48)
     # critic_layers = (600, 300)
     action_dim = None
     state_shape = None
