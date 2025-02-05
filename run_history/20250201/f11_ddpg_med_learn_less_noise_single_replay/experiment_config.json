@@ -7,7 +7,7 @@ observation_length: 151
 train_steps: 2000
 log_interval: 20
 eval_interval: 50
-replay_experience_length: 10
+replay_experience_length: 1
 fDeltas: [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600, -500, -400, -300, -200, -100, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400]
 results_dir: results
 standard_pso_results_dir: pso/standard_pso_results
@@ -34,7 +34,7 @@ replay_priority_beta_increment: 0.001
 replay_priority_beta_max_abs_error: 1.0
 trace_length: 20
 history_len: 4
-use_ou_noise: h
+use_ou_noise: True
 ou_mu: [0. 0. 0.]
 ou_theta: 0.15
 ou_sigma: 0.3
@@ -45,7 +45,7 @@ lower_bound: [0.33  0.583 0.583]
 use_attention_layer: True
 actor_layers: (64, 32)
 actor_learning_rate: 1e-05
-critic_learning_rate: 0.0001
+critic_learning_rate: 1e-05
 critic_layers: (16, 32, 48)
 action_dim: None
 state_shape: (151,)
@@ -55,7 +55,7 @@ actions_descriptions: ['Inertia Param', 'Social Param', 'Cognitive Param']
 continuous_action_offset: [0, 0, 0]
 dir_save: saved_session/
 restore: False
-gamma: 0.85
+gamma: 0.99
 learning_rate: 0.001
 lr_method: adam
 num_lstm_layers: 1
@@ -78,8 +78,8 @@ replacement_threshold: 1.0
 replacement_threshold_min: 0.5
 replacement_threshold_max: 1.0
 replacement_threshold_decay: 0.95
-clone: <function Config.clone at 0x7fdf98d43b50>
-update_properties: <function Config.update_properties at 0x7fdf98d43640>
+clone: <function Config.clone at 0x7a6c76737640>
+update_properties: <function Config.update_properties at 0x7a6c767343a0>
 func_num: 11
 action_dimensions: 3
 experiment_config_path: results/experiment_config.json

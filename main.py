@@ -1,6 +1,7 @@
 from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
 from agents.ddpg_agent import DDPGAgent
+from agents.ppo_agent import PPOAgent
 from config import Config
 import argparse
 
@@ -10,7 +11,8 @@ class Main:
         agent_mapping = {
             "DQN": DQNAgent,
             "DRQN": DRQNAgent,
-            "DDPG": DDPGAgent
+            "DDPG": DDPGAgent,
+            "PPO": PPOAgent
         }
 
         self.agent = agent_mapping.get(config.network_type, DRQNAgent)(config)
@@ -51,7 +53,7 @@ if __name__ == "__main__":
     config.use_priority_replay = args.priority_replay
 
     assert args.swarm_algorithm in ["PSO", "PMSO"], "Please specify a swarm_algorithm of either PSO or PMSO"
-    assert args.network_type in ["DQN", "DRQN", "DDPG"], "Please specify a network_type of either DQN, DRQN, or DDPG"
+    assert args.network_type in ["DQN", "DRQN", "DDPG", "PPO"], "Please specify a network_type of either DQN, DRQN, or DDPG"
     assert args.func_num in list(range(1, 29)), "Please specify a func_num from 1-28"
     assert args.dim in [2, 5, 10, 20, 20, 30, 40, 50, 60, 70, 80, 90, 100], "Please specify a dim from 2,5,10,20,30,40,50,60,70,80,90,100"
 
