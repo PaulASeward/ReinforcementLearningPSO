@@ -10,7 +10,7 @@ from agents.utils.experience_buffer import ExperienceBufferStandard as StandardR
 from agents.utils.experience_buffer import ExperienceBufferPriority as PriorityReplayBuffer
 from agents.model_networks.ddpg_model import ActorNetworkModel, CriticNetworkModel
 from utils.logging_utils import ContinuousActionsResultsLogger as ResultsLogger
-from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicy, OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling
+from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling
 
 
 class DDPGAgent(BaseAgent):
@@ -23,33 +23,10 @@ class DDPGAgent(BaseAgent):
 
         self.critic_network = CriticNetworkModel(config)
         self.critic_network_target = CriticNetworkModel(config)
-        # self.policy = OrnsteinUhlenbeckActionNoisePolicy(config)
         self.policy = OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(config)
 
         self.update_model_target_weights(tau=1.0)
         self.replay_buffer = PriorityReplayBuffer(config=config) if config.use_priority_replay else StandardReplayBuffer(config=config)
-
-    def build_environment(self):
-        if self.config.swarm_algorithm == "PMSO":
-            low_limit_subswarm_action_space = [self.config.w_min, self.config.c_min, self.config.c_min]
-            high_limit_subswarm_action_space = [self.config.w_max, self.config.c_max, self.config.c_max]
-
-            self.config.lower_bound = np.array(
-                [low_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)], dtype=np.float32).flatten()
-            self.config.upper_bound = np.array(
-                [high_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)], dtype=np.float32).flatten()
-        else:
-            self.config.lower_bound = np.array([self.config.w_min, self.config.c_min, self.config.c_min], dtype=np.float32)
-            self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max], dtype=np.float32)
-
-        if self.config.use_mock_data:
-            self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
-        else:
-            self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
-
-        self.config.state_shape = self.env.observation_space.shape
 
     def get_q_values(self, state):
         return self.actor_network.get_action_q_values(state)
@@ -68,6 +45,8 @@ class DDPGAgent(BaseAgent):
 
             self.actor_network_target.model.set_weights(theta_a_targ)
             self.critic_network_target.model.set_weights(theta_c_targ)
+
+        return False
 
     def replay_experience(self):
         if self.replay_buffer.size() < self.config.batch_size:
