@@ -11,7 +11,6 @@ class ActorNetworkModel(BaseModel):
         super(ActorNetworkModel, self).__init__(config, "actor")
 
     def nn_model(self):
-        # Initialize weights between -3e-3 and 3e-3
         init = tf.random_normal_initializer(stddev=0.0005)
 
         # State as input
@@ -37,7 +36,6 @@ class ActorNetworkModel(BaseModel):
 
         model = Model(inputs=initial_input, outputs=output)
         self.optimizer = Adam(learning_rate=self.config.actor_learning_rate)
-        # model.compile(loss=self.compute_loss, optimizer=optimizer)
 
         return model
 
@@ -55,7 +53,6 @@ class ActorNetworkModel(BaseModel):
 
 class CriticNetworkModel(BaseModel):
     def __init__(self, config):
-        # self.action_high = self.config.c_max
         super(CriticNetworkModel, self).__init__(config, "critic")
 
     def nn_model(self):
@@ -74,7 +71,6 @@ class CriticNetworkModel(BaseModel):
 
         # Concatenate the state and action input after attention mechanism
         concat = Concatenate(axis=-1)([state_inputs, action_input])
-        # concat = Concatenate(axis=-1)(inputs)
 
         x = Dense(self.config.critic_layers[0], name="L0", activation=tf.nn.leaky_relu, kernel_initializer=init)(concat)
         for index in range(1, len(self.config.critic_layers)):
@@ -85,7 +81,6 @@ class CriticNetworkModel(BaseModel):
         model = Model(inputs=[state_input, action_input], outputs=output)
 
         self.optimizer = Adam(learning_rate=self.config.critic_learning_rate)
-        # model.compile(loss=self.compute_loss, optimizer=optimizer)
         return model
 
     @tf.function

@@ -18,7 +18,8 @@ class Config(object):
     log_interval = 200
     eval_interval = 500
 
-    replay_experience_length = 10
+    replay_experience_length = 1
+    # replay_experience_length = 10
 
     # EXPERIMENT PARAMETERS
     fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
@@ -70,28 +71,40 @@ class Config(object):
     use_ou_noise = False
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.3
+    ou_sigma = 0.1
     ou_dt = 1e-2
 
-    tau = 0.01
+    tau = 0.001
     # tau = 0.125
     upper_bound = None
     lower_bound = None
     # actor_layers = (400, 300)
     use_attention_layer = True
-    # actor_layers = (32,16)
-    actor_layers = (64,32)
+    # actor_layers = (64,32)
     # actor_learning_rate = 1e-8
     # critic_learning_rate = 1e-6
     actor_learning_rate = 1e-5
-    critic_learning_rate = 1e-4
-    # critic_layers = (8, 16, 32)
-    critic_layers = (16, 32, 48)
+    critic_learning_rate = 1e-5
+    # critic_layers = (16, 32, 48)
+    # actor_layers = (64, 64, 1)
+    # critic_layers = (64, 64, 1)
+    actor_layers = (64, 64)
+    critic_layers = (64, 64, 1)
     # critic_layers = (600, 300)
     action_dim = None
     state_shape = None
     action_bound = None
     action_shift = None
+
+    # PPO TRAINING PARAMETERS
+    clip_ratio = 0.2
+    target_kl = 0.01
+    lam = 0.97
+
+    # policy_learning_rate = 3e-4
+    # value_function_learning_rate = 1e-3
+    train_policy_iterations = 80
+    train_value_iterations = 80
 
     actions_descriptions = None
     continuous_action_offset = None
@@ -102,7 +115,7 @@ class Config(object):
     # LEARNING PARAMETERS
     # discount_factor = 0.01
     # gamma = 0.99
-    gamma = 0.85
+    gamma = 0.99
     learning_rate = 0.001
     lr_method = "adam"
 
