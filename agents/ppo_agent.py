@@ -61,7 +61,7 @@ class PPOAgent(BaseAgent):
             print(f"Current KL: {self.current_kl}")
             print(f"Target KL: {self.config.target_kl}")
             print(f"Current KL > 1.5 * Target KL: {self.current_kl > 1.5 * self.config.target_kl}")
-            return True
+            return False
         return False
 
     def initialize_current_state(self):
