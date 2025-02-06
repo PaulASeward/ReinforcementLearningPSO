@@ -218,6 +218,10 @@ class PPOPolicy(Policy):
     def __init__(self, config, actor_network):
         self.config = config
         self.actor_network = actor_network
+
+        self.lower_bound = config.lower_bound
+        self.upper_bound = config.upper_bound
+
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start
         self.epsilon_end = config.epsilon_end
@@ -234,6 +238,8 @@ class PPOPolicy(Policy):
         self.current_epsilon = avg_std
 
         action = raw_action.numpy()[0]
+        action = np.clip(action, self.lower_bound, self.upper_bound)
+
         self.logp = raw_logp.numpy()[0]
 
         return action

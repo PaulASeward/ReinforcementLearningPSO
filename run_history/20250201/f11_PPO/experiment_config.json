@@ -1,0 +1,119 @@
+use_discrete_env: False
+use_mock_data: False
+use_priority_replay: False
+num_episodes: 20
+num_swarm_obs_intervals: 10
+swarm_obs_interval_length: 30
+observation_length: 151
+train_steps: 2000
+log_interval: 20
+eval_interval: 50
+replay_experience_length: 1
+fDeltas: [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600, -500, -400, -300, -200, -100, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400]
+results_dir: results
+standard_pso_results_dir: pso/standard_pso_results
+swarm_locations_dir: results/swarm_locations
+env_swarm_locations_name: swarm_locations.npy
+env_swarm_velocities_name: swarm_velocities.npy
+env_swarm_best_locations_name: swarm_best_locations.npy
+env_swarm_evaluations_name: swarm_evaluations.npy
+env_meta_data_name: meta_data.csv
+model_dir: results/saved_session/network_models
+checkpoint_dir: results/saved_session/model_checkpoints
+log_dir: results/saved_session/logs
+policy: ExponentialDecayGreedyEpsilon
+epsilon_start: 1.0
+epsilon_end: 0.01
+epsilon_decay: 0.995
+buffer_size: 10000
+batch_size: 64
+replay_priority_capacity: 100000
+replay_priority_epsilon: 0.01
+replay_priority_alpha: 0.7
+replay_priority_beta: 0.5
+replay_priority_beta_increment: 0.001
+replay_priority_beta_max_abs_error: 1.0
+trace_length: 20
+history_len: 4
+use_ou_noise: False
+ou_mu: [0. 0. 0.]
+ou_theta: 0.15
+ou_sigma: 0.1
+ou_dt: 0.01
+tau: 0.001
+upper_bound: [1.175 2.409 2.409]
+lower_bound: [0.33  0.583 0.583]
+use_attention_layer: True
+actor_learning_rate: 1e-05
+critic_learning_rate: 1e-05
+actor_layers: (64, 64)
+critic_layers: (64, 64, 1)
+action_dim: None
+state_shape: (151,)
+action_bound: None
+action_shift: None
+clip_ratio: 0.2
+target_kl: 0.01
+lam: 0.97
+train_policy_iterations: 10
+train_value_iterations: 10
+actions_descriptions: ['Inertia Param', 'Social Param', 'Cognitive Param']
+continuous_action_offset: [0, 0, 0]
+dir_save: saved_session/
+restore: False
+gamma: 0.99
+learning_rate: 0.001
+lr_method: adam
+num_lstm_layers: 1
+lstm_size: 512
+min_history: 4
+states_to_update: 4
+topology: global
+is_sub_swarm: False
+w: 0.729844
+w_min: 0.33
+w_max: 1.175
+c1: 1.4961802
+c2: 1.4961802
+c_min: 0.583
+c_max: 2.409
+rangeF: 100
+v_min: 59.049
+v_max: 161.051
+replacement_threshold: 1.0
+replacement_threshold_min: 0.5
+replacement_threshold_max: 1.0
+replacement_threshold_decay: 0.95
+clone: <function Config.clone at 0x78c0c7566560>
+update_properties: <function Config.update_properties at 0x78c0c7566830>
+func_num: 11
+action_dimensions: 3
+experiment_config_path: results/experiment_config.json
+action_counts_path: results/actions_counts.csv
+continuous_action_history_path: results/continuous_action_history.npy
+action_values_path: results/actions_values.csv
+epsilon_values_path: results/epsilon_values.csv
+fitness_plot_path: None
+average_returns_plot_path: None
+fitness_path: results/average_fitness.csv
+episode_results_path: results/episode_results.csv
+training_step_results_path: results/step_results.csv
+average_returns_path: results/average_returns.csv
+loss_file: results/average_training_loss.csv
+actor_loss_file: results/actor_loss.csv
+critic_loss_file: results/critic_loss.csv
+interval_actions_counts_path: results/interval_actions_counts.csv
+standard_pso_path: pso/standard_pso_results/f11.csv
+experiment: PPO_PSO_F11
+num_eval_intervals: 40
+label_iterations_intervals: range(0, 2050, 100)
+iteration_intervals: range(50, 2050, 50)
+obs_per_episode: 300
+iterations: range(0, 2000, 50)
+swarm_size: 50
+num_actions: 15
+swarm_algorithm: PSO
+num_sub_swarms: None
+network_type: PPO
+dim: 30
+train: False

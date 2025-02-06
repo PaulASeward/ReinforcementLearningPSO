@@ -48,13 +48,18 @@ class ActorNetworkModel(BaseModel):
             x = Dense(self.config.actor_layers[index], name=f"L{index}", activation='tanh')(x)
             # x = BatchNormalization()(x)
 
+        unscaled_output = Dense(self.config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)
+        scaling_factor = (self.config.upper_bound - self.config.lower_bound) / 2.0
+        shift_factor = (self.config.upper_bound + self.config.lower_bound) / 2.0
+        output = Lambda(lambda x: x * scaling_factor + shift_factor)(unscaled_output)
+
         # For continuous actions, output a mean plus log_std
-        mean = Dense(self.config.action_dimensions, activation=None)(x)
+        # output = Dense(self.config.action_dimensions, activation=None)(output)
         log_std = LogStdLayer(self.config.action_dimensions)(x)
         # log_std = tf.Variable(initial_value=-0.5 * tf.ones(self.config.action_dimensions, dtype=tf.float32),
         #                       trainable=True, name="log_std")
 
-        model = Model(inputs=initial_input, outputs=[mean, log_std])
+        model = Model(inputs=initial_input, outputs=[output, log_std])
         self.optimizer = Adam(learning_rate=self.config.actor_learning_rate)
 
         return model
