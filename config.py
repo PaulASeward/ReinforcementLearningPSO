@@ -13,7 +13,7 @@ class Config(object):
     num_episodes = 20
     num_swarm_obs_intervals = 10
     swarm_obs_interval_length = 30
-    observation_length = 150
+    observation_length = 151
 
     train_steps = 20000
     log_interval = 200
@@ -72,7 +72,7 @@ class Config(object):
     use_ou_noise = False
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.1
+    ou_sigma = 0.15
     ou_dt = 1e-2
 
     tau = 0.001
@@ -80,17 +80,17 @@ class Config(object):
     upper_bound = None
     lower_bound = None
     # actor_layers = (400, 300)
-    use_attention_layer = True
+    use_attention_layer = False
     # actor_layers = (64,32)
     # actor_learning_rate = 1e-8
     # critic_learning_rate = 1e-6
-    actor_learning_rate = 1e-5
+    actor_learning_rate = 5e-5
     critic_learning_rate = 1e-5
     # critic_layers = (16, 32, 48)
-    # actor_layers = (64, 64, 1)
+    actor_layers = (64, 128, 256)
+    critic_layers = (64, 128, 256)
+    # actor_layers = (64, 64)
     # critic_layers = (64, 64, 1)
-    actor_layers = (64, 64)
-    critic_layers = (64, 64, 1)
     # critic_layers = (600, 300)
     action_dim = None
     state_shape = None
@@ -141,13 +141,13 @@ class Config(object):
     is_sub_swarm = False
 
     w = 0.729844  # Inertia weight
-    w_min = 0.33  # Min of 5 decreases of 10%
-    # w_min = 0.43  # Min of 5 decreases of 10%
+    # w_min = 0.33  # Min of 5 decreases of 10%
+    w_min = 0.43  # Min of 5 decreases of 10%
     w_max = 1.175  # Max of 5 increases of 10%
     c1 = 2.05 * w  # Social component Learning Factor
     c2 = 2.05 * w  # Cognitive component Learning Factor
-    # c_min = 0.883  # Min of 5 decreases of 10%
-    c_min = 0.583  # Min of 5 decreases of 10%
+    c_min = 0.883  # Min of 5 decreases of 10%
+    # c_min = 0.583  # Min of 5 decreases of 10%
     c_max = 2.409  # Max of 5 increases of 10%
     rangeF = 100
     v_min = 59.049
