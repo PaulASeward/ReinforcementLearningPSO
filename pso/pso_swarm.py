@@ -144,12 +144,15 @@ class PSOSwarm:
         self.update_velocity_maginitude()
         self.update_average_pbest_replacement_counts()
 
-        # obs = np.concatenate([self.velocity_magnitudes, self.relative_fitnesses, self.average_pbest_replacement_counts], axis=0)
+        velocity_magnitudes_norm = self.velocity_magnitudes / self.abs_max_velocity
+        relative_fitnesses_norm = np.tanh(self.relative_fitnesses)
+        pbest_counts_norm = self.average_pbest_replacement_counts / self.swarm_obs_interval_length
+
 
         obs_stack = np.column_stack([
-            self.velocity_magnitudes,
-            self.relative_fitnesses,
-            self.average_pbest_replacement_counts
+            velocity_magnitudes_norm,
+            relative_fitnesses_norm,
+            pbest_counts_norm
         ])
 
         # Flatten to ensure the observations are in the required 1D format
@@ -162,7 +165,8 @@ class PSOSwarm:
             "c1": self.c1,
             "c2": self.c2,
             "abs_max_velocity": self.abs_max_velocity,
-            "abs_max_position": self.abs_max_position
+            "abs_max_position": self.abs_max_position,
+            "gbest_val": self.gbest_val,
         }
 
     def get_current_best_fitness(self):

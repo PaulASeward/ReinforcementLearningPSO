@@ -8,6 +8,9 @@ class Config(object):
     use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
+    reward_function = "smoothed_total_difference_reward"
+    use_scaled_reward = True
+    use_negative_reward_for_stagnation = False
 
     # AGENT PARAMETERS
     num_episodes = 20
@@ -26,6 +29,10 @@ class Config(object):
     fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
                -500, -400, -300, -200, -100, 100, 200, 300, 400, 500, 600,
                700, 800, 900, 1000, 1100, 1200, 1300, 1400]
+
+    best_f_standard_pso = [0,0,0,0,0,-26,-112,-21,-26,0,-85,-120,-200,-2279,-4080,-1,-104,-130,-5,-12,-305,-2513,-4594,-276,0,0,0,0]
+    swarm_improvement_pso = [0,0,0,0,2,31,20,1,0,18,2,10,20,118,1300,1,43,141,4,1,1,237,1075,1,0,0,0,0]
+    standard_deviations = [0.00e+00, 7.82e+05, 7.06e+07, 4.55e+03, 0.00e+00, 4.34e+00, 1.74e+01, 5.51e-2, 1.95e+00, 5.53e-2, 1.51e+01, 1.72e+01, 2.21e+01, 3.80e+02, 6.25e+02, 3.51e-1, 1.55e+01, 2.68e+01, 1.30e+00, 5.12e-1, 5.30e+01, 5.15e+02, 7.06e+02, 5.64e+00, 7.12e+00, 4.61e+01, 7.43e+01, 2.82e-13]
 
     # Output files
     results_dir = "results"
@@ -69,23 +76,23 @@ class Config(object):
     history_len = 4
 
     # DDPG TRAINING PARAMETERS
-    use_ou_noise = False
+    use_ou_noise = True
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.15
+    ou_sigma = 0.20
     ou_dt = 1e-2
 
-    tau = 0.001
+    tau = 0.01
     # tau = 0.125
     upper_bound = None
     lower_bound = None
     # actor_layers = (400, 300)
     use_attention_layer = False
     # actor_layers = (64,32)
-    # actor_learning_rate = 1e-8
-    # critic_learning_rate = 1e-6
-    actor_learning_rate = 5e-5
+    actor_learning_rate = 1e-4
     critic_learning_rate = 1e-5
+    # actor_learning_rate = 5e-6
+    # critic_learning_rate = 5e-6
     # critic_layers = (16, 32, 48)
     actor_layers = (64, 128, 256)
     critic_layers = (64, 128, 256)
@@ -117,7 +124,6 @@ class Config(object):
 
     # LEARNING PARAMETERS
     # discount_factor = 0.01
-    # gamma = 0.99
     gamma = 0.99
     learning_rate = 0.001
     lr_method = "adam"
@@ -164,6 +170,7 @@ class Config(object):
         self.action_counts_path = None
         self.continuous_action_history_path = None
         self.action_values_path = None
+        self.action_training_values_path = None
         self.epsilon_values_path = None
         self.fitness_plot_path = None
         self.average_returns_plot_path = None
@@ -255,6 +262,7 @@ class Config(object):
             self.episode_results_path = os.path.join(self.results_dir, f"episode_results.csv")
             self.training_step_results_path = os.path.join(self.results_dir, f"step_results.csv")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
+            self.action_training_values_path = os.path.join(self.results_dir, f"actions_training_values.csv")
             self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.npy")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
             self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
