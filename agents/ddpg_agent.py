@@ -70,12 +70,15 @@ class DDPGAgent(BaseAgent):
 
                 next_actions = self.actor_network_target.predict(next_states)
                 next_q_values = self.critic_network_target.predict([next_states, next_actions])
+                rewards = rewards[:, np.newaxis]  # Shape (64, 1)
+                dones = dones[:, np.newaxis]  # Shape (64, 1)
 
                 # Use Bellman Equation. (recursive definition of q-values)
                 q_values_targets = rewards + (1 - dones) * self.config.gamma * next_q_values
                 q_values_targets = q_values_targets.astype(np.float32)
 
                 # ---------------------------- update critic ---------------------------- #
+                q_values = self.critic_network.predict([states, actions])
                 critic_loss, td_error = self.critic_network.train(states, actions, q_values_targets, ISWeights)
 
                 # update priority buffer

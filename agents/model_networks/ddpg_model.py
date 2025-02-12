@@ -43,9 +43,19 @@ class ActorNetworkModel(BaseModel):
     def train(self, states, critic_network):
         with tf.GradientTape() as tape:
             actions = self.model(states, training=True)
-            actor_loss = -tf.reduce_mean(critic_network([states, actions]))
+            q_values = critic_network([states, actions])
+            actor_loss = -tf.reduce_mean(q_values)
 
         actor_grads = tape.gradient(actor_loss, self.model.trainable_variables)
+
+        # Compute and print gradient norms
+        grad_norm = tf.linalg.global_norm(actor_grads)
+        print('Actor Grad Norm:')
+        print(grad_norm)
+
+        # # Clip gradients
+        # actor_grads, _ = tf.clip_by_global_norm(actor_grads, clip_norm=1.0)
+
         self.optimizer.apply_gradients(zip(actor_grads, self.model.trainable_variables))
 
         return actor_loss
@@ -84,12 +94,19 @@ class CriticNetworkModel(BaseModel):
         return model
 
     @tf.function
-    def train(self, states, actions, q_values_targets, ISWeights=1.0):
+    def train(self, states, actions, q_values_targets, ISWeights):
         with tf.GradientTape() as tape:
             q_values = self.model([states, actions])
             td_error = q_values - q_values_targets
             critic_loss = tf.reduce_mean(ISWeights * tf.math.square(td_error))
 
         critic_grad = tape.gradient(critic_loss, self.model.trainable_variables)
+        grad_norm = tf.linalg.global_norm(critic_grad)
+        print('Critic Grad Norm:')
+        print(grad_norm)
+
+        # Clip gradients
+        critic_grad, _ = tf.clip_by_global_norm(critic_grad, clip_norm=1.0)
+
         self.optimizer.apply_gradients(zip(critic_grad, self.model.trainable_variables))
         return critic_loss, td_error

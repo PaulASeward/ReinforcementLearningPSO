@@ -18,20 +18,9 @@ class BaseModel:
         self.sess = None
         self.saver = None
 
-        self.compute_loss = tf.keras.losses.MeanSquaredError()
         self.add_optimizer(config.lr_method, config.learning_rate)
         self.compute_loss = tf.keras.losses.MeanSquaredError()
         self.model = self.nn_model()
-
-        # Learning parameters
-        self.gamma = config.gamma
-        self.learning_rate = config.learning_rate
-        self.lr_method = config.lr_method
-
-        # Training parameters
-        self.batch_size = config.batch_size
-        self.train_steps = 0
-        self.is_training = False
 
     def add_optimizer(self, lr_method, learning_rate, clip=-1):
         lr_method = lr_method.lower()

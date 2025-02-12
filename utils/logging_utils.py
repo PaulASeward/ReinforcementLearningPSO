@@ -55,7 +55,7 @@ class ResultsLogger:
 
         # for ep_dict in swarm_observations_dicts:
         #     print(ep_dict)
-
+        cumulative_training_reward = np.sum(training_rewards)
         cumulative_fitness_reward = np.sum(fitness_rewards)
         fitness = self.config.fDeltas[self.config.func_num - 1] - cumulative_fitness_reward
 
@@ -65,10 +65,11 @@ class ResultsLogger:
         self.swarm_episode_observations = np.vstack([self.swarm_episode_observations, swarm_observations])
 
         self._save_to_csv([epsilon], self.config.epsilon_values_path)  # TODO: remove
-        self._save_to_csv([self.step, epsilon, cumulative_fitness_reward, fitness, train_loss], self.config.training_step_results_path)
+        self._save_to_csv([self.step, epsilon, cumulative_fitness_reward, fitness, train_loss, cumulative_training_reward], self.config.training_step_results_path)
 
-        print(f"Step #{self.step} Fitness Reward:{cumulative_fitness_reward} Current Epsilon: {epsilon}")
+        print(f"Step #{self.step} Fitness Reward:{cumulative_fitness_reward} Training Reward: {cumulative_training_reward} Current Epsilon: {epsilon}")
         print("Training Rewards: ", training_rewards)
+        print("Fitness Rewards: ", fitness_rewards)
         tf.summary.scalar("episode_reward", cumulative_fitness_reward, step=self.step-1)
 
     def write_actions_at_eval_interval_to_csv(self):
@@ -185,6 +186,7 @@ class ContinuousActionsResultsLogger(ResultsLogger):
 
         # Print Average Action in each dimension:
         print(f"Step #{self.step} Average Action: {np.mean(actions_row, axis=0)}")
+        print("Actions: ", actions_row)
 
         # Save to disk periodically
         if self.step % self.config.log_interval == 0 or self.step == self.config.train_steps:
