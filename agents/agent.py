@@ -115,7 +115,7 @@ class BaseAgent:
     def train(self):
         with self.writer.as_default():
             for step in range(self.config.train_steps):
-                actions, rewards, swarm_observations, terminal = [], [], [], False
+                actions, rewards, fitness_rewards, swarm_observations, terminal = [], [], [], [], False
                 current_state = self.initialize_current_state()
 
                 while not terminal:
@@ -125,13 +125,15 @@ class BaseAgent:
 
                     current_state = self.update_memory_and_state(current_state, action, reward, next_observation, terminal)
 
+                    fitness_reward = swarm_info["fitness_reward"]  # This is for plotting swarm improvements, not learning purposes.
                     actions.append(action)
+                    fitness_rewards.append(fitness_reward)
                     rewards.append(reward)
                     swarm_observations.append(swarm_info)
 
                 [losses, actor_losses, critic_losses] = self.replay_experience()
                 early_stop = self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
-                self.results_logger.save_log_statements(step=step + 1, actions=actions, rewards=rewards,
+                self.results_logger.save_log_statements(step=step + 1, actions=actions, fitness_rewards=fitness_rewards, training_rewards=rewards,
                                                         train_loss=losses, epsilon=self.policy.current_epsilon,
                                                         swarm_observations=swarm_observations, actor_losses=actor_losses, critic_losses=critic_losses)
 
