@@ -9,8 +9,8 @@ class Config(object):
     use_mock_data = False
     use_priority_replay = False
     reward_function = "smoothed_total_difference_reward"
-    use_scaled_reward = True
     use_negative_reward_for_stagnation = False
+    use_attention_layer = False
 
     # AGENT PARAMETERS
     num_episodes = 20
@@ -73,24 +73,22 @@ class Config(object):
 
     # DRQN TRAINING PARAMETERS
     trace_length = 10
-    history_len = 4
 
     # DDPG TRAINING PARAMETERS
-    use_ou_noise = True
+    use_ou_noise = False
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.20
+    ou_sigma = 0.15
     ou_dt = 1e-2
 
-    tau = 0.01
+    tau = 0.001
     # tau = 0.125
     upper_bound = None
     lower_bound = None
     # actor_layers = (400, 300)
-    use_attention_layer = False
     # actor_layers = (64,32)
-    actor_learning_rate = 1e-4
-    critic_learning_rate = 1e-5
+    actor_learning_rate = 1e-5
+    critic_learning_rate = 1e-6
     # actor_learning_rate = 5e-6
     # critic_learning_rate = 5e-6
     # critic_layers = (16, 32, 48)
@@ -136,8 +134,7 @@ class Config(object):
     # LSTM PARAMETERS
     num_lstm_layers = 1
     lstm_size = 512
-    min_history = 4
-    states_to_update = 4
+    # min_history = 4
 
     # EVALUATION PARAMETERS
     # number_evaluations = 10000

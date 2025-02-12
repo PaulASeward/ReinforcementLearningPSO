@@ -9,8 +9,6 @@ class DRQNModel(BaseModel):
 
         self.num_lstm_layers = config.num_lstm_layers
         self.lstm_size = config.lstm_size
-        self.min_history = config.min_history
-        self.states_to_update = config.states_to_update
 
     def nn_model(self):
         return tf.keras.Sequential(

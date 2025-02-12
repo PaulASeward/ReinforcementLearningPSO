@@ -16,6 +16,7 @@ class ContinuousPsoGymEnv(gym.Env):
         self._action_dimensions = config.action_dimensions
         self._minimum = config.fDeltas[config.func_num - 1]
         self._max_episodes = config.num_episodes
+        self._standard_pso_values_path = config.standard_pso_path
 
         self._best_standard_pso = config.best_f_standard_pso[config.func_num - 1]
         self._pso_variance = config.standard_deviations[config.func_num - 1] ** 2
@@ -75,18 +76,23 @@ class ContinuousPsoGymEnv(gym.Env):
 
     def smoothed_total_difference_reward(self, difference):
         difference = max(difference, 0)
-        log_difference = np.log(1 + ((difference * self._avg_standard_pso_increase) / ((max(0.05, 1-self._current_episode_percent))**2)))
+        if self._actions_count == 1:
+            standard_start_value = np.genfromtxt(self._standard_pso_values_path, delimiter=',', skip_header=1)[0,1]
+            # standard_start_value = standard_pso[0, 1]
+            reward = (standard_start_value - self._best_fitness) * self._avg_standard_pso_increase
+            # reward = (standard_start_value - self._best_fitness) / self._pso_variance
+            return reward
+        else:
+            log_difference = np.log(1 + ((difference * self._avg_standard_pso_increase) / ((max(0.05, 1-self._current_episode_percent))**2)))
+            reward = log_difference * self.total_difference
 
-        # Calculate the reward
-        reward = log_difference * self.total_difference
+            # Clip the reward to the total difference
+            if reward > self.total_difference:
+                reward = self.total_difference
 
-        # Clip the reward to the total difference
-        if reward > self.total_difference:
-            reward = self.total_difference
+            reward /= self._pso_variance
 
-        reward /= self._pso_variance
-
-        return max(reward, self._penalty_for_negative_reward)
+            return max(reward, self._penalty_for_negative_reward)
 
     def normalized_total_difference_reward(self, difference):
         reward = difference * self.total_difference
@@ -111,9 +117,9 @@ class ContinuousPsoGymEnv(gym.Env):
 
         difference = self._best_fitness - current_best_f
         self.total_difference += difference
-        reward = self.reward_functions[self.reward_function](difference)
         self._best_fitness = min(self._best_fitness, current_best_f)
 
+        reward = self.reward_functions[self.reward_function](difference)
         return reward.astype(np.float32)
 
     def _get_fitness_reward_for_plots(self):
