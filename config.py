@@ -7,10 +7,11 @@ import numpy as np
 class Config(object):
     use_discrete_env = None
     use_mock_data = False
-    use_priority_replay = False
-    reward_function = "smoothed_total_difference_reward"
-    use_negative_reward_for_stagnation = False
+    use_priority_replay = True
+    reward_function = "normalized_total_difference_reward"
+    penalty_for_negative_reward = 0
     use_attention_layer = False
+    use_ou_noise = True
 
     # AGENT PARAMETERS
     num_episodes = 20
@@ -21,9 +22,9 @@ class Config(object):
     train_steps = 20000
     log_interval = 200
     eval_interval = 500
+    test_episodes = 10
 
-    replay_experience_length = 1
-    # replay_experience_length = 10
+    replay_experience_length = 2
 
     # EXPERIMENT PARAMETERS
     fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
@@ -62,8 +63,9 @@ class Config(object):
     epsilon_decay = 0.995
 
     # Replay Buffer
-    buffer_size = 10000
-    batch_size = 64
+    # buffer_size = 10000
+    buffer_size = 1000000
+    batch_size = 128
     replay_priority_capacity = 100000
     replay_priority_epsilon = 0.01  # small amount to avoid zero priority
     replay_priority_alpha = 0.7  # [0~1] convert the importance of TD error to priority
@@ -75,20 +77,20 @@ class Config(object):
     trace_length = 10
 
     # DDPG TRAINING PARAMETERS
-    use_ou_noise = False
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.15
+    # ou_sigma = 0.1
+    ou_sigma = 0.2
     ou_dt = 1e-2
 
-    tau = 0.001
+    tau = 0.01
     # tau = 0.125
     upper_bound = None
     lower_bound = None
     # actor_layers = (400, 300)
     # actor_layers = (64,32)
-    actor_learning_rate = 1e-5
-    critic_learning_rate = 1e-6
+    actor_learning_rate = 5e-7
+    critic_learning_rate = 1e-5
     # actor_learning_rate = 5e-6
     # critic_learning_rate = 5e-6
     # critic_layers = (16, 32, 48)
@@ -167,6 +169,7 @@ class Config(object):
         self.action_counts_path = None
         self.continuous_action_history_path = None
         self.action_values_path = None
+        self.test_step_results_path = None
         self.action_training_values_path = None
         self.epsilon_values_path = None
         self.fitness_plot_path = None
@@ -258,6 +261,7 @@ class Config(object):
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
             self.episode_results_path = os.path.join(self.results_dir, f"episode_results.csv")
             self.training_step_results_path = os.path.join(self.results_dir, f"step_results.csv")
+            self.test_step_results_path = os.path.join(self.results_dir, f"test_results.csv")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
             self.action_training_values_path = os.path.join(self.results_dir, f"actions_training_values.csv")
             self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.npy")

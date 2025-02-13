@@ -196,8 +196,8 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start
         self.epsilon_end = config.epsilon_end
-        self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
-        # self.decay_rate = 1/4 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        # self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        self.decay_rate = 1/8 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
         self.step = 0
 
     def select_action(self, q_values, **kwargs):
@@ -214,6 +214,18 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
         self.ou_noise.reset()
 
 
+class NoNoisePolicy(Policy):
+    def __init__(self, config):
+        self.lower_bound = config.lower_bound
+        self.upper_bound = config.upper_bound
+
+    def select_action(self, q_values, **kwargs):
+        action = q_values
+        action = np.clip(action, self.lower_bound, self.upper_bound)
+
+        return action
+
+
 class PPOPolicy(Policy):
     def __init__(self, config, actor_network):
         self.config = config
@@ -226,7 +238,7 @@ class PPOPolicy(Policy):
         self.epsilon_start = config.epsilon_start
         self.epsilon_end = config.epsilon_end
         # self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
-        self.decay_rate = 1/2 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        self.decay_rate = 1/4 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
         self.step = 0
         self.logp = None
 

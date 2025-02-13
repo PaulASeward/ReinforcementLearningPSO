@@ -22,7 +22,7 @@ class ContinuousPsoGymEnv(gym.Env):
         self._pso_variance = config.standard_deviations[config.func_num - 1] ** 2
         self._avg_swarm_improvement = config.swarm_improvement_pso[config.func_num - 1]
         self._avg_standard_pso_increase = self._avg_swarm_improvement / self._max_episodes
-        self._penalty_for_negative_reward = -0.01 if config.use_negative_reward_for_stagnation else 0
+        self._penalty_for_negative_reward = config.penalty_for_negative_reward
 
         self._observation_length = config.observation_length
         low_limits_obs_space = np.zeros(self._observation_length, dtype=np.float32)  # 150-dimensional array with all elements set to 0
