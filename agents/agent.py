@@ -112,6 +112,9 @@ class BaseAgent:
         self.replay_buffer.add([current_state, action, reward, next_state, terminal])
         return next_state
 
+    def test(self, step):
+        pass
+
     def train(self):
         with self.writer.as_default():
             for step in range(self.config.train_steps):
@@ -130,6 +133,10 @@ class BaseAgent:
                     fitness_rewards.append(fitness_reward)
                     rewards.append(reward)
                     swarm_observations.append(swarm_info)
+
+                if step % self.config.eval_interval == 0:
+                    # Run a test episode to evaluate the model without noise
+                    self.test(step)
 
                 [losses, actor_losses, critic_losses] = self.replay_experience()
                 early_stop = self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
