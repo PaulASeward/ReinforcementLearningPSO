@@ -7,7 +7,7 @@ import numpy as np
 class Config(object):
     use_discrete_env = None
     use_mock_data = False
-    use_priority_replay = True
+    use_priority_replay = False
     reward_function = "normalized_total_difference_reward"
     penalty_for_negative_reward = 0
     use_attention_layer = False
@@ -64,7 +64,8 @@ class Config(object):
 
     # Replay Buffer
     # buffer_size = 10000
-    buffer_size = 1000000
+    buffer_size = 20000
+    # buffer_size = 1000000
     batch_size = 128
     replay_priority_capacity = 100000
     replay_priority_epsilon = 0.01  # small amount to avoid zero priority
@@ -80,7 +81,7 @@ class Config(object):
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
     # ou_sigma = 0.1
-    ou_sigma = 0.2
+    ou_sigma = 0.5
     ou_dt = 1e-2
 
     tau = 0.01
@@ -89,8 +90,8 @@ class Config(object):
     lower_bound = None
     # actor_layers = (400, 300)
     # actor_layers = (64,32)
-    actor_learning_rate = 5e-7
-    critic_learning_rate = 1e-5
+    actor_learning_rate = 3e-7
+    critic_learning_rate = 3e-5
     # actor_learning_rate = 5e-6
     # critic_learning_rate = 5e-6
     # critic_layers = (16, 32, 48)
