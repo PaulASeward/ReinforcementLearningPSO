@@ -8,10 +8,10 @@ class Config(object):
     use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
-    reward_function = "normalized_total_difference_reward"
+    reward_function = "smoothed_total_difference_reward"
     penalty_for_negative_reward = 0
     use_attention_layer = False
-    use_ou_noise = True
+    use_ou_noise = False
 
     # AGENT PARAMETERS
     num_episodes = 20
@@ -81,17 +81,17 @@ class Config(object):
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
     # ou_sigma = 0.1
-    ou_sigma = 0.5
+    ou_sigma = 0.15
     ou_dt = 1e-2
 
-    tau = 0.01
+    tau = 0.005
     # tau = 0.125
     upper_bound = None
     lower_bound = None
     # actor_layers = (400, 300)
     # actor_layers = (64,32)
-    actor_learning_rate = 3e-7
-    critic_learning_rate = 3e-5
+    actor_learning_rate = 5e-6
+    critic_learning_rate = 1e-5
     # actor_learning_rate = 5e-6
     # critic_learning_rate = 5e-6
     # critic_layers = (16, 32, 48)

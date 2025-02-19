@@ -78,7 +78,6 @@ class ContinuousPsoGymEnv(gym.Env):
         difference = max(difference, 0)
         if self._actions_count == 1:
             standard_start_value = np.genfromtxt(self._standard_pso_values_path, delimiter=',', skip_header=1)[0,1]
-            # standard_start_value = standard_pso[0, 1]
             reward = (standard_start_value - self._best_fitness) * self._avg_standard_pso_increase
             # reward = (standard_start_value - self._best_fitness) / self._pso_variance
             return reward
