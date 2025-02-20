@@ -39,7 +39,7 @@ class PSOSwarm:
 
         self.velocity_magnitudes = None
         self.relative_fitnesses = None
-        self.average_batch_counts = None
+        self.average_pbest_replacement_counts = None
         self.pbest_replacement_counts = None
 
         self.P_vals = None
@@ -83,7 +83,7 @@ class PSOSwarm:
         # Static class variables to track P_vals replacements
         self.pbest_replacement_counts = np.zeros(self.swarm_size)
         self.pbest_replacement_batchcounts = np.zeros((self.num_swarm_obs_intervals, self.swarm_size))
-        self.average_batch_counts = np.zeros(self.swarm_size)
+        self.average_pbest_replacement_counts = np.zeros(self.swarm_size)
 
     def update_swarm_valuations_and_bests(self):
         self.P_vals = self.eval(self.P)  # Vector of particle's current valuation of its best position based on Function Eval
@@ -124,27 +124,35 @@ class PSOSwarm:
         self.V = np.where(selected_particles_reshaped, perturbed_velocities, self.V)
         self.update_swarm_valuations_and_bests()
 
-    def inject_random_perturbations_to_velocities(self, selection_type, factor):
-        self.perturb_velocities = True
-        self.perturb_velocity_factor = factor
-        self.perturb_velocity_particle_selection = selection_type
-
     def update_relative_fitnesses(self):
         self.relative_fitnesses = (self.P_vals - self.gbest_val) / np.abs(self.P_vals)
 
     def update_velocity_maginitude(self):
         self.velocity_magnitudes = np.linalg.norm(self.V, axis=1)
 
-    def update_batch_counts(self):
+    def update_average_pbest_replacement_counts(self):
         # Calculate the average batch count for each particle
-        self.average_batch_counts = np.mean(self.pbest_replacement_batchcounts, axis=0)
+        self.average_pbest_replacement_counts = np.mean(self.pbest_replacement_batchcounts, axis=0)
 
     def get_observation(self):
         self.update_relative_fitnesses()
         self.update_velocity_maginitude()
-        self.update_batch_counts()
+        self.update_average_pbest_replacement_counts()
 
-        return np.concatenate([self.velocity_magnitudes, self.relative_fitnesses, self.average_batch_counts], axis=0)
+        velocity_magnitudes_norm = self.velocity_magnitudes / self.abs_max_velocity
+        relative_fitnesses_norm = np.tanh(self.relative_fitnesses)
+        pbest_counts_norm = self.average_pbest_replacement_counts / self.swarm_obs_interval_length
+
+
+        obs_stack = np.column_stack([
+            velocity_magnitudes_norm,
+            relative_fitnesses_norm,
+            pbest_counts_norm
+        ])
+
+        # Flatten to ensure the observations are in the required 1D format
+        obs =  obs_stack.flatten()
+        return obs
 
     def get_swarm_observation(self):
         return {
@@ -152,7 +160,8 @@ class PSOSwarm:
             "c1": self.c1,
             "c2": self.c2,
             "abs_max_velocity": self.abs_max_velocity,
-            "abs_max_position": self.abs_max_position
+            "abs_max_position": self.abs_max_position,
+            "gbest_val": self.gbest_val,
         }
 
     def get_current_best_fitness(self):
@@ -215,8 +224,10 @@ class PSOSwarm:
             self.perturb_positions = False
 
         self.update_velocities(global_leader)  # Input global leader particle position
+
         if self.perturb_velocities:
             self._inject_random_perturbations_to_velocities(self.perturb_velocity_particle_selection, self.perturb_velocity_factor)
+
         self.update_positions()
         self.update_pbests()
         self.update_gbest()
