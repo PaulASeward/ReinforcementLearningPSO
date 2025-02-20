@@ -24,7 +24,7 @@ class Config(object):
     eval_interval = 500
     test_episodes = 10
 
-    replay_experience_length = 2
+    replay_experience_length = 1
 
     # EXPERIMENT PARAMETERS
     fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
@@ -66,7 +66,7 @@ class Config(object):
     # buffer_size = 10000
     buffer_size = 20000
     # buffer_size = 1000000
-    batch_size = 128
+    batch_size = 64
     replay_priority_capacity = 100000
     replay_priority_epsilon = 0.01  # small amount to avoid zero priority
     replay_priority_alpha = 0.7  # [0~1] convert the importance of TD error to priority
@@ -84,14 +84,14 @@ class Config(object):
     ou_sigma = 0.15
     ou_dt = 1e-2
 
-    tau = 0.005
+    tau = 0.001
     # tau = 0.125
     upper_bound = None
     lower_bound = None
     # actor_layers = (400, 300)
     # actor_layers = (64,32)
-    actor_learning_rate = 5e-6
-    critic_learning_rate = 1e-5
+    actor_learning_rate = 1e-4
+    critic_learning_rate = 1e-3
     # actor_learning_rate = 5e-6
     # critic_learning_rate = 5e-6
     # critic_layers = (16, 32, 48)

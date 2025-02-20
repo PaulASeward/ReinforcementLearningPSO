@@ -44,7 +44,7 @@ if __name__ == "__main__":
     parser.add_argument("--train", type=bool, default=True, help="Whether to train a network or to examine a given network")
     parser.add_argument("--mock", type=bool, default=False, help="To use a mock data environment for testing")
     parser.add_argument("--priority_replay", type=bool, default=False, help="To use a priority replay buffer for training")
-    parser.add_argument("--steps", type=int, default=2000, help="number of iterations to train")
+    parser.add_argument("--steps", type=int, default=1000, help="number of iterations to train")
     args, remaining = parser.parse_known_args()
 
     config = Config()
