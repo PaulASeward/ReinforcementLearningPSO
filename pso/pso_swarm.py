@@ -124,11 +124,6 @@ class PSOSwarm:
         self.V = np.where(selected_particles_reshaped, perturbed_velocities, self.V)
         self.update_swarm_valuations_and_bests()
 
-    def inject_random_perturbations_to_velocities(self, selection_type, factor):
-        self.perturb_velocities = True
-        self.perturb_velocity_factor = factor
-        self.perturb_velocity_particle_selection = selection_type
-
     def update_relative_fitnesses(self):
         self.relative_fitnesses = (self.P_vals - self.gbest_val) / np.abs(self.P_vals)
 
@@ -229,8 +224,10 @@ class PSOSwarm:
             self.perturb_positions = False
 
         self.update_velocities(global_leader)  # Input global leader particle position
+
         if self.perturb_velocities:
             self._inject_random_perturbations_to_velocities(self.perturb_velocity_particle_selection, self.perturb_velocity_factor)
+
         self.update_positions()
         self.update_pbests()
         self.update_gbest()
