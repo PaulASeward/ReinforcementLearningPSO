@@ -110,32 +110,37 @@ class DiscreteActions:
         self.swarm.update_velocity_maginitude()
         return np.mean(self.swarm.velocity_magnitudes)
 
+    def inject_random_perturbations_to_velocities(self, selection_type, factor):
+        self.swarm.perturb_velocities = True
+        self.swarm.perturb_velocity_factor = factor
+        self.swarm.perturb_velocity_particle_selection = selection_type
+
     def inject_small_perturbations_to_slow_particles(self):
-        self.swarm.inject_random_perturbations_to_velocities(selection_type=0, factor=0.05)
+        self.inject_random_perturbations_to_velocities(selection_type=0, factor=0.05)
 
     def inject_medium_perturbations_to_slow_particles(self):
-        self.swarm.inject_random_perturbations_to_velocities(selection_type=0, factor=0.20)
+        self.inject_random_perturbations_to_velocities(selection_type=0, factor=0.20)
 
     def inject_large_perturbations_to_slow_particles(self):
-        self.swarm.inject_random_perturbations_to_velocities(selection_type=0, factor=0.50)
+        self.inject_random_perturbations_to_velocities(selection_type=0, factor=0.50)
 
     def inject_small_perturbations_to_fast_particles(self):
-        self.swarm.inject_random_perturbations_to_velocities(selection_type=1, factor=0.05)
+        self.inject_random_perturbations_to_velocities(selection_type=1, factor=0.05)
 
     def inject_medium_perturbations_to_fast_particles(self):
-        self.swarm.inject_random_perturbations_to_velocities(selection_type=1, factor=0.20)
+        self.inject_random_perturbations_to_velocities(selection_type=1, factor=0.20)
 
     def inject_large_perturbations_to_fast_particles(self):
-        self.swarm.inject_random_perturbations_to_velocities(selection_type=1, factor=0.50)
+        self.inject_random_perturbations_to_velocities(selection_type=1, factor=0.50)
 
     def inject_small_perturbations_to_all_particles(self):
-        self.swarm.inject_random_perturbations_to_velocities(selection_type=2, factor=0.05)
+        self.inject_random_perturbations_to_velocities(selection_type=2, factor=0.05)
 
     def inject_medium_perturbations_to_all_particles(self):
-        self.swarm.inject_random_perturbations_to_velocities(selection_type=2, factor=0.20)
+        self.inject_random_perturbations_to_velocities(selection_type=2, factor=0.20)
 
     def inject_large_perturbations_to_all_particles(self):
-        self.swarm.inject_random_perturbations_to_velocities(selection_type=2, factor=0.50)
+        self.inject_random_perturbations_to_velocities(selection_type=2, factor=0.50)
 
     def increase_velocities_of_slow_velocities(self):
         avg_velocity = self._calculate_average_velocity()

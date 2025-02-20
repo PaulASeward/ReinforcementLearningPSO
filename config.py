@@ -5,25 +5,35 @@ import numpy as np
 
 
 class Config(object):
+    use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
+    reward_function = "smoothed_total_difference_reward"
+    penalty_for_negative_reward = 0
+    use_attention_layer = False
+    use_ou_noise = False
 
     # AGENT PARAMETERS
     num_episodes = 20
     num_swarm_obs_intervals = 10
     swarm_obs_interval_length = 30
-    observation_length = 150
+    observation_length = 151
 
     train_steps = 20000
     log_interval = 200
     eval_interval = 500
+    test_episodes = 10
 
-    replay_experience_length = 10
+    replay_experience_length = 1
 
     # EXPERIMENT PARAMETERS
     fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
                -500, -400, -300, -200, -100, 100, 200, 300, 400, 500, 600,
                700, 800, 900, 1000, 1100, 1200, 1300, 1400]
+
+    best_f_standard_pso = [0,0,0,0,0,-26,-112,-21,-26,0,-85,-120,-200,-2279,-4080,-1,-104,-130,-5,-12,-305,-2513,-4594,-276,0,0,0,0]
+    swarm_improvement_pso = [0,0,0,0,2,31,20,1,0,18,2,10,20,118,1300,1,43,141,4,1,1,237,1075,1,0,0,0,0]
+    standard_deviations = [0.00e+00, 7.82e+05, 7.06e+07, 4.55e+03, 0.00e+00, 4.34e+00, 1.74e+01, 5.51e-2, 1.95e+00, 5.53e-2, 1.51e+01, 1.72e+01, 2.21e+01, 3.80e+02, 6.25e+02, 3.51e-1, 1.55e+01, 2.68e+01, 1.30e+00, 5.12e-1, 5.30e+01, 5.15e+02, 7.06e+02, 5.64e+00, 7.12e+00, 4.61e+01, 7.43e+01, 2.82e-13]
 
     # Output files
     results_dir = "results"
@@ -53,7 +63,9 @@ class Config(object):
     epsilon_decay = 0.995
 
     # Replay Buffer
-    buffer_size = 10000
+    # buffer_size = 10000
+    buffer_size = 20000
+    # buffer_size = 1000000
     batch_size = 64
     replay_priority_capacity = 100000
     replay_priority_epsilon = 0.01  # small amount to avoid zero priority
@@ -64,29 +76,46 @@ class Config(object):
 
     # DRQN TRAINING PARAMETERS
     trace_length = 10
-    history_len = 4
 
     # DDPG TRAINING PARAMETERS
-    # ou_mu = 1
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.5
+    # ou_sigma = 0.1
+    ou_sigma = 0.15
     ou_dt = 1e-2
 
-    tau = 0.01
+    tau = 0.001
     # tau = 0.125
     upper_bound = None
     lower_bound = None
     # actor_layers = (400, 300)
-    actor_layers = (32,16)
-    actor_learning_rate = 1e-7
-    critic_learning_rate = 1e-5
-    critic_layers = (8, 16, 32)
+    # actor_layers = (64,32)
+    actor_learning_rate = 1e-4
+    critic_learning_rate = 1e-3
+    # actor_learning_rate = 5e-6
+    # critic_learning_rate = 5e-6
+    # critic_layers = (16, 32, 48)
+    actor_layers = (64, 128, 256)
+    critic_layers = (64, 128, 256)
+    # actor_layers = (64, 64)
+    # critic_layers = (64, 64, 1)
     # critic_layers = (600, 300)
     action_dim = None
     state_shape = None
     action_bound = None
     action_shift = None
+
+    # PPO TRAINING PARAMETERS
+    clip_ratio = 0.2
+    target_kl = 0.01
+    lam = 0.97
+
+    # policy_learning_rate = 3e-4
+    # value_function_learning_rate = 1e-3
+    # train_policy_iterations = 80
+    # train_value_iterations = 80
+    train_policy_iterations = 10
+    train_value_iterations = 10
 
     actions_descriptions = None
     continuous_action_offset = None
@@ -96,8 +125,7 @@ class Config(object):
 
     # LEARNING PARAMETERS
     # discount_factor = 0.01
-    # gamma = 0.99
-    gamma = 0.85
+    gamma = 0.99
     learning_rate = 0.001
     lr_method = "adam"
 
@@ -109,11 +137,31 @@ class Config(object):
     # LSTM PARAMETERS
     num_lstm_layers = 1
     lstm_size = 512
-    min_history = 4
-    states_to_update = 4
+    # min_history = 4
 
     # EVALUATION PARAMETERS
     # number_evaluations = 10000
+
+    # PSO Config:
+    topology = 'global'
+    is_sub_swarm = False
+
+    w = 0.729844  # Inertia weight
+    # w_min = 0.33  # Min of 5 decreases of 10%
+    w_min = 0.43  # Min of 5 decreases of 10%
+    w_max = 1.175  # Max of 5 increases of 10%
+    c1 = 2.05 * w  # Social component Learning Factor
+    c2 = 2.05 * w  # Cognitive component Learning Factor
+    c_min = 0.883  # Min of 5 decreases of 10%
+    # c_min = 0.583  # Min of 5 decreases of 10%
+    c_max = 2.409  # Max of 5 increases of 10%
+    rangeF = 100
+    v_min = 59.049
+    v_max = 161.051
+    replacement_threshold = 1.0
+    replacement_threshold_min = 0.5
+    replacement_threshold_max = 1.0
+    replacement_threshold_decay = 0.95
 
     def __init__(self):
         self.func_num = None
@@ -122,6 +170,8 @@ class Config(object):
         self.action_counts_path = None
         self.continuous_action_history_path = None
         self.action_values_path = None
+        self.test_step_results_path = None
+        self.action_training_values_path = None
         self.epsilon_values_path = None
         self.fitness_plot_path = None
         self.average_returns_plot_path = None
@@ -163,7 +213,7 @@ class Config(object):
 
         if swarm_size is not None:
             self.swarm_size = swarm_size
-            self.observation_length = self.swarm_size * 3
+            self.observation_length = self.swarm_size * 3 + 1
 
         if dimensions is not None:
             self.dim = dimensions
@@ -195,6 +245,11 @@ class Config(object):
                 self.num_sub_swarms = 5
 
         if network_type is not None:
+            if network_type in ["DQN", "DRQN"]:
+                self.use_discrete_env = True
+            else:
+                self.use_discrete_env = False
+
             self.network_type = network_type
             experiment = self.network_type + "_" + self.swarm_algorithm + "_F" + str(self.func_num)
             self.experiment = experiment
@@ -207,28 +262,10 @@ class Config(object):
             self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
             self.episode_results_path = os.path.join(self.results_dir, f"episode_results.csv")
             self.training_step_results_path = os.path.join(self.results_dir, f"step_results.csv")
+            self.test_step_results_path = os.path.join(self.results_dir, f"test_results.csv")
             self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
+            self.action_training_values_path = os.path.join(self.results_dir, f"actions_training_values.csv")
             self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.npy")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
             self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
             self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.func_num}.csv")
-
-
-class PSOConfig(Config):
-    topology = 'global'
-    is_sub_swarm = False
-
-    w = 0.729844  # Inertia weight
-    w_min = 0.43  # Min of 5 decreases of 10%
-    w_max = 1.175  # Max of 5 increases of 10%
-    c1 = 2.05 * w  # Social component Learning Factor
-    c2 = 2.05 * w  # Cognitive component Learning Factor
-    c_min = 0.883  # Min of 5 decreases of 10%
-    c_max = 2.409  # Max of 5 increases of 10%
-    rangeF = 100
-    v_min = 59.049
-    v_max = 161.051
-    replacement_threshold = 1.0
-    replacement_threshold_min = 0.5
-    replacement_threshold_max = 1.0
-    replacement_threshold_decay = 0.95

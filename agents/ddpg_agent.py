@@ -10,13 +10,12 @@ from agents.utils.experience_buffer import ExperienceBufferStandard as StandardR
 from agents.utils.experience_buffer import ExperienceBufferPriority as PriorityReplayBuffer
 from agents.model_networks.ddpg_model import ActorNetworkModel, CriticNetworkModel
 from utils.logging_utils import ContinuousActionsResultsLogger as ResultsLogger
-from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicy, OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling
+from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling, NoNoisePolicy
 
 
 class DDPGAgent(BaseAgent):
     def __init__(self, config):
         super(DDPGAgent, self).__init__(config)
-        # TODO: Adjust states from 50 particles with 3 dimensions = 150 flattened array to 50 particles with 3 dimensions each.
         self.results_logger = ResultsLogger(config)
 
         self.actor_network = ActorNetworkModel(config)
@@ -24,33 +23,11 @@ class DDPGAgent(BaseAgent):
 
         self.critic_network = CriticNetworkModel(config)
         self.critic_network_target = CriticNetworkModel(config)
-        # self.policy = OrnsteinUhlenbeckActionNoisePolicy(config)
         self.policy = OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(config)
+        self.test_policy = NoNoisePolicy(config)
 
         self.update_model_target_weights(tau=1.0)
         self.replay_buffer = PriorityReplayBuffer(config=config) if config.use_priority_replay else StandardReplayBuffer(config=config)
-
-    def build_environment(self):
-        if self.config.swarm_algorithm == "PMSO":
-            low_limit_subswarm_action_space = [self.config.w_min, self.config.c_min, self.config.c_min]
-            high_limit_subswarm_action_space = [self.config.w_max, self.config.c_max, self.config.c_max]
-
-            self.config.lower_bound = np.array(
-                [low_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)], dtype=np.float32).flatten()
-            self.config.upper_bound = np.array(
-                [high_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)], dtype=np.float32).flatten()
-        else:
-            self.config.lower_bound = np.array([self.config.w_min, self.config.c_min, self.config.c_min], dtype=np.float32)
-            self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max], dtype=np.float32)
-
-        if self.config.use_mock_data:
-            self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
-        else:
-            self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
-
-        self.config.state_shape = self.env.observation_space.shape
 
     def get_q_values(self, state):
         return self.actor_network.get_action_q_values(state)
@@ -70,8 +47,10 @@ class DDPGAgent(BaseAgent):
             self.actor_network_target.model.set_weights(theta_a_targ)
             self.critic_network_target.model.set_weights(theta_c_targ)
 
+        return False
+
     def replay_experience(self):
-        if self.replay_buffer.size() < self.config.batch_size:
+        if self.replay_buffer.size() < self.config.batch_size * 20:
             return None, None, None  # Not enough experience to replay yet.
 
         actor_losses = []
@@ -92,6 +71,8 @@ class DDPGAgent(BaseAgent):
 
                 next_actions = self.actor_network_target.predict(next_states)
                 next_q_values = self.critic_network_target.predict([next_states, next_actions])
+                rewards = rewards[:, np.newaxis]  # Shape (64, 1)
+                dones = dones[:, np.newaxis]  # Shape (64, 1)
 
                 # Use Bellman Equation. (recursive definition of q-values)
                 q_values_targets = rewards + (1 - dones) * self.config.gamma * next_q_values
@@ -114,28 +95,37 @@ class DDPGAgent(BaseAgent):
 
         return total_losses, actor_losses, critic_losses
 
+    def test(self, step):
+        cumulative_training_rewards = []
+        cumulative_fitness_rewards = []
 
-    # def replay_experience(self):
-    #     if self.replay_buffer.size() < self.config.batch_size:
-    #         return None  # Not enough experience to replay yet.
-    #
-    #     losses = []
-    #     if not self.config.use_mock_data:
-    #         for _ in range(self.config.replay_experience_length):
-    #             states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
-    #
-    #             # ---------------------------- update critic ---------------------------- #
-    #             next_actions = self.actor_network_target.model(next_states)
-    #             next_q_values = self.critic_network_target.model([next_states, next_actions])
-    #
-    #             # Use Bellman Equation. (recursive definition of q-values)
-    #             q_values_target = rewards + (1 - done) * self.config.gamma * next_q_values
-    #
-    #             self.critic_network.model.fit([states, actions], q_values_target, batch_size=self.config.batch_size, epochs=1, verbose=0, shuffle=False)
-    #
-    #             # ---------------------------- update actor ---------------------------- #
-    #             action_loss = self.actor_network.train(states, self.critic_network.model)
-    #
-    #             losses.append(action_loss)
-    #
-    #     return losses
+        for _ in range(self.config.test_episodes):
+            actions, rewards, fitness_rewards, swarm_observations, terminal = [], [], [], [], False
+            current_state = self.initialize_current_state()
+
+            while not terminal:
+                q_values = self.get_q_values(current_state)
+                action = self.test_policy.select_action(q_values)
+                next_observation, reward, terminal, swarm_info = self.env.step(action)
+                current_state = np.reshape(next_observation, (1, self.config.observation_length))
+
+                fitness_reward = swarm_info[
+                    "fitness_reward"]  # This is for plotting swarm improvements, not learning purposes.
+                actions.append(action)
+                fitness_rewards.append(fitness_reward)
+                rewards.append(reward)
+                swarm_observations.append(swarm_info)
+
+            cumulative_training_reward = np.sum(rewards)
+            cumulative_fitness_reward = np.sum(fitness_rewards)
+            print(f"EVALUATION STEP #{step} Fitness Reward:{cumulative_fitness_reward} Training Reward: {cumulative_training_reward}")
+            print("EVALUATION_ACTION: ", actions)
+
+            cumulative_fitness_rewards.append(cumulative_fitness_reward)
+            cumulative_training_rewards.append(cumulative_training_reward)
+
+        avg_fitness_reward = np.mean(cumulative_fitness_rewards)
+        avg_training_reward = np.mean(cumulative_training_rewards)
+
+        print(f"Average Fitness Reward: {avg_fitness_reward} Average Training Reward: {avg_training_reward}")
+        self.results_logger._save_to_csv([step, self.policy.current_epsilon, avg_fitness_reward, avg_training_reward], self.config.test_step_results_path)

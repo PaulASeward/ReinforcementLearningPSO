@@ -156,7 +156,6 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
         self.num_actions = num_actions
 
         self.decay_rate = float(epsilon_start - epsilon_end) / num_steps
-        # self.decay_rate = 4 * float(epsilon_start - epsilon_end) / num_steps
         self.step = 0
 
     def select_action(self, q_values, **kwargs):
@@ -184,46 +183,21 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
         self.step = 0
 
 
-class OrnsteinUhlenbeckActionNoisePolicy(Policy):
-    def __init__(self, config):
-        # self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.action_dimensions)
-        self.ou_noise = NormalNoise(config=config, size=config.action_dimensions)
-        self.lower_bound = config.lower_bound
-        self.upper_bound = config.upper_bound
-
-        self.current_epsilon = config.epsilon_start
-        self.epsilon_start = config.epsilon_start
-        self.epsilon_end = config.epsilon_end
-        self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
-        self.step = 0
-
-    def select_action(self, q_values, **kwargs):
-        self.step += 1
-        self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
-        epsilon = max(self.current_epsilon, self.epsilon_end)
-
-        if np.random.rand() < epsilon:
-            # q_values += self.ou_noise()
-            q_values += self.ou_noise()  # Scale the noise by the action bound
-
-        action = np.clip(q_values, self.lower_bound, self.upper_bound)
-        return action
-
-    def reset(self):
-        self.ou_noise.reset()
-
-
 class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
     def __init__(self, config):
-        self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.action_dimensions)
-        # self.ou_noise = NormalNoise(config=config, size=config.action_dimensions)
+        if config.use_ou_noise:
+            self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.action_dimensions)
+        else:
+            self.ou_noise = NormalNoise(config=config, size=config.action_dimensions)
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound
 
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start
         self.epsilon_end = config.epsilon_end
-        self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        # self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        # self.decay_rate = 1/5 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        self.decay_rate = 1/2 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
         self.step = 0
 
     def select_action(self, q_values, **kwargs):
@@ -232,11 +206,54 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
         epsilon = max(self.current_epsilon, self.epsilon_end)
 
         noise = self.ou_noise() * epsilon
-        q_values += noise
-        action = np.clip(q_values, self.lower_bound, self.upper_bound)
+        raw_action = q_values + noise
+        action = np.clip(raw_action, self.lower_bound, self.upper_bound)
         return action
 
     def reset(self):
         self.ou_noise.reset()
+
+
+class NoNoisePolicy(Policy):
+    def __init__(self, config):
+        self.lower_bound = config.lower_bound
+        self.upper_bound = config.upper_bound
+
+    def select_action(self, q_values, **kwargs):
+        action = q_values
+        action = np.clip(action, self.lower_bound, self.upper_bound)
+
+        return action
+
+
+class PPOPolicy(Policy):
+    def __init__(self, config, actor_network):
+        self.config = config
+        self.actor_network = actor_network
+
+        self.lower_bound = config.lower_bound
+        self.upper_bound = config.upper_bound
+
+        self.current_epsilon = config.epsilon_start
+        self.epsilon_start = config.epsilon_start
+        self.epsilon_end = config.epsilon_end
+        # self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        self.decay_rate = 1/4 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        self.step = 0
+        self.logp = None
+
+    def select_action(self, current_state, **kwargs):
+        self.step += 1
+        # self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
+
+        raw_action, raw_logp, avg_std = self.actor_network.sample_action(current_state)
+        self.current_epsilon = avg_std
+
+        action = raw_action.numpy()[0]
+        action = np.clip(action, self.lower_bound, self.upper_bound)
+
+        self.logp = raw_logp.numpy()[0]
+
+        return action
 
 

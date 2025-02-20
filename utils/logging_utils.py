@@ -34,10 +34,20 @@ class ResultsLogger:
 
     def save_config(self):
         with open(self.config.experiment_config_path, 'w') as f:
-            for key, value in vars(self.config).items():
+            # Get instance attributes
+            config_vars = vars(self.config)
+
+            # Get class attributes (excluding built-ins)
+            class_vars = {k: v for k, v in self.config.__class__.__dict__.items() if not k.startswith("__")}
+
+            # Merge both
+            all_vars = {**class_vars, **config_vars}
+
+            for key, value in all_vars.items():
                 f.write(f"{key}: {value}\n")
 
-    def save_step_results(self, epsilon, rewards, train_loss=None, swarm_observations_dicts=None):
+
+    def save_step_results(self, epsilon, fitness_rewards, training_rewards, train_loss=None, swarm_observations_dicts=None):
         if train_loss is None:
             train_loss = 0.0
         else:
@@ -45,27 +55,30 @@ class ResultsLogger:
 
         # for ep_dict in swarm_observations_dicts:
         #     print(ep_dict)
+        cumulative_training_reward = np.sum(training_rewards)
+        cumulative_fitness_reward = np.sum(fitness_rewards)
+        fitness = self.config.fDeltas[self.config.func_num - 1] - cumulative_fitness_reward
 
-        cumulative_episode_reward = np.sum(rewards)
-        fitness = self.config.fDeltas[self.config.func_num - 1] - cumulative_episode_reward
-
-        self._save_to_csv(rewards, self.config.action_values_path)
+        self._save_to_csv(fitness_rewards, self.config.action_values_path)
+        self._save_to_csv(training_rewards, self.config.action_training_values_path)
         swarm_observations = np.array([swarm_observations_dicts], dtype=object)  # Convert dict to array
         self.swarm_episode_observations = np.vstack([self.swarm_episode_observations, swarm_observations])
 
         self._save_to_csv([epsilon], self.config.epsilon_values_path)  # TODO: remove
-        self._save_to_csv([self.step, epsilon, cumulative_episode_reward, fitness, train_loss], self.config.training_step_results_path)
+        self._save_to_csv([self.step, epsilon, cumulative_fitness_reward, fitness, train_loss, cumulative_training_reward], self.config.training_step_results_path)
 
-        print(f"Step #{self.step} Reward:{cumulative_episode_reward} Current Epsilon: {epsilon}")
-        tf.summary.scalar("episode_reward", cumulative_episode_reward, step=self.step-1)
+        print(f"Step #{self.step} Fitness Reward:{cumulative_fitness_reward} Training Reward: {cumulative_training_reward} Current Epsilon: {epsilon}")
+        # print("Training Rewards: ", training_rewards)
+        # print("Fitness Rewards: ", fitness_rewards)
+        tf.summary.scalar("episode_reward", cumulative_fitness_reward, step=self.step-1)
 
     def write_actions_at_eval_interval_to_csv(self):
         raise NotImplementedError
 
-    def save_log_statements(self, step, actions, rewards, train_loss=None, epsilon=None, swarm_observations=None, actor_losses=None, critic_losses=None):
+    def save_log_statements(self, step, actions, fitness_rewards, training_rewards, train_loss=None, epsilon=None, swarm_observations=None, actor_losses=None, critic_losses=None):
         self.step = step
         self.save_actions(actions)
-        self.save_step_results(epsilon, rewards, train_loss, swarm_observations)
+        self.save_step_results(epsilon, fitness_rewards, training_rewards, train_loss, swarm_observations)
 
         if step % self.config.log_interval == 0:
             self.store_results_at_log_interval(train_loss, actor_losses, critic_losses)
@@ -173,6 +186,7 @@ class ContinuousActionsResultsLogger(ResultsLogger):
 
         # Print Average Action in each dimension:
         print(f"Step #{self.step} Average Action: {np.mean(actions_row, axis=0)}")
+        print("Actions: ", actions_row)
 
         # Save to disk periodically
         if self.step % self.config.log_interval == 0 or self.step == self.config.train_steps:

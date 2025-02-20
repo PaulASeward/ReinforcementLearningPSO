@@ -2,7 +2,7 @@ import numpy as np
 from pso.pso_swarm import PSOSwarm
 
 class Particle:
-    def __init__(self, x, v, p, P_val, current_valuation, velocity_magnitude, relative_fitness, average_batch_count):
+    def __init__(self, x, v, p, P_val, current_valuation, velocity_magnitude, relative_fitness, average_pbest_replacement_counts):
         self.x = x
         self.v = v
         self.p = p
@@ -10,7 +10,7 @@ class Particle:
         self.velocity_magnitude = velocity_magnitude
         self.current_valuation = current_valuation
         self.relative_fitness = relative_fitness
-        self.average_batch_count = average_batch_count
+        self.average_pbest_replacement_counts = average_pbest_replacement_counts
 
 
 class ParticleDataMetaData:
@@ -51,7 +51,7 @@ class PSOSubSwarm(PSOSwarm):
                         self.current_valuations[particle_index],
                         self.velocity_magnitudes[particle_index],
                         self.relative_fitnesses[particle_index],
-                        self.average_batch_counts[particle_index])
+                        self.average_pbest_replacement_counts[particle_index])
 
     def add_particle(self, particle: Particle, particle_index: int):
         self.X[particle_index] = particle.x
@@ -61,7 +61,7 @@ class PSOSubSwarm(PSOSwarm):
         self.current_valuations[particle_index] = particle.current_valuation
         self.velocity_magnitudes[particle_index] = particle.velocity_magnitude
         self.relative_fitnesses[particle_index] = particle.relative_fitness
-        self.average_batch_counts[particle_index] = particle.average_batch_count
+        self.average_pbest_replacement_counts[particle_index] = particle.average_pbest_replacement_counts
 
     def swap_in_particles(self, incoming_particles: [ParticleDataMetaData], outgoing_particles: [ParticleDataMetaData]):
         assert len(incoming_particles) == len(outgoing_particles), "Incoming and Outgoing Particle Counts must be equal"
