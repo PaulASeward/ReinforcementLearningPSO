@@ -134,6 +134,9 @@ class BaseAgent:
                     rewards.append(reward)
                     swarm_observations.append(swarm_info)
 
+                    self.replay_experience()
+                    self.update_model_target_weights()
+
                 if step % self.config.eval_interval == 0:
                     # Run a test episode to evaluate the model without noise
                     self.test(step)
