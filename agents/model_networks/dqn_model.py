@@ -8,11 +8,21 @@ class DQNModel(BaseModel):
         super(DQNModel, self).__init__(config, "dqn")
 
     def nn_model(self):
+        # model = tf.keras.Sequential(
+        #     [
+        #         Input((self.config.observation_length,)),
+        #         Dense(32, activation="relu"),
+        #         Dense(16, activation="relu"),
+        #         Dense(self.config.num_actions),
+        #     ]
+        # )
+
         model = tf.keras.Sequential(
             [
                 Input((self.config.observation_length,)),
-                Dense(32, activation="relu"),
-                Dense(16, activation="relu"),
+                Dense(256, activation="relu"),
+                Dense(128, activation="relu"),
+                Dense(64, activation="relu"),
                 Dense(self.config.num_actions),
             ]
         )

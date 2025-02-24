@@ -11,14 +11,24 @@ class DRQNModel(BaseModel):
         self.lstm_size = config.lstm_size
 
     def nn_model(self):
+        # return tf.keras.Sequential(
+        #     [
+        #         Input((self.config.trace_length, self.config.observation_length)),
+        #         LSTM(32, activation="tanh"),
+        #         Dense(16, activation="relu"),
+        #         Dense(self.config.num_actions),
+        #     ]
+        # )
         return tf.keras.Sequential(
             [
                 Input((self.config.trace_length, self.config.observation_length)),
-                LSTM(32, activation="tanh"),
-                Dense(16, activation="relu"),
+                LSTM(256, activation="tanh"),
+                Dense(128, activation="relu"),
+                Dense(64, activation="relu"),
                 Dense(self.config.num_actions),
             ]
         )
+
 
 
     def train(self, states, targets):
