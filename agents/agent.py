@@ -74,7 +74,7 @@ class BaseAgent:
         return False
 
     def replay_experience(self):
-        if self.replay_buffer.size() < self.config.batch_size:
+        if self.replay_buffer.size() < self.config.batch_size * 20:
             return None, None, None  # Not enough experience to replay yet.
 
         losses = []

@@ -54,9 +54,9 @@ class DiscretePsoGymEnv(gym.Env):
 
     def simple_reward(self, difference):
         if difference > 0:
-            return 1
+            return np.float32(1)
         else:
-            return self._penalty_for_negative_reward
+            return np.float32(self._penalty_for_negative_reward)
 
     def difference_reward(self, difference):
         return max(difference, self._penalty_for_negative_reward)

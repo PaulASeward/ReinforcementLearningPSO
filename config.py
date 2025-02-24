@@ -8,7 +8,7 @@ class Config(object):
     use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
-    reward_function = "smoothed_total_difference_reward"
+    reward_function = "normalized_total_difference_reward"
     penalty_for_negative_reward = 0
     use_attention_layer = False
     use_ou_noise = False
@@ -95,8 +95,8 @@ class Config(object):
     # actor_learning_rate = 5e-6
     # critic_learning_rate = 5e-6
     # critic_layers = (16, 32, 48)
-    actor_layers = (64, 128, 256)
-    critic_layers = (64, 128, 256)
+    actor_layers = (256, 128, 64)
+    critic_layers = (256, 128, 64)
     # actor_layers = (64, 64)
     # critic_layers = (64, 64, 1)
     # critic_layers = (600, 300)
