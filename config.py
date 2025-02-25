@@ -11,7 +11,7 @@ class Config(object):
     reward_function = "normalized_total_difference_reward"
     penalty_for_negative_reward = 0
     use_attention_layer = False
-    use_ou_noise = False
+    use_ou_noise = True
 
     # AGENT PARAMETERS
     num_episodes = 20
@@ -81,7 +81,7 @@ class Config(object):
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
     # ou_sigma = 0.1
-    ou_sigma = 0.2
+    ou_sigma = 0.4
     ou_dt = 1e-2
 
     tau = 0.005
@@ -90,7 +90,8 @@ class Config(object):
     lower_bound = None
     # actor_layers = (400, 300)
     # actor_layers = (64,32)
-    actor_learning_rate = 5e-4
+    # actor_learning_rate = 5e-4
+    actor_learning_rate = 1e-3
     critic_learning_rate = 1e-3
     # actor_learning_rate = 5e-6
     # critic_learning_rate = 5e-6

@@ -195,9 +195,9 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start
         self.epsilon_end = config.epsilon_end
-        # self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
         # self.decay_rate = 1/5 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
-        self.decay_rate = 1/2 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        # self.decay_rate = 1/2 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
         self.step = 0
 
     def select_action(self, q_values, **kwargs):
