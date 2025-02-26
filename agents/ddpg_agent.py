@@ -50,7 +50,7 @@ class DDPGAgent(BaseAgent):
         return False
 
     def replay_experience(self):
-        if self.replay_buffer.size() < self.config.batch_size * 20:
+        if self.replay_buffer.size() < self.config.batch_size * 50:
             return None, None, None  # Not enough experience to replay yet.
 
         actor_losses = []
