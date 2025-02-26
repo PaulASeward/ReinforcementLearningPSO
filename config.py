@@ -11,7 +11,7 @@ class Config(object):
     reward_function = "normalized_total_difference_reward"
     penalty_for_negative_reward = 0
     use_attention_layer = False
-    use_ou_noise = False
+    use_ou_noise = True
 
     # AGENT PARAMETERS
     num_episodes = 20
@@ -81,6 +81,7 @@ class Config(object):
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
     # ou_sigma = 0.1
+    # ou_sigma = 0.4
     ou_sigma = 0.4
     ou_dt = 1e-2
 
@@ -148,14 +149,21 @@ class Config(object):
     is_sub_swarm = False
 
     w = 0.729844  # Inertia weight
-    # w_min = 0.33  # Min of 5 decreases of 10%
-    w_min = 0.43  # Min of 5 decreases of 10%
-    w_max = 1.175  # Max of 5 increases of 10%
     c1 = 2.05 * w  # Social component Learning Factor
     c2 = 2.05 * w  # Cognitive component Learning Factor
+
+    # w_min = 0.43  # Min of 5 decreases of 10%
+    # w_max = 1.175  # Max of 5 increases of 10%
+    w_min = 0.23  # Min of 5 decreases of 10%
+    w_max = 1.375  # Max of 5 increases of 10%
+
     c_min = 0.883  # Min of 5 decreases of 10%
-    # c_min = 0.583  # Min of 5 decreases of 10%
     c_max = 2.409  # Max of 5 increases of 10%
+
+    # w_min = 0  # Min of 5 decreases of 10%
+    # w_max = 1.44  # Max of 5 increases of 10%
+    # c_min = 0  # Min of 5 decreases of 10%
+    # c_max = 3.3 # Max of 5 increases of 10%
     rangeF = 100
     v_min = 59.049
     v_max = 161.051
