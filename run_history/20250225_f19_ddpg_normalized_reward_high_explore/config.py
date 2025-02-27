@@ -81,8 +81,7 @@ class Config(object):
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
     # ou_sigma = 0.1
-    # ou_sigma = 0.4
-    ou_sigma = 0.4
+    ou_sigma = 0.8
     ou_dt = 1e-2
 
     tau = 0.005
@@ -91,7 +90,6 @@ class Config(object):
     lower_bound = None
     # actor_layers = (400, 300)
     # actor_layers = (64,32)
-    # actor_learning_rate = 5e-4
     actor_learning_rate = 1e-3
     critic_learning_rate = 1e-3
     # actor_learning_rate = 5e-6
@@ -149,21 +147,14 @@ class Config(object):
     is_sub_swarm = False
 
     w = 0.729844  # Inertia weight
-    c1 = 2.05 * w  # Social component Learning Factor
-    c2 = 2.05 * w  # Cognitive component Learning Factor
-
-    # w_min = 0.43  # Min of 5 decreases of 10%
-    # w_max = 1.175  # Max of 5 increases of 10%
+    # w_min = 0.33  # Min of 5 decreases of 10%
     w_min = 0.23  # Min of 5 decreases of 10%
     w_max = 1.375  # Max of 5 increases of 10%
-
+    c1 = 2.05 * w  # Social component Learning Factor
+    c2 = 2.05 * w  # Cognitive component Learning Factor
     c_min = 0.883  # Min of 5 decreases of 10%
+    # c_min = 0.583  # Min of 5 decreases of 10%
     c_max = 2.409  # Max of 5 increases of 10%
-
-    # w_min = 0  # Min of 5 decreases of 10%
-    # w_max = 1.44  # Max of 5 increases of 10%
-    # c_min = 0  # Min of 5 decreases of 10%
-    # c_max = 3.3 # Max of 5 increases of 10%
     rangeF = 100
     v_min = 59.049
     v_max = 161.051
@@ -251,8 +242,7 @@ class Config(object):
         if swarm_algorithm is not None:
             self.swarm_algorithm = swarm_algorithm
             if swarm_algorithm == "PMSO":
-                # self.num_sub_swarms = 5
-                self.num_sub_swarms = 2
+                self.num_sub_swarms = 5
 
         if network_type is not None:
             if network_type in ["DQN", "DRQN"]:
