@@ -41,6 +41,8 @@ class PSOSwarm:
         self.relative_fitnesses = None
         self.average_pbest_replacement_counts = None
         self.pbest_replacement_counts = None
+        self.velocity_clipping_counts = 0
+        self.total_clipped_velocities = 0
 
         self.P_vals = None
         self.current_valuations = None
@@ -51,6 +53,7 @@ class PSOSwarm:
         self._initialize()
 
     def reinitialize(self):
+        print('Total Clipped Velocities: ', self.total_clipped_velocities)
         self._initialize()
 
     def _initialize(self):
@@ -79,6 +82,9 @@ class PSOSwarm:
         self.current_valuations = None
         self.gbest_val = float('inf')
         self.gbest_pos = None
+
+        self.velocity_clipping_counts = 0
+        self.total_clipped_velocities = 0
 
         # Static class variables to track P_vals replacements
         self.pbest_replacement_counts = np.zeros(self.swarm_size)
@@ -139,7 +145,7 @@ class PSOSwarm:
         self.update_velocity_maginitude()
         self.update_average_pbest_replacement_counts()
 
-        velocity_magnitudes_norm = self.velocity_magnitudes / self.abs_max_velocity
+        velocity_magnitudes_norm = self.velocity_magnitudes / self.rangeF
         relative_fitnesses_norm = np.tanh(self.relative_fitnesses)
         pbest_counts_norm = self.average_pbest_replacement_counts / self.swarm_obs_interval_length
 
@@ -152,6 +158,10 @@ class PSOSwarm:
 
         # Flatten to ensure the observations are in the required 1D format
         obs =  obs_stack.flatten()
+        obs = np.append(obs, self.velocity_clipping_counts / (self.swarm_size * self.dimension))
+        self.total_clipped_velocities += self.velocity_clipping_counts
+        self.velocity_clipping_counts = 0
+
         return obs
 
     def get_swarm_observation(self):
@@ -180,7 +190,14 @@ class PSOSwarm:
 
         # Update new velocity with old velocity*inertia plus component matrices
         self.V = self.w * self.V + social + cognitive
-        self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
+
+        # self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
+
+        # Count how many elements were clipped
+        V_clipped = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
+        self.velocity_clipping_counts += np.sum(self.V != V_clipped)
+        self.V = V_clipped
+
 
     def update_positions(self):
         # Clamp position inside boundary and reflect them in case they are out of the boundary based on:

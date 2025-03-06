@@ -47,9 +47,14 @@ class BaseAgent:
                 [high_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)],
                 dtype=np.float32).flatten()
         else:
-            self.config.lower_bound = np.array([self.config.w_min, self.config.c_min, self.config.c_min],
+            # self.config.lower_bound = np.array([self.config.w_min, self.config.c_min, self.config.c_min],
+            #                                    dtype=np.float32)
+            # self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max],
+            #                                    dtype=np.float32)
+
+            self.config.lower_bound = np.array([self.config.v_min],
                                                dtype=np.float32)
-            self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max],
+            self.config.upper_bound = np.array([self.config.v_max],
                                                dtype=np.float32)
 
         if self.config.use_mock_data:

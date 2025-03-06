@@ -17,7 +17,8 @@ class Config(object):
     num_episodes = 20
     num_swarm_obs_intervals = 10
     swarm_obs_interval_length = 30
-    observation_length = 151
+    # observation_length = 151
+    observation_length = 152
 
     train_steps = 20000
     log_interval = 200
@@ -82,7 +83,7 @@ class Config(object):
     ou_theta = 0.15
     # ou_sigma = 0.1
     # ou_sigma = 0.4
-    ou_sigma = 0.4
+    ou_sigma = 0.3
     ou_dt = 1e-2
 
     tau = 0.005
@@ -165,8 +166,11 @@ class Config(object):
     # c_min = 0  # Min of 5 decreases of 10%
     # c_max = 3.3 # Max of 5 increases of 10%
     rangeF = 100
-    v_min = 59.049
-    v_max = 161.051
+    # v_min = 59.049
+    # v_max = 161.051
+
+    v_min = 0.01
+    v_max = 200.01
     replacement_threshold = 1.0
     replacement_threshold_min = 0.5
     replacement_threshold_max = 1.0
@@ -222,7 +226,7 @@ class Config(object):
 
         if swarm_size is not None:
             self.swarm_size = swarm_size
-            self.observation_length = self.swarm_size * 3 + 1
+            self.observation_length = self.swarm_size * 3 + 2
 
         if dimensions is not None:
             self.dim = dimensions
