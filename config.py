@@ -252,7 +252,7 @@ class Config(object):
             self.swarm_algorithm = swarm_algorithm
             if swarm_algorithm == "PMSO":
                 # self.num_sub_swarms = 5
-                self.num_sub_swarms = 5
+                self.num_sub_swarms = 50
 
         if network_type is not None:
             if network_type in ["DQN", "DRQN"]:
