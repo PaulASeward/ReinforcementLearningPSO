@@ -19,6 +19,7 @@ class PSOSwarm:
         self.rangeF = config.rangeF
         self.perturb_velocities = False
         self.perturb_velocity_factor = None
+        self.velocity_scaling_factor = None
         self.perturb_velocity_particle_selection = None
         self.perturb_positions = False
         self.perturb_position_factor = None
@@ -41,8 +42,6 @@ class PSOSwarm:
         self.relative_fitnesses = None
         self.average_pbest_replacement_counts = None
         self.pbest_replacement_counts = None
-        self.velocity_clipping_counts = 0
-        self.total_clipped_velocities = 0
 
         self.P_vals = None
         self.current_valuations = None
@@ -53,13 +52,12 @@ class PSOSwarm:
         self._initialize()
 
     def reinitialize(self):
-        print('Total Clipped Velocities: ', self.total_clipped_velocities)
         self._initialize()
 
     def _initialize(self):
         # Initialize 3 matrices for Current Position, Velocity, and Position of particles' best solution
         self.X = np.random.uniform(low=-1 * self.rangeF, high=self.rangeF, size=(self.swarm_size, self.dimension))
-        self.V = np.full((self.swarm_size, self.dimension), 0)
+        self.V = np.full((self.swarm_size, self.dimension), 0.0)
         self.P = self.X
         self.P_vals = None
 
@@ -69,6 +67,7 @@ class PSOSwarm:
         self.c2 = self.config.c2
         self.gbest_replacement_threshold, self.pbest_replacement_threshold = self.config.replacement_threshold, self.config.replacement_threshold
         self.abs_max_velocity = self.rangeF
+        self.velocity_scaling_factor = 1.0
 
         self.initialize_stored_counts()
 
@@ -82,9 +81,6 @@ class PSOSwarm:
         self.current_valuations = None
         self.gbest_val = float('inf')
         self.gbest_pos = None
-
-        self.velocity_clipping_counts = 0
-        self.total_clipped_velocities = 0
 
         # Static class variables to track P_vals replacements
         self.pbest_replacement_counts = np.zeros(self.swarm_size)
@@ -158,9 +154,6 @@ class PSOSwarm:
 
         # Flatten to ensure the observations are in the required 1D format
         obs =  obs_stack.flatten()
-        obs = np.append(obs, self.velocity_clipping_counts / (self.swarm_size * self.dimension))
-        self.total_clipped_velocities += self.velocity_clipping_counts
-        self.velocity_clipping_counts = 0
 
         return obs
 
@@ -190,13 +183,9 @@ class PSOSwarm:
 
         # Update new velocity with old velocity*inertia plus component matrices
         self.V = self.w * self.V + social + cognitive
+        self.V *= self.velocity_scaling_factor
 
-        # self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
-
-        # Count how many elements were clipped
-        V_clipped = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
-        self.velocity_clipping_counts += np.sum(self.V != V_clipped)
-        self.V = V_clipped
+        self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
 
 
     def update_positions(self):

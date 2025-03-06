@@ -100,11 +100,10 @@ class DiscreteActions:
         self.swarm.update_swarm_valuations_and_bests()
 
     def increase_all_velocities(self):
-        self.swarm.V = self.swarm.V * 1.10
-        self.swarm.V = np.clip(self.swarm.V, -self.swarm.abs_max_velocity, self.swarm.abs_max_velocity)
+        self.swarm.velocity_scaling_factor *= 1.10
 
     def decrease_all_velocities(self):
-        self.swarm.V = self.swarm.V * 0.90
+        self.swarm.velocity_scaling_factor *= 0.90
 
     def _calculate_average_velocity(self):
         self.swarm.update_velocity_maginitude()

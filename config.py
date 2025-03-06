@@ -103,7 +103,7 @@ class Config(object):
     # actor_layers = (64, 64)
     # critic_layers = (64, 64, 1)
     # critic_layers = (600, 300)
-    action_dim = None
+    subswarm_action_dim = None
     state_shape = None
     action_bound = None
     action_shift = None
@@ -169,8 +169,12 @@ class Config(object):
     # v_min = 59.049
     # v_max = 161.051
 
-    v_min = 0.01
-    v_max = 200.01
+    v_min = 50
+    v_max = 150
+
+    v_min_scaling_factor = 0.5
+    v_max_scaling_factor = 1.5
+
     replacement_threshold = 1.0
     replacement_threshold_min = 0.5
     replacement_threshold_max = 1.0
@@ -213,20 +217,16 @@ class Config(object):
     def clone(self):
         return copy.deepcopy(self)
 
-    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, action_dimensions=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
+    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, action_dimensions=None, num_subswarms=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
 
         if num_actions is not None:
             self.num_actions = num_actions
 
-        if action_dimensions is not None:
-            self.action_dimensions = action_dimensions
-            self.ou_mu = np.zeros(self.action_dimensions)
-
         if swarm_size is not None:
             self.swarm_size = swarm_size
-            self.observation_length = self.swarm_size * 3 + 2
+            self.observation_length = self.swarm_size * 3 + 1
 
         if dimensions is not None:
             self.dim = dimensions
@@ -254,9 +254,20 @@ class Config(object):
 
         if swarm_algorithm is not None:
             self.swarm_algorithm = swarm_algorithm
-            if swarm_algorithm == "PMSO":
-                # self.num_sub_swarms = 5
-                self.num_sub_swarms = 50
+
+        if num_subswarms is not None:
+            if self.swarm_algorithm == "PMSO":
+                self.num_sub_swarms = num_subswarms
+            else:
+                self.num_sub_swarms = None
+
+        if action_dimensions is not None:
+            if self.num_sub_swarms is not None:
+                self.subswarm_action_dim = action_dimensions
+                self.action_dimensions = action_dimensions * self.num_sub_swarms
+            else:
+                self.action_dimensions = action_dimensions
+            self.ou_mu = np.zeros(self.action_dimensions)
 
         if network_type is not None:
             if network_type in ["DQN", "DRQN"]:

@@ -21,7 +21,7 @@ class ContinuousMultiswarmActions:
     def __call__(self, action):
         # Restructure the flattened action from size(config.num_sub_swarms * 3) to size (config.num_sub_swarms, 3)
         # reshaped_arr = action.reshape(3, 5)
-        reformatted_action = np.array(action).reshape(self.config.num_sub_swarms, 3)
+        reformatted_action = np.array(action).reshape(self.config.num_sub_swarms, self.config.subswarm_action_dim)
 
         # Action should be a dedicated action for each subswarm
         for i, subswarm_action in enumerate(self.subswarm_actions):
@@ -37,7 +37,7 @@ class ContinuousActions:
         #                      'Social Param',
         #                      'Cognitive Param']
 
-        self.action_names = ['Max Velocity']
+        self.action_names = ['Velocity Scaling']
         self.action_offset = [0]
 
     def __call__(self, action):
@@ -49,5 +49,5 @@ class ContinuousActions:
         # self.swarm.c1 = action_with_offset[1]
         # self.swarm.c2 = action_with_offset[2]
 
-        self.swarm.abs_max_velocity = action_with_offset[0]
+        self.swarm.velocity_scaling_factor = action_with_offset[0]
 

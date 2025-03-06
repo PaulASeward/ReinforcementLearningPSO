@@ -37,8 +37,8 @@ class BaseAgent:
             return self.env
 
         if self.config.swarm_algorithm == "PMSO":
-            low_limit_subswarm_action_space = [self.config.w_min, self.config.c_min, self.config.c_min]
-            high_limit_subswarm_action_space = [self.config.w_max, self.config.c_max, self.config.c_max]
+            low_limit_subswarm_action_space = [self.config.v_min_scaling_factor]
+            high_limit_subswarm_action_space =[self.config.v_max_scaling_factor]
 
             self.config.lower_bound = np.array(
                 [low_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)],
@@ -52,9 +52,9 @@ class BaseAgent:
             # self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max],
             #                                    dtype=np.float32)
 
-            self.config.lower_bound = np.array([self.config.v_min],
+            self.config.lower_bound = np.array([self.config.v_min_scaling_factor],
                                                dtype=np.float32)
-            self.config.upper_bound = np.array([self.config.v_max],
+            self.config.upper_bound = np.array([self.config.v_max_scaling_factor],
                                                dtype=np.float32)
 
         if self.config.use_mock_data:
