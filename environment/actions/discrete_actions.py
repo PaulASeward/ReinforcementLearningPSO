@@ -189,18 +189,6 @@ class DiscreteActions:
         self.swarm.c2 = np.clip(self.swarm.c2, self.config.c_min, self.config.c_max)
 
     # Threshold actions to promote exploration vs exploitation
-    def decrease_gbest_replacement_threshold(self):
-        self.swarm.gbest_replacement_threshold *= self.swarm.gbest_replacement_threshold_decay
-        self.swarm.gbest_replacement_threshold = np.clip(self.swarm.gbest_replacement_threshold,
-                                                         self.config.gbest_replacement_threshold_min,
-                                                         self.config.gbest_replacement_threshold_max)
-
-    def increase_gbest_replacement_threshold(self):
-        self.swarm.gbest_replacement_threshold *= 1.10
-        self.swarm.gbest_replacement_threshold = np.clip(self.swarm.gbest_replacement_threshold,
-                                                         self.config.gbest_replacement_threshold_min,
-                                                         self.config.gbest_replacement_threshold_max)
-
     def decrease_pbest_replacement_threshold(self):
         self.swarm.pbest_replacement_threshold *= self.swarm.pbest_replacement_threshold_decay
         self.swarm.pbest_replacement_threshold = np.clip(self.swarm.pbest_replacement_threshold,

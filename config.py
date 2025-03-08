@@ -81,9 +81,8 @@ class Config(object):
     # DDPG TRAINING PARAMETERS
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    # ou_sigma = 0.1
-    # ou_sigma = 0.4
-    ou_sigma = 0.3
+    # ou_sigma = 0.3
+    ou_sigma = 0.5
     ou_dt = 1e-2
 
     tau = 0.005
@@ -177,7 +176,7 @@ class Config(object):
 
     replacement_threshold = 1.0
     replacement_threshold_min = 0.5
-    replacement_threshold_max = 1.0
+    replacement_threshold_max = 1.5
     replacement_threshold_decay = 0.95
 
     def __init__(self):
@@ -226,7 +225,7 @@ class Config(object):
 
         if swarm_size is not None:
             self.swarm_size = swarm_size
-            self.observation_length = self.swarm_size * 3 + 1
+            self.observation_length = self.swarm_size * 3 + 1 + 5
 
         if dimensions is not None:
             self.dim = dimensions

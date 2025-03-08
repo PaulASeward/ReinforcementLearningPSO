@@ -37,7 +37,7 @@ class ContinuousActions:
         #                      'Social Param',
         #                      'Cognitive Param']
 
-        self.action_names = ['Velocity Scaling']
+        self.action_names = ['P_best_threshold']
         self.action_offset = [0]
 
     def __call__(self, action):
@@ -49,5 +49,5 @@ class ContinuousActions:
         # self.swarm.c1 = action_with_offset[1]
         # self.swarm.c2 = action_with_offset[2]
 
-        self.swarm.velocity_scaling_factor = action_with_offset[0]
+        self.swarm.pbest_replacement_threshold = np.clip(action_with_offset[0], 0.50, 1)
 
