@@ -37,7 +37,7 @@ class ContinuousActions:
         #                      'Social Param',
         #                      'Cognitive Param']
 
-        self.action_names = ['P_best_threshold']
+        self.action_names = ['PBest Distance Threshold', 'Velocity Braking Factor']
         self.action_offset = [0]
 
     def __call__(self, action):
@@ -49,5 +49,6 @@ class ContinuousActions:
         # self.swarm.c1 = action_with_offset[1]
         # self.swarm.c2 = action_with_offset[2]
 
-        self.swarm.pbest_replacement_threshold = np.clip(action_with_offset[0], 0.50, 1)
+        self.swarm.distance_threshold = np.clip(action_with_offset[0], self.config.distance_threshold_min, self.config.distance_threshold_max)
+        self.swarm.velocity_braking = np.clip(action_with_offset[1], self.config.velocity_braking_min, self.config.velocity_braking_max)
 

@@ -190,14 +190,7 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
         else:
             self.ou_noise = NormalNoise(config=config, size=config.action_dimensions)
         self.lower_bound = config.lower_bound
-
-        high_limit_subswarm_action_space = [1.0]
-        realistic_upper_bound = np.array(
-            [high_limit_subswarm_action_space for _ in range(config.num_sub_swarms)],
-            dtype=np.float32).flatten()
-
-        # self.upper_bound = config.upper_bound
-        self.upper_bound = realistic_upper_bound
+        self.upper_bound = config.upper_bound
         self.range = self.upper_bound - self.lower_bound
 
         self.current_epsilon = config.epsilon_start

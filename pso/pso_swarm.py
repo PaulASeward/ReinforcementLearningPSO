@@ -26,8 +26,9 @@ class PSOSwarm:
         self.perturb_position_particle_selection = None
 
         # Threshold Params
-        self.gbest_replacement_threshold, self.pbest_replacement_threshold = config.replacement_threshold, config.replacement_threshold
-        self.gbest_replacement_threshold_decay, self.pbest_replacement_threshold_decay = config.replacement_threshold_decay, config.replacement_threshold_decay
+        self.pbest_replacement_threshold = config.replacement_threshold
+        self.distance_threshold = config.distance_threshold
+        self.velocity_braking = config.velocity_braking
 
         # Observation Parameters
         self.num_swarm_obs_intervals = config.num_swarm_obs_intervals
@@ -37,6 +38,7 @@ class PSOSwarm:
         # Set Constraints for clamping position and limiting velocity
         self.abs_max_velocity = self.rangeF
         self.abs_max_position = self.rangeF
+        self.diagonal = 2.0 * self.rangeF * np.sqrt(self.dimension)
 
         self.velocity_magnitudes = None
         self.relative_fitnesses = None
@@ -65,7 +67,9 @@ class PSOSwarm:
         self.w = self.config.w
         self.c1 = self.config.c1
         self.c2 = self.config.c2
-        self.gbest_replacement_threshold, self.pbest_replacement_threshold = self.config.replacement_threshold, self.config.replacement_threshold
+        self.pbest_replacement_threshold = self.config.replacement_threshold
+        self.distance_threshold = self.config.distance_threshold
+        self.velocity_braking = self.config.velocity_braking
         self.abs_max_velocity = self.rangeF
 
         self.initialize_stored_counts()
@@ -155,7 +159,9 @@ class PSOSwarm:
         obs =  obs_stack.flatten()
 
         # Add in the current replacement threshold
-        obs = np.append(obs, self.pbest_replacement_threshold)
+        # obs = np.append(obs, self.pbest_replacement_threshold)
+        obs = np.append(obs, self.distance_threshold)
+        obs = np.append(obs, self.velocity_braking)
 
         return obs
 
@@ -188,6 +194,9 @@ class PSOSwarm:
 
         self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
 
+        # Apply breaking factor to the velocity
+        self.V = self.V * self.velocity_braking
+
     def update_positions(self):
         # Clamp position inside boundary and reflect them in case they are out of the boundary based on:
         # S. Helwig, J. Branke, and S. Mostaghim, "Experimental Analysis of Bound Handling Techniques in Particle Swarm Optimization," IEEE TEC: 17(2), 2013, pp. 259-271
@@ -209,20 +218,33 @@ class PSOSwarm:
 
         self.pbest_replacement_counts += improved_particles  # Update P_vals replacement counter
 
-    def update_pbest_with_non_elitist_selection(self, obs_interval, iteration_idx):
-        improved_particles = self.pbest_replacement_threshold * self.current_valuations < self.P_vals
+    def update_pbest_with_non_elitist_selection(self):
+        # Compute Euclidean distances between the current position and the particle's best
+        distances = np.linalg.norm(self.X - self.P, axis=1)
+
+        # Determine for each particle if the new candidate is better than its current p_best, AND if the new candidate is not a very small (local) improvement
+        # (i.e. distance is above the replacement threshold)
+        threshold = self.distance_threshold * self.diagonal
+        improved_particles = (self.current_valuations < self.P_vals) & (distances > threshold)
+
+        # improved_particles = self.pbest_replacement_threshold * self.current_valuations < self.P_vals
         self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
         self.pbest_val = np.where(improved_particles, self.current_valuations, self.P_vals)
 
         self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counter
 
+    def decay_parameters(self, obs_interval, iteration_idx):
         # Decay the replacement threshold over time back to 1
         total_iterations = self.num_swarm_obs_intervals * self.swarm_obs_interval_length
         current_step = (obs_interval * self.swarm_obs_interval_length) + iteration_idx
         linear_decay_rate = 1 / (total_iterations - current_step)
 
-        self.pbest_replacement_threshold += (1 - self.pbest_replacement_threshold) * linear_decay_rate
-        self.pbest_replacement_threshold = min(1, self.pbest_replacement_threshold)
+        # self.pbest_replacement_threshold += (1 - self.pbest_replacement_threshold) * linear_decay_rate
+        # self.pbest_replacement_threshold = min(1, self.pbest_replacement_threshold)
+
+        self.distance_threshold += (0 - self.distance_threshold) * linear_decay_rate
+
+        self.velocity_braking += (1 - self.velocity_braking) * linear_decay_rate
 
     def update_gbest(self):
         self.gbest_pos = self.P[np.argmin(self.P_vals)]  # Vector of globally best visited position.
@@ -251,8 +273,10 @@ class PSOSwarm:
 
         self.update_positions()
         # self.update_pbests()
-        self.update_pbest_with_non_elitist_selection(obs_interval, iteration_idx)
+        self.update_pbest_with_non_elitist_selection()
         self.update_gbest()
+
+        self.decay_parameters(obs_interval, iteration_idx)
 
 
 
