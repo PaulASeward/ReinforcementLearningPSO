@@ -1,10 +1,13 @@
 import numpy as np
 import random
 from collections import deque
+import pickle
 
 
 class ExperienceBufferBase:
     def __init__(self, config):
+        self.allow_save = config.save_buffer
+        self.save_path = config.experience_buffer_path
         pass
 
     def add(self, experience):
@@ -20,6 +23,12 @@ class ExperienceBufferBase:
     def batch_update(self, tree_idx, abs_errors):
         pass
 
+    def save(self):
+        pass
+
+    def load(self):
+        pass
+
 
 class ExperienceBufferDeque(ExperienceBufferBase):
     def __init__(self, config):
@@ -32,6 +41,15 @@ class ExperienceBufferDeque(ExperienceBufferBase):
 
     def size(self):
         return len(self.buffer)
+
+    def save(self):
+        if self.allow_save:
+            with open(self.save_path, 'wb') as f:
+                pickle.dump(self.buffer, f)
+
+    def load(self):
+        with open(self.save_path, 'rb') as f:
+            self.buffer = deque(pickle.load(f))
 
 
 class ExperienceBufferStandard(ExperienceBufferDeque):

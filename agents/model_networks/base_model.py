@@ -50,8 +50,7 @@ class BaseModel:
             return
 
         step_dir_path = os.path.join(self.checkpoint_dir, "step_" + str(step))
-        if not os.path.exists(step_dir_path):
-            os.makedirs(step_dir_path)
+        os.makedirs(step_dir_path, exist_ok=True)
 
         model_step_path = os.path.join(step_dir_path, self.network_type + ".h5")
         self.model.save(model_step_path)

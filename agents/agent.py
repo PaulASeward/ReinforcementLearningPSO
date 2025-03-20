@@ -18,6 +18,7 @@ class BaseAgent:
         self.log_dir = os.path.join(config.log_dir, config.experiment, datetime.now().strftime("%Y%m%d-%H%M%S"))
         self.writer = tf.summary.create_file_writer(self.log_dir)
         self.results_logger = None
+        self.starting_step = 0
 
         self.raw_env = None
         self.env = None
@@ -122,12 +123,20 @@ class BaseAgent:
     def save_models(self, step):
         pass
 
+    def load_from_checkpoint(self, step):
+        self.replay_buffer.load()
+        self.load_models()
+        self.starting_step = step
+        episilon_values = np.loadtxt(self.config.epsilon_values_path, delimiter=",")
+        self.policy.current_epsilon = episilon_values[-1]
+        self.policy.step = step * self.config.num_episodes
+
     def load_models(self):
         pass
 
     def train(self):
         with self.writer.as_default():
-            for step in range(self.config.train_steps):
+            for step in range(self.starting_step, self.config.train_steps):
                 actions, rewards, fitness_rewards, swarm_observations, terminal = [], [], [], [], False
                 current_state = self.initialize_current_state()
 
@@ -151,6 +160,7 @@ class BaseAgent:
                     # Run a test episode to evaluate the model without noise
                     self.test(step)
                     self.save_models(step)
+                    self.replay_buffer.save()
 
                 [losses, actor_losses, critic_losses] = self.replay_experience()
                 early_stop = self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.

@@ -23,7 +23,8 @@ class Config(object):
     train_steps = 20000
     log_interval = 200
     eval_interval = 500
-    test_episodes = 10
+    test_episodes = 5
+    num_final_tests = 100
 
     replay_experience_length = 1
 
@@ -56,6 +57,7 @@ class Config(object):
         os.makedirs(checkpoint_dir)
     log_dir = os.path.join(results_dir, "saved_session", "logs")
     save_models = True
+    save_buffer = False
     load_checkpoint_dir = None
 
     # EPSILON GREEDY PARAMETERS
@@ -208,6 +210,7 @@ class Config(object):
         self.critic_loss_file = None
         self.interval_actions_counts_path = None
         self.standard_pso_path = None
+        self.experience_buffer_path = None
         self.experiment = None
         self.num_eval_intervals = None
         self.label_iterations_intervals = None
@@ -237,14 +240,14 @@ class Config(object):
         if dimensions is not None:
             self.dim = dimensions
 
-        if num_episodes is not None:
+        if num_episodes is not None:  # The number of episodes in each Reinforcement Learning Iterations before terminating.
             self.num_episodes = num_episodes
             self.trace_length = num_episodes if num_episodes < 20 else 20
 
-        if num_swarm_obs_intervals is not None:
+        if num_swarm_obs_intervals is not None:  # The number of swarm observation intervals. Ex) At 10 evenly spaced observation intervals, observations in the swarm will be collected. Default is 10.
             self.num_swarm_obs_intervals = num_swarm_obs_intervals
 
-        if swarm_obs_interval_length is not None:
+        if swarm_obs_interval_length is not None:  # The number of observations per episode conducted in the swarm. Ex) Particle Best Replacement Counts are averaged over the last _ observations before an episode terminates and action is decided. Default is 30.
             self.swarm_obs_interval_length = swarm_obs_interval_length
 
         self.obs_per_episode = self.swarm_obs_interval_length * self.num_swarm_obs_intervals
@@ -304,3 +307,4 @@ class Config(object):
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
             self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
             self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.func_num}.csv")
+            self.experience_buffer_path = os.path.join(self.results_dir, f"experience_buffer.pkl")
