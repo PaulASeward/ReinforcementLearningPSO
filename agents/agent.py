@@ -162,14 +162,20 @@ class BaseAgent:
                     break
             self.results_logger.print_execution_time()
 
-    def test(self, step):
+    def test(self, step=None, number_of_tests=None):
         if self.test_policy is None:
             return
+
+        if step is None:
+            step = self.config.train_steps
+
+        if number_of_tests is None:
+            number_of_tests = self.config.test_episodes
 
         cumulative_training_rewards = []
         cumulative_fitness_rewards = []
 
-        for _ in range(self.config.test_episodes):
+        for _ in range(number_of_tests):
             actions, rewards, fitness_rewards, swarm_observations, terminal = [], [], [], [], False
             current_state = self.initialize_current_state()
 

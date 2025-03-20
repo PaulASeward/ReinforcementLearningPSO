@@ -52,9 +52,11 @@ class Config(object):
 
     # Model/Checkpoint Files
     checkpoint_dir = os.path.join(results_dir, "saved_session", "model_checkpoints")
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
     log_dir = os.path.join(results_dir, "saved_session", "logs")
     save_models = True
-    load_checkpoint = None
+    load_checkpoint_dir = None
 
     # EPSILON GREEDY PARAMETERS
     policy = "ExponentialDecayGreedyEpsilon"
@@ -222,12 +224,15 @@ class Config(object):
     def clone(self):
         return copy.deepcopy(self)
 
-    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, action_dimensions=None, num_subswarms=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
+    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, load_checkpoint=None, action_dimensions=None, num_subswarms=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
         if func_num is not None:
             self.func_num = func_num
 
         if num_actions is not None:
             self.num_actions = num_actions
+
+        if load_checkpoint is not None:
+            self.load_checkpoint_dir = os.path.join(self.checkpoint_dir, load_checkpoint)
 
         if dimensions is not None:
             self.dim = dimensions

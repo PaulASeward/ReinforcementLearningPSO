@@ -38,5 +38,5 @@ class DRQNAgent(BaseAgent):
         self.model.save_model(step)
 
     def load_models(self):
-        self.model.load_model(self.config.load_checkpoint)
-        self.target_model.load_model(self.config.load_checkpoint)
+        self.model.load_model()
+        self.target_model.load_model()

@@ -89,5 +89,5 @@ class PPOAgent(BaseAgent):
         self.critic_network.save_model(step)
 
     def load_models(self):
-        self.actor_network.load_model(self.config.load_checkpoint)
-        self.critic_network.load_model(self.config.load_checkpoint)
+        self.actor_network.load_model()
+        self.critic_network.load_model()

@@ -1,3 +1,5 @@
+import os
+
 from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
 from agents.ddpg_agent import DDPGAgent
@@ -25,11 +27,15 @@ class Main:
     def plot(self):
         self.agent.results_logger.plot_results()
 
-    def evaluate(self):
-        if config.load_checkpoint is not None:
+    def test(self):
+        if config.load_checkpoint_dir is not None:
+            print("Loading models from checkpoint: ", config.load_checkpoint_dir)
             self.agent.load_models()
+        else:
+            if not config.train:
+                raise ValueError("An agent must either be trained or loaded to test. Please specify a checkpoint to load, or train an agent first.")
 
-        self.agent.test(num_episodes, checkpoint_dir)
+        self.agent.test(step=self.agent.config.train_steps, number_of_tests=self.agent.config.test_episodes)
 
 
 if __name__ == "__main__":
@@ -45,8 +51,9 @@ if __name__ == "__main__":
     parser.add_argument("--num_episodes", type=int, default=20, help="The number of episodes in each Reinforcement Learning Iterations before terminating.")
     parser.add_argument("--num_swarm_obs_intervals", type=int, default=10, help="The number of swarm observation intervals. Ex) At 10 evenly spaced observation intervals, observations in the swarm will be collected. Default is 10.")
     parser.add_argument("--swarm_obs_interval_length", type=int, default=30, help="The number of observations per episode conducted in the swarm. Ex) Particle Best Replacement Counts are averaged over the last _ observations before an episode terminates and action is decided. Default is 30.")
-    parser.add_argument("--train", type=bool, default=True, help="Whether to train a network or to examine a given network")
-    parser.add_argument("--mock", type=bool, default=False, help="To use a mock data environment for testing")
+    parser.add_argument("--train", type=bool, default=True, help="Whether to train an agent or to replot an agent's results")
+    parser.add_argument("--test", type=bool, default=False, help="Whether to evaluate an agent from a trained/loaded state")
+    parser.add_argument("--mock", type=bool, default=False, help="To use a mock data environment for evaluating")
     parser.add_argument("--priority_replay", type=bool, default=False, help="To use a priority replay buffer for training")
     parser.add_argument("--steps", type=int, default=2000, help="number of iterations to train")
     parser.add_argument("--save_models", type=bool, default=True, help="Whether to save the models")
@@ -55,10 +62,10 @@ if __name__ == "__main__":
 
     config = Config()
     config.train = args.train
+    config.test = args.test
     config.use_mock_data = args.mock
     config.use_priority_replay = args.priority_replay
     config.save_models = args.save_models
-    config.load_checkpoint = args.load_checkpoint
 
     assert args.swarm_algorithm in ["PSO", "PMSO"], "Please specify a swarm_algorithm of either PSO or PMSO"
     assert args.network_type in ["DQN", "DRQN", "DDPG", "PPO"], "Please specify a network_type of either DQN, DRQN, or DDPG"
@@ -67,7 +74,7 @@ if __name__ == "__main__":
     if args.swarm_algorithm == "PMSO":
         assert args.num_subswarms in [1,2,5,10,25,50], "Please specify a num_subswarms from 1,2,5,10,25,50"
 
-    config.update_properties(network_type=args.network_type, swarm_algorithm=args.swarm_algorithm, func_num=args.func_num, num_actions=args.num_actions,
+    config.update_properties(network_type=args.network_type, swarm_algorithm=args.swarm_algorithm, func_num=args.func_num, num_actions=args.num_actions, load_checkpoint=args.load_checkpoint,
                              action_dimensions=args.action_dimensions, num_subswarms=args.num_subswarms, swarm_size=args.swarm_size, dimensions=args.dim, num_episodes=args.num_episodes,
                              num_swarm_obs_intervals=args.num_swarm_obs_intervals, swarm_obs_interval_length=args.swarm_obs_interval_length,
                              train_steps=args.steps)
@@ -98,7 +105,9 @@ if __name__ == "__main__":
 
         main.train()
     else:
-        print("Making Plots")
+        print("Re-Making Plots. Data will be reloaded from the results directory, ", config.results_dir, ", and re-plotted.")
         main.plot()
-        # print(">> Evaluation mode. Number of Episodes to Evaluate:", config.train_steps)
-        # main.evaluate(config.number_evaluations, config.checkpoint_dir)
+
+    if config.test:
+        print(">> Testing mode. Number of Episodes to test: ", config.test_episodes, ". Will save test output to: ", config.test_step_results_path, "at the step, ", config.train_steps)
+        main.test()

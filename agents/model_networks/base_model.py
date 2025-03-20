@@ -13,8 +13,7 @@ class BaseModel:
         self.config = config
         self.network_type = network_type
         self.checkpoint_dir = config.checkpoint_dir
-        if not os.path.exists(self.checkpoint_dir):
-            os.makedirs(self.checkpoint_dir)
+        self.load_checkpoint_dir = config.load_checkpoint_dir
 
         self.optimizer = None
         self.debug = not True
@@ -47,6 +46,9 @@ class BaseModel:
         raise NotImplementedError("Method not implemented")
 
     def save_model(self, step):
+        if not self.config.save_models:
+            return
+
         step_dir_path = os.path.join(self.checkpoint_dir, "step_" + str(step))
         if not os.path.exists(step_dir_path):
             os.makedirs(step_dir_path)
@@ -54,8 +56,18 @@ class BaseModel:
         model_step_path = os.path.join(step_dir_path, self.network_type + ".h5")
         self.model.save(model_step_path)
 
-    def load_model(self, step_checkpoint):
-        model_step_path = os.path.join(self.checkpoint_dir, str(step_checkpoint), self.network_type + ".h5")
+    def load_model(self):
+        if self.load_checkpoint_dir is None:
+            raise ValueError("Load checkpoint directory is not provided")
+
+        if not os.path.exists(self.load_checkpoint_dir):
+            raise ValueError("Load checkpoint directory does not exist: ", self.load_checkpoint_dir)
+
+        model_step_path = os.path.join(self.load_checkpoint_dir, self.network_type + ".h5")
+
+        if not os.path.exists(model_step_path):
+            raise ValueError("Model file does not exist: ", model_step_path)
+
         self.model = tf.keras.models.load_model(model_step_path)
 
     def predict(self, state):

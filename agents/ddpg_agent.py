@@ -100,7 +100,7 @@ class DDPGAgent(BaseAgent):
         self.critic_network.save_model(step)
 
     def load_models(self):
-        self.actor_network.load_model(self.config.load_checkpoint)
-        self.critic_network.load_model(self.config.load_checkpoint)
-        self.actor_network_target.load_model(self.config.load_checkpoint)
-        self.critic_network_target.load_model(self.config.load_checkpoint)
+        self.actor_network.load_model()
+        self.critic_network.load_model()
+        self.actor_network_target.load_model()
+        self.critic_network_target.load_model()
