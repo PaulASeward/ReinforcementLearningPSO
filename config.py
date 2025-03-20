@@ -51,9 +51,10 @@ class Config(object):
     env_meta_data_name = "meta_data.csv"
 
     # Model/Checkpoint Files
-    model_dir = os.path.join(results_dir, "saved_session", "network_models")
     checkpoint_dir = os.path.join(results_dir, "saved_session", "model_checkpoints")
     log_dir = os.path.join(results_dir, "saved_session", "logs")
+    save_models = True
+    load_checkpoint = None
 
     # EPSILON GREEDY PARAMETERS
     policy = "ExponentialDecayGreedyEpsilon"
@@ -121,9 +122,6 @@ class Config(object):
 
     actions_descriptions = None
     continuous_action_offset = None
-
-    dir_save = "saved_session/"
-    restore = False
 
     # LEARNING PARAMETERS
     # discount_factor = 0.01

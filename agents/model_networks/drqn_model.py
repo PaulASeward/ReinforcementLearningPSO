@@ -11,14 +11,6 @@ class DRQNModel(BaseModel):
         self.lstm_size = config.lstm_size
 
     def nn_model(self):
-        # return tf.keras.Sequential(
-        #     [
-        #         Input((self.config.trace_length, self.config.observation_length)),
-        #         LSTM(32, activation="tanh"),
-        #         Dense(16, activation="relu"),
-        #         Dense(self.config.num_actions),
-        #     ]
-        # )
         return tf.keras.Sequential(
             [
                 Input((self.config.trace_length, self.config.observation_length)),
@@ -28,8 +20,6 @@ class DRQNModel(BaseModel):
                 Dense(self.config.num_actions),
             ]
         )
-
-
 
     def train(self, states, targets):
         targets = tf.stop_gradient(targets)

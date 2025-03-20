@@ -38,7 +38,7 @@ class ContinuousActions:
         #                      'Cognitive Param']
 
         self.action_names = ['PBest Distance Threshold', 'Velocity Braking Factor']
-        self.action_offset = [0]
+        self.action_offset = [0, 0]
 
     def __call__(self, action):
         """

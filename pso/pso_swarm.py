@@ -229,7 +229,7 @@ class PSOSwarm:
 
         # improved_particles = self.pbest_replacement_threshold * self.current_valuations < self.P_vals
         self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
-        self.pbest_val = np.where(improved_particles, self.current_valuations, self.P_vals)
+        self.P_vals = np.where(improved_particles, self.current_valuations, self.P_vals)
 
         self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counter
 
@@ -276,7 +276,7 @@ class PSOSwarm:
         self.update_pbest_with_non_elitist_selection()
         self.update_gbest()
 
-        self.decay_parameters(obs_interval, iteration_idx)
+        # self.decay_parameters(obs_interval, iteration_idx)
 
 
 

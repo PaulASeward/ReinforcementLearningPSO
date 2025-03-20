@@ -1,3 +1,5 @@
+import os
+
 import tensorflow as tf
 from keras.layers import Input, Dense
 from agents.model_networks.base_model import BaseModel
@@ -8,15 +10,6 @@ class DQNModel(BaseModel):
         super(DQNModel, self).__init__(config, "dqn")
 
     def nn_model(self):
-        # model = tf.keras.Sequential(
-        #     [
-        #         Input((self.config.observation_length,)),
-        #         Dense(32, activation="relu"),
-        #         Dense(16, activation="relu"),
-        #         Dense(self.config.num_actions),
-        #     ]
-        # )
-
         model = tf.keras.Sequential(
             [
                 Input((self.config.observation_length,)),

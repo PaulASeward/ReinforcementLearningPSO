@@ -3,7 +3,7 @@ import gymnasium as gym
 import os
 from datetime import datetime
 from environment.gym_env_discrete import DiscretePsoGymEnv
-from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy
+from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy, GreedyPolicy
 import numpy as np
 
 
@@ -13,6 +13,7 @@ class BaseAgent:
         self.target_model = None
         self.model = None
         self.policy = None
+        self.test_policy = None
         self.config = config
         self.log_dir = os.path.join(config.log_dir, config.experiment, datetime.now().strftime("%Y%m%d-%H%M%S"))
         self.writer = tf.summary.create_file_writer(self.log_dir)
@@ -24,6 +25,7 @@ class BaseAgent:
         self.build_environment()
         if config.policy == "ExponentialDecayGreedyEpsilon":
             self.policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.num_actions)
+            self.test_policy = GreedyPolicy()
 
     def build_environment(self):
         if self.config.use_discrete_env:
@@ -117,7 +119,10 @@ class BaseAgent:
         self.replay_buffer.add([current_state, action, reward, next_state, terminal])
         return next_state
 
-    def test(self, step):
+    def save_models(self, step):
+        pass
+
+    def load_models(self):
         pass
 
     def train(self):
@@ -145,6 +150,7 @@ class BaseAgent:
                 if step % self.config.eval_interval == 0:
                     # Run a test episode to evaluate the model without noise
                     self.test(step)
+                    self.save_models(step)
 
                 [losses, actor_losses, critic_losses] = self.replay_experience()
                 early_stop = self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
@@ -155,3 +161,42 @@ class BaseAgent:
                 if early_stop:
                     break
             self.results_logger.print_execution_time()
+
+    def test(self, step):
+        if self.test_policy is None:
+            return
+
+        cumulative_training_rewards = []
+        cumulative_fitness_rewards = []
+
+        for _ in range(self.config.test_episodes):
+            actions, rewards, fitness_rewards, swarm_observations, terminal = [], [], [], [], False
+            current_state = self.initialize_current_state()
+
+            while not terminal:
+                q_values = self.get_q_values(current_state)
+                action = self.test_policy.select_action(q_values)
+                next_observation, reward, terminal, swarm_info = self.env.step(action)
+                current_state = np.reshape(next_observation, (1, self.config.observation_length))
+
+                fitness_reward = swarm_info[
+                    "fitness_reward"]  # This is for plotting swarm improvements, not learning purposes.
+                actions.append(action)
+                fitness_rewards.append(fitness_reward)
+                rewards.append(reward)
+                swarm_observations.append(swarm_info)
+
+            cumulative_training_reward = np.sum(rewards)
+            cumulative_fitness_reward = np.sum(fitness_rewards)
+            print(f"EVALUATION STEP #{step} Fitness Reward:{cumulative_fitness_reward} Training Reward: {cumulative_training_reward}")
+            print("EVALUATION_ACTION: ", actions)
+
+            cumulative_fitness_rewards.append(cumulative_fitness_reward)
+            cumulative_training_rewards.append(cumulative_training_reward)
+
+        avg_fitness_reward = np.mean(cumulative_fitness_rewards)
+        std_dev_fitness_reward = np.std(cumulative_fitness_rewards)
+        avg_training_reward = np.mean(cumulative_training_rewards)
+
+        print(f"Average Fitness Reward: {avg_fitness_reward} Average Training Reward: {avg_training_reward}")
+        self.results_logger._save_to_csv([step, self.policy.current_epsilon, avg_fitness_reward, std_dev_fitness_reward, avg_training_reward], self.config.test_step_results_path)

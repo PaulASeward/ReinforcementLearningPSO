@@ -9,7 +9,7 @@ import gymnasium as gym
 from agents.utils.experience_buffer import PPOBuffer
 from agents.model_networks.ppo_model import ActorNetworkModel, CriticNetworkModel
 from utils.logging_utils import ContinuousActionsResultsLogger as ResultsLogger
-from agents.utils.policy import PPOPolicy
+from agents.utils.policy import PPOPolicy, NoNoisePolicy
 
 
 class PPOAgent(BaseAgent):
@@ -20,6 +20,7 @@ class PPOAgent(BaseAgent):
         self.actor_network = ActorNetworkModel(config)
         self.critic_network = CriticNetworkModel(config)
         self.policy = PPOPolicy(config, actor_network=self.actor_network)
+        self.test_policy = NoNoisePolicy(config)
 
         self.current_kl = None
         self.current_value = None
@@ -83,3 +84,10 @@ class PPOAgent(BaseAgent):
         self.current_value = value[0]
         return state
 
+    def save_models(self, step):
+        self.actor_network.save_model(step)
+        self.critic_network.save_model(step)
+
+    def load_models(self):
+        self.actor_network.load_model(self.config.load_checkpoint)
+        self.critic_network.load_model(self.config.load_checkpoint)

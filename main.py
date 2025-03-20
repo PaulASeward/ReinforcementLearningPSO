@@ -25,8 +25,11 @@ class Main:
     def plot(self):
         self.agent.results_logger.plot_results()
 
-    # def evaluate(self, num_episodes, checkpoint_dir):
-    #     self.agent.evaluate(num_episodes, checkpoint_dir)
+    def evaluate(self):
+        if config.load_checkpoint is not None:
+            self.agent.load_models()
+
+        self.agent.test(num_episodes, checkpoint_dir)
 
 
 if __name__ == "__main__":
@@ -46,12 +49,16 @@ if __name__ == "__main__":
     parser.add_argument("--mock", type=bool, default=False, help="To use a mock data environment for testing")
     parser.add_argument("--priority_replay", type=bool, default=False, help="To use a priority replay buffer for training")
     parser.add_argument("--steps", type=int, default=2000, help="number of iterations to train")
+    parser.add_argument("--save_models", type=bool, default=True, help="Whether to save the models")
+    parser.add_argument("--load_checkpoint", type=str, default=None, help="Load checkpoint to previously saved models. Algorithms with two models will load both (e.g., 'step_100')")
     args, remaining = parser.parse_known_args()
 
     config = Config()
     config.train = args.train
     config.use_mock_data = args.mock
     config.use_priority_replay = args.priority_replay
+    config.save_models = args.save_models
+    config.load_checkpoint = args.load_checkpoint
 
     assert args.swarm_algorithm in ["PSO", "PMSO"], "Please specify a swarm_algorithm of either PSO or PMSO"
     assert args.network_type in ["DQN", "DRQN", "DDPG", "PPO"], "Please specify a network_type of either DQN, DRQN, or DDPG"

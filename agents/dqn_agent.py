@@ -15,3 +15,10 @@ class DQNAgent(BaseAgent):
 
         self.update_model_target_weights()
         self.replay_buffer = ReplayBuffer(config=config)
+
+    def save_models(self, step):
+        self.model.save_model(step)
+
+    def load_models(self):
+        self.model.load_model(self.config.load_checkpoint)
+        self.target_model.load_model(self.config.load_checkpoint)

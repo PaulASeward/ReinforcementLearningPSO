@@ -34,3 +34,9 @@ class DRQNAgent(BaseAgent):
         # self.replay_buffer.add([prev_states, action, reward, self.episode_states, terminal])
         return np.reshape(self.episode_states, [1, self.config.trace_length, self.config.observation_length])
 
+    def save_models(self, step):
+        self.model.save_model(step)
+
+    def load_models(self):
+        self.model.load_model(self.config.load_checkpoint)
+        self.target_model.load_model(self.config.load_checkpoint)
