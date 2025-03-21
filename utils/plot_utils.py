@@ -41,7 +41,8 @@ def plot_continuous_actions(config):
                                                                 config.func_num - 1],
                                                             action_dimensions=config.action_dimensions,
                                                             action_names=config.actions_descriptions,
-                                                            action_offset=config.continuous_action_offset,
+                                                            practical_action_low_limit = config.practical_action_low_limit,
+                                                            practical_action_high_limit = config.practical_action_high_limit,
                                                             num_intervals=9)
     else:
         plot_average_continuous_actions_for_single_swarm(config.continuous_action_history_path,
@@ -51,7 +52,8 @@ def plot_continuous_actions(config):
                                                              config.func_num - 1],
                                                          action_dimensions=config.action_dimensions,
                                                          action_names=config.actions_descriptions,
-                                                         action_offset=config.continuous_action_offset,
+                                                         practical_action_low_limit=config.practical_action_low_limit,
+                                                         practical_action_high_limit=config.practical_action_high_limit,
                                                          num_intervals=15)
 
 def plot_data_over_iterations(file_name, y_label, x_label, iteration_interval_scale):
@@ -142,7 +144,7 @@ def plot_actions_over_iteration_intervals(file_name, relative_fitness, x_label, 
     plt.close()
 
 
-def plot_average_continuous_actions_for_single_swarm(continuous_action_history_path, actions_values_path, standard_pso_values_path, function_min_value, action_dimensions, action_names, action_offset, num_intervals=9):
+def plot_average_continuous_actions_for_single_swarm(continuous_action_history_path, actions_values_path, standard_pso_values_path, function_min_value, action_dimensions, action_names, practical_action_low_limit, practical_action_high_limit, num_intervals=9):
     output_file_name = os.path.splitext(continuous_action_history_path)[0] + '_single_swarm.png'
     action_counts = np.load(continuous_action_history_path)
     standard_pso_results = np.genfromtxt(standard_pso_values_path, delimiter=',', skip_header=1)
@@ -177,6 +179,10 @@ def plot_average_continuous_actions_for_single_swarm(continuous_action_history_p
         average_value_per_episode = abs(np.mean(interval_values, axis=0))
         max_line_value = max(max_line_value, np.max(average_value_per_episode))
 
+    low_limit = np.array([x if x is not None else -np.inf for x in practical_action_low_limit], dtype=float)
+    high_limit = np.array([x if x is not None else np.inf for x in practical_action_high_limit], dtype=float)
+    action_counts = np.clip(action_counts, low_limit, high_limit)
+
     for i in range(num_intervals):
         row = i // 3
         col = i % 3
@@ -196,10 +202,9 @@ def plot_average_continuous_actions_for_single_swarm(continuous_action_history_p
         # Plot each action dimension with a shaded area for the std deviation
         for j in range(action_dimensions):
             mean_counts = mean_action_counts[:, j]
-            mean_with_offset = mean_counts + action_offset[j]
             std_dev_counts = std_action_counts[:, j]
-            ax.plot(x_values, mean_with_offset, color=f'C{j}', label=action_names[j])
-            ax.fill_between(x_values, mean_with_offset - std_dev_counts, mean_with_offset + std_dev_counts,
+            ax.plot(x_values, mean_counts, color=f'C{j}', label=action_names[j])
+            ax.fill_between(x_values, mean_counts - std_dev_counts, mean_counts + std_dev_counts,
                             color=f'C{j}', alpha=0.3)
 
         # Add line graph overlay
@@ -225,7 +230,7 @@ def plot_average_continuous_actions_for_single_swarm(continuous_action_history_p
     plt.close()
 
 
-def plot_average_continuous_actions_for_multiple_swarms(continuous_action_history_path, actions_values_path, standard_pso_values_path, function_min_value, action_dimensions, action_names, action_offset, num_intervals=9):
+def plot_average_continuous_actions_for_multiple_swarms(continuous_action_history_path, actions_values_path, standard_pso_values_path, function_min_value, action_dimensions, action_names, practical_action_low_limit, practical_action_high_limit, num_intervals=9):
     output_file_name = os.path.splitext(continuous_action_history_path)[0] + '_multiple_swarms.png'
     action_counts = np.load(continuous_action_history_path)
 
@@ -261,6 +266,11 @@ def plot_average_continuous_actions_for_multiple_swarms(continuous_action_histor
         average_value_per_episode = abs(np.mean(interval_values, axis=0))
         max_line_value = max(max_line_value, np.max(average_value_per_episode))
 
+    # Clamp the actions to practical limits for plotting.
+    low_limit = np.array([x if x is not None else -np.inf for x in practical_action_low_limit], dtype=float)
+    high_limit = np.array([x if x is not None else np.inf for x in practical_action_high_limit], dtype=float)
+    action_counts = np.clip(action_counts, low_limit, high_limit)
+
     for i in range(num_intervals):
         row = i // 3
         col = i % 3
@@ -280,10 +290,9 @@ def plot_average_continuous_actions_for_multiple_swarms(continuous_action_histor
         # Plot each action dimension with a shaded area for the std deviation
         for j in range(action_dimensions):
             mean_counts = mean_action_counts[:, j]
-            mean_with_offset = mean_counts + action_offset[j]
             std_dev_counts = std_action_counts[:, j]
-            ax.plot(x_values, mean_with_offset, color=f'C{j}', label=action_names[j])
-            ax.fill_between(x_values, mean_with_offset - std_dev_counts, mean_with_offset + std_dev_counts, color=f'C{j}', alpha=0.3)
+            ax.plot(x_values, mean_counts, color=f'C{j}', label=action_names[j])
+            ax.fill_between(x_values, mean_counts - std_dev_counts, mean_counts + std_dev_counts, color=f'C{j}', alpha=0.3)
 
         # Add line graph overlay
         ax2 = ax.twinx()

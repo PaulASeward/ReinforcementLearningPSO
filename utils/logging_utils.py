@@ -158,7 +158,7 @@ class ContinuousActionsResultsLogger(ResultsLogger):
 
         for loss_type, (loss, file) in losses.items():
             loss_value = 0.0 if loss is None else np.mean(loss)
-            self._save_to_csv(loss_value, file)
+            self._save_to_csv([loss_value], file)
 
         # Calculate average episode time
         current_time = time.time()

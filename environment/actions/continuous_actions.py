@@ -11,11 +11,16 @@ class ContinuousMultiswarmActions:
             for i, subswarm in enumerate(self.subswarm_actions)
             for action_name in subswarm.action_names
         ]
-        # self.action_offset = [self.swarm.config.w, self.swarm.config.c1, self.swarm.config.c2]
-        self.action_offset = [
-            offset
+
+        self.practical_action_high_limit = [
+            limit
             for subswarm in self.subswarm_actions
-            for offset in subswarm.action_offset
+            for limit in subswarm.practical_action_high_limit
+        ]
+        self.practical_action_low_limit = [
+            limit
+            for subswarm in self.subswarm_actions
+            for limit in subswarm.practical_action_low_limit
         ]
 
     def __call__(self, action):
@@ -33,22 +38,16 @@ class ContinuousActions:
         self.swarm = swarm
         self.config = config
 
-        # self.action_names = ['Inertia Param',
-        #                      'Social Param',
-        #                      'Cognitive Param']
-
         self.action_names = ['PBest Distance Threshold', 'Velocity Braking Factor']
-        self.action_offset = [0, 0]
+        self.practical_action_high_limit = [None, None]
+        self.practical_action_low_limit = [0, None]
 
     def __call__(self, action):
         """
         :param action: Tuple of 3 values representing the change in inertia, social, and cognitive parameters. Each value should be in the range [-1, 1]
         """
-        action_with_offset = np.array(action) + self.action_offset
-        # self.swarm.w = action_with_offset[0]
-        # self.swarm.c1 = action_with_offset[1]
-        # self.swarm.c2 = action_with_offset[2]
+        actions = np.array(action)
 
-        self.swarm.distance_threshold = np.clip(action_with_offset[0], self.config.distance_threshold_min, self.config.distance_threshold_max)
-        self.swarm.velocity_braking = np.clip(action_with_offset[1], self.config.velocity_braking_min, self.config.velocity_braking_max)
+        self.swarm.distance_threshold = np.clip(actions[0], self.config.distance_threshold_min, self.config.distance_threshold_max)
+        self.swarm.velocity_braking = np.clip(actions[1], self.config.velocity_braking_min, self.config.velocity_braking_max)
 

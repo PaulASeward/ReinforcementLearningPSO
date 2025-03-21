@@ -125,7 +125,8 @@ class Config(object):
     train_value_iterations = 10
 
     actions_descriptions = None
-    continuous_action_offset = None
+    practical_action_low_limit = None
+    practical_action_high_limit = None
 
     # LEARNING PARAMETERS
     # discount_factor = 0.01
