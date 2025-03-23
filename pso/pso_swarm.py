@@ -159,9 +159,9 @@ class PSOSwarm:
         obs =  obs_stack.flatten()
 
         # Add in the current replacement threshold
-        # obs = np.append(obs, self.pbest_replacement_threshold)
-        obs = np.append(obs, self.distance_threshold)
-        obs = np.append(obs, self.velocity_braking)
+        obs = np.append(obs, self.pbest_replacement_threshold)
+        # obs = np.append(obs, self.distance_threshold)
+        # obs = np.append(obs, self.velocity_braking)
 
         return obs
 
@@ -194,8 +194,8 @@ class PSOSwarm:
 
         self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
 
-        # Apply breaking factor to the velocity
-        self.V = self.V * self.velocity_braking
+        # # Apply breaking factor to the velocity
+        # self.V = self.V * self.velocity_braking
 
     def update_positions(self):
         # Clamp position inside boundary and reflect them in case they are out of the boundary based on:
@@ -219,6 +219,13 @@ class PSOSwarm:
         self.pbest_replacement_counts += improved_particles  # Update P_vals replacement counter
 
     def update_pbest_with_non_elitist_selection(self):
+        improved_particles = self.pbest_replacement_threshold * self.current_valuations < self.P_vals
+        self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
+        self.P_vals = np.where(improved_particles, self.current_valuations, self.P_vals)
+
+        self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counts
+
+    def update_pbest_with_distance_threshold(self):
         # Compute Euclidean distances between the current position and the particle's best
         distances = np.linalg.norm(self.X - self.P, axis=1)
 
@@ -239,12 +246,12 @@ class PSOSwarm:
         current_step = (obs_interval * self.swarm_obs_interval_length) + iteration_idx
         linear_decay_rate = 1 / (total_iterations - current_step)
 
-        # self.pbest_replacement_threshold += (1 - self.pbest_replacement_threshold) * linear_decay_rate
-        # self.pbest_replacement_threshold = min(1, self.pbest_replacement_threshold)
+        self.pbest_replacement_threshold += (1 - self.pbest_replacement_threshold) * linear_decay_rate
+        self.pbest_replacement_threshold = min(1, self.pbest_replacement_threshold)
 
-        self.distance_threshold += (0 - self.distance_threshold) * linear_decay_rate
-
-        self.velocity_braking += (1 - self.velocity_braking) * linear_decay_rate
+        # self.distance_threshold += (0 - self.distance_threshold) * linear_decay_rate
+        #
+        # self.velocity_braking += (1 - self.velocity_braking) * linear_decay_rate
 
     def update_gbest(self):
         self.gbest_pos = self.P[np.argmin(self.P_vals)]  # Vector of globally best visited position.

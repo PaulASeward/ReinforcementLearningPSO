@@ -1,7 +1,7 @@
 import tensorflow as tf
 import datetime
 
-from coverage.annotate import os
+import os
 from keras.api._v2.keras.optimizers import Adam, RMSprop, Adagrad, SGD
 
 

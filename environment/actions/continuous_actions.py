@@ -38,9 +38,9 @@ class ContinuousActions:
         self.swarm = swarm
         self.config = config
 
-        self.action_names = ['PBest Distance Threshold', 'Velocity Braking Factor']
-        self.practical_action_high_limit = [None, None]
-        self.practical_action_low_limit = [0, None]
+        self.action_names = ['PBest Replacement Threshold']
+        self.practical_action_high_limit = [1.0]
+        self.practical_action_low_limit = [0.75]
 
     def __call__(self, action):
         """
@@ -48,6 +48,6 @@ class ContinuousActions:
         """
         actions = np.array(action)
 
-        self.swarm.distance_threshold = np.clip(actions[0], self.config.distance_threshold_min, self.config.distance_threshold_max)
-        self.swarm.velocity_braking = np.clip(actions[1], self.config.velocity_braking_min, self.config.velocity_braking_max)
+        self.swarm.pbest_replacement_threshold = np.clip(actions[0], self.config.replacement_threshold_min, self.config.replacement_threshold_max)
+        # self.swarm.velocity_braking = np.clip(actions[1], self.config.velocity_braking_min, self.config.velocity_braking_max)
 
