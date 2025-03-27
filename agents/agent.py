@@ -37,28 +37,7 @@ class BaseAgent:
                 self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)
                 self.env = self.raw_env
 
-            return self.env
-
-        if self.config.swarm_algorithm == "PMSO":
-            low_limit_subswarm_action_space = [self.config.distance_threshold_min, self.config.velocity_braking_min]
-            high_limit_subswarm_action_space = [self.config.distance_threshold_max, self.config.velocity_braking_max]
-
-            self.config.lower_bound = np.array(
-                [low_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)],
-                dtype=np.float32).flatten()
-            self.config.upper_bound = np.array(
-                [high_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)],
-                dtype=np.float32).flatten()
-        else:
-            # self.config.lower_bound = np.array([self.config.w_min, self.config.c_min, self.config.c_min],
-            #                                    dtype=np.float32)
-            # self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max],
-            #                                    dtype=np.float32)
-
-            self.config.lower_bound = np.array([self.config.distance_threshold_min, self.config.velocity_braking_min],
-                                               dtype=np.float32)
-            self.config.upper_bound = np.array([self.config.distance_threshold_max, self.config.velocity_braking_max],
-                                               dtype=np.float32)
+            return self.envWW
 
         if self.config.use_mock_data:
             self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)

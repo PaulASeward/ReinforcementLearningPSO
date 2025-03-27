@@ -32,15 +32,34 @@ class ContinuousMultiswarmActions:
         for i, subswarm_action in enumerate(self.subswarm_actions):
             subswarm_action(reformatted_action[i])
 
+    def set_limits(self):
+        self.config.lower_bound = np.array([
+            subswarm.actual_low_limit_action_space
+            for subswarm in self.subswarm_actions
+        ], dtype=np.float32).flatten()
+
+        self.config.upper_bound = np.array([
+            subswarm.actual_high_limit_action_space
+            for subswarm in self.subswarm_actions
+        ], dtype=np.float32).flatten()
+
 
 class ContinuousActions:
     def __init__(self, swarm, config):
         self.swarm = swarm
         self.config = config
 
-        self.action_names = ['PBest Replacement Threshold']
-        self.practical_action_high_limit = [1.0]
-        self.practical_action_low_limit = [0.75]
+        self.action_names = ['Distance Threshold', 'Velocity Braking']
+        # self.action_names = ['PBest Replacement Threshold']
+        # self.practical_action_high_limit = [1.0]
+        # self.practical_action_low_limit = [0.75]
+        self.practical_action_high_limit = [None, None]
+        self.practical_action_low_limit = [0, None]
+
+        # self.actual_low_limit_action_space = [self.config.replacement_threshold_min]
+        # self.actual_high_limit_action_space = [self.config.replacement_threshold_max]
+        self.actual_low_limit_action_space = [self.config.distance_threshold_min, self.config.velocity_braking_min]
+        self.actual_high_limit_action_space = [self.config.distance_threshold_max, self.config.velocity_braking_max]
 
     def __call__(self, action):
         """
@@ -48,6 +67,13 @@ class ContinuousActions:
         """
         actions = np.array(action)
 
-        self.swarm.pbest_replacement_threshold = np.clip(actions[0], self.config.replacement_threshold_min, self.config.replacement_threshold_max)
-        # self.swarm.velocity_braking = np.clip(actions[1], self.config.velocity_braking_min, self.config.velocity_braking_max)
+        # self.swarm.pbest_replacement_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
+        # self.swarm.distance_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
+        # self.swarm.velocity_braking = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
+        self.swarm.distance_threshold = np.clip(actions[0], self.config.distance_threshold_min, self.config.distance_threshold_max)
+        self.swarm.velocity_braking = np.clip(actions[1], self.config.velocity_braking_min, self.config.velocity_braking_max)
+
+    def set_limits(self):
+        self.config.lower_bound = np.array(self.actual_low_limit_action_space, dtype=np.float32)
+        self.config.upper_bound = np.array(self.actual_high_limit_action_space, dtype=np.float32)
 

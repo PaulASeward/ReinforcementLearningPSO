@@ -28,18 +28,22 @@ class ContinuousPsoGymEnv(gym.Env):
         low_limits_obs_space = np.zeros(self._observation_length, dtype=np.float32)  # 150-dimensional array with all elements set to 0
         high_limits_obs_space = np.full(self._observation_length, np.inf, dtype=np.float32)
 
-        self.action_space = gym.spaces.Box(low=config.lower_bound, high=config.upper_bound, shape=(self._action_dimensions,), dtype=np.float32)
-        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
-
         if config.swarm_algorithm == "PMSO":
             self.swarm = PSOMultiSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
             self.actions = ContinuousMultiswarmActions(swarm=self.swarm, config=config)
+            self.actions.set_limits()
         else:
             self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
             self.actions = ContinuousActions(swarm=self.swarm, config=config)
+            self.actions.set_limits()
         config.actions_descriptions = self.actions.action_names[:self._action_dimensions]
         config.practical_action_low_limit = self.actions.practical_action_low_limit
         config.practical_action_high_limit = self.actions.practical_action_high_limit
+
+        self.action_space = gym.spaces.Box(low=config.lower_bound, high=config.upper_bound,
+                                          shape=(self._action_dimensions,), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
+                                                shape=(self._observation_length,), dtype=np.float32)
 
         self._actions_count = 0
         self._current_episode_percent = 0
@@ -120,7 +124,11 @@ class ContinuousPsoGymEnv(gym.Env):
         self._best_fitness = min(self._best_fitness, current_best_f)
 
         reward = self.reward_functions[self.reward_function](difference)
-        return reward.astype(np.float32)
+        if type(reward) is int:
+            reward = np.float32(reward)
+        else:
+            reward = reward.astype(np.float32)
+        return reward
 
     def _get_fitness_reward_for_plots(self):
         current_best_fitness = self.swarm.get_current_best_fitness()

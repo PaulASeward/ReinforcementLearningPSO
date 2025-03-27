@@ -186,8 +186,8 @@ class Config(object):
     distance_threshold_max = 0.20
 
     replacement_threshold = 1.0
-    replacement_threshold_min = 0.5
-    replacement_threshold_max = 1.5
+    replacement_threshold_min = 0.75
+    replacement_threshold_max = 1.25
 
     def __init__(self):
         self.func_num = None
@@ -272,7 +272,7 @@ class Config(object):
 
         if swarm_size is not None:
             self.swarm_size = swarm_size
-            self.observation_length = self.swarm_size * 3 + 1 + 1 * self.num_sub_swarms
+            self.observation_length = self.swarm_size * 3 + 1 + 2 * self.num_sub_swarms
 
         if action_dimensions is not None:
             if self.num_sub_swarms is not None:
