@@ -156,12 +156,12 @@ class PSOSwarm:
         ])
 
         # Flatten to ensure the observations are in the required 1D format
-        obs =  obs_stack.flatten()
+        obs = obs_stack.flatten()
 
         # Add in the current replacement threshold
-        obs = np.append(obs, self.pbest_replacement_threshold)
-        # obs = np.append(obs, self.distance_threshold)
-        # obs = np.append(obs, self.velocity_braking)
+        # obs = np.append(obs, self.pbest_replacement_threshold)
+        obs = np.append(obs, self.distance_threshold)
+        obs = np.append(obs, self.velocity_braking)
 
         return obs
 
@@ -195,7 +195,7 @@ class PSOSwarm:
         self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
 
         # # Apply breaking factor to the velocity
-        # self.V = self.V * self.velocity_braking
+        self.V = self.V * self.velocity_braking
 
     def update_positions(self):
         # Clamp position inside boundary and reflect them in case they are out of the boundary based on:
@@ -280,7 +280,7 @@ class PSOSwarm:
 
         self.update_positions()
         # self.update_pbests()
-        self.update_pbest_with_non_elitist_selection()
+        self.update_pbest_with_distance_threshold()
         self.update_gbest()
 
         # self.decay_parameters(obs_interval, iteration_idx)
