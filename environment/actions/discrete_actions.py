@@ -36,6 +36,15 @@ class DiscreteActions:
         self.swarm = swarm
         self.config = config
 
+        # self.action_methods = {
+        #     0: self.reset_slow_particles,
+        #     1: self.reset_all_particles_keep_global_best,
+        # }
+        #
+        # self.action_names = [ 'Reset slow particles',
+        #                       'Reset all particles with preserved information',
+        #                      ]
+
         self.action_methods = {
             0: self.reset_slow_particles,
             1: self.reset_all_particles_keep_global_best,
