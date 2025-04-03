@@ -23,17 +23,20 @@ class ParticleDataMetaData:
 
 class PSOSubSwarm(PSOSwarm):
     def __init__(self, objective_function, config, gbest_val, gbest_pos):
-        super().__init__(objective_function, config)
         self.gbest_val = gbest_val
         self.gbest_pos = gbest_pos
 
+        self.share_information_with_global_swarm = True
         self.sub_swarm_gbest_pos = None
         self.sub_swarm_gbest_val = float('inf')
+        super().__init__(objective_function, config)
+
 
     def update_gbest(self):
         self.sub_swarm_gbest_val = np.min(self.P_vals)
         self.sub_swarm_gbest_pos = self.P[np.argmin(self.P_vals)]
-        self.update_superswarm_gbest()
+        if self.share_information_with_global_swarm:
+            self.update_superswarm_gbest()
 
     def update_superswarm_gbest(self):
         if self.sub_swarm_gbest_val < self.gbest_val:
@@ -121,11 +124,38 @@ class PSOMultiSwarm:
         return self.gbest_val
 
     def update_gbest(self):
-        best_sub_swarm_idx = np.argmin([sub_swarm.get_current_best_fitness() for sub_swarm in self.sub_swarms])
-        self.gbest_val = self.sub_swarms[best_sub_swarm_idx].gbest_val
-        self.gbest_pos = self.sub_swarms[best_sub_swarm_idx].gbest_pos
+        sub_swarms_with_sharing_info = [sub_swarm for sub_swarm in self.sub_swarms if sub_swarm.share_information_with_global_swarm]
+        if len(sub_swarms_with_sharing_info) == 0:
+            return
 
-    def reorganize_swarms(self):
+        best_subswarm_fitnesses = [sub_swarm.get_current_best_fitness() for sub_swarm in sub_swarms_with_sharing_info]
+        best_sub_swarm_idx = np.argmin(best_subswarm_fitnesses)
+        self.gbest_val = sub_swarms_with_sharing_info[best_sub_swarm_idx].gbest_val
+        self.gbest_pos = sub_swarms_with_sharing_info[best_sub_swarm_idx].gbest_pos
+
+    def reorganize_swarms_by_rank(self):
+        # Identify only those subswarms that share information with the global swarm
+        available_subswarms = [s for s in self.sub_swarms if s.share_information_with_global_swarm]
+        if not available_subswarms:
+            return
+
+        all_particles = []
+        for sub_swarm in available_subswarms:
+            for idx in range(self.sub_swarm_size):
+                all_particles.append(sub_swarm.get_particle(idx))
+        all_particles.sort(key=lambda p: p.P_val)
+
+        # Distribute them back: the best sub_swarm_size go to subswarm 0, the next group go to subswarm 1, etc.
+        start_idx = 0
+        for sub_swarm in available_subswarms:
+            for local_idx in range(self.sub_swarm_size):
+                sub_swarm.add_particle(all_particles[start_idx + local_idx], local_idx)
+            start_idx += self.sub_swarm_size
+            sub_swarm.update_gbest()
+
+        x=1
+
+    def reorganize_swarms_by_swaps(self):
         # Reorder the sub_swarms position based on average fitness
         self.sub_swarms = sorted(self.sub_swarms, key=lambda sub_swarm: sub_swarm.sub_swarm_gbest_val)
 
@@ -158,24 +188,29 @@ class PSOMultiSwarm:
         for sub_swarm_idx, incoming_outgoing_dict in enumerate(incoming_and_outgoing_particles):
             self.sub_swarms[sub_swarm_idx].swap_in_particles(incoming_outgoing_dict[IN], incoming_outgoing_dict[OUT])
 
-    def optimize_sequentially(self):
-        for sub_swarm in self.sub_swarms:
-            sub_swarm.optimize()
-        self.update_gbest()
-        self.reorganize_swarms()
-
     def optimize(self):
         for obs_interval_idx in range(self.config.num_swarm_obs_intervals):
             for iteration_idx in range(self.config.swarm_obs_interval_length):
                 for sub_swarm in self.sub_swarms:
-                    sub_swarm.optimize_single_iteration(self.gbest_pos, obs_interval_idx, iteration_idx)
+                    if sub_swarm.share_information_with_global_swarm:
+                        leader = self.gbest_pos
+                        if leader is None:
+                            x=1
+                        # TODO: Debug how the self.gbest_pos is None
+                    else:
+                        leader = sub_swarm.sub_swarm_gbest_pos
+
+                        if leader is None:
+                            x=1
+                    sub_swarm.optimize_single_iteration(leader, obs_interval_idx, iteration_idx)
 
                 self.update_gbest()
             for sub_swarm in self.sub_swarms:
                 sub_swarm.store_and_reset_batch_counts(obs_interval_idx)
 
         self.update_gbest()
-        self.reorganize_swarms()
+        # self.reorganize_swarms_by_swaps()
+        self.reorganize_swarms_by_rank()
 
 
 

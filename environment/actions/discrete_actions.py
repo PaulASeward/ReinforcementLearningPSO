@@ -1,49 +1,53 @@
 import numpy as np
 from enum import Enum
+from pso.pso_multiswarm import PSOSubSwarm
+
+
+class DiscreteMultiswarmActions:
+    def __init__(self, swarm, config):
+        self.swarm = swarm
+        self.config = config
+        self.subswarm_actions = [DiscreteActions(sub_swarm, config) for sub_swarm in self.swarm.sub_swarms]
+        self.action_names = ['Do Nothing'] + [
+            f"SubSwarm {i + 1} {action_name}"
+            for i, subswarm in enumerate(self.subswarm_actions)
+            for action_name in subswarm.action_names
+        ]
+
+        self.config.num_actions = len(self.action_names)
+
+    def __call__(self, action):
+        # Do nothing
+        if action == 0:
+            return
+        action -= 1
+
+        # Dividend operation to get the action for the respective subswarm
+        subswarm_index = action // len(self.subswarm_actions[0].action_names)
+        action_index = action % len(self.subswarm_actions[0].action_names)
+
+        # Call the respective subswarm action
+        self.subswarm_actions[subswarm_index](action_index)
+
 
 
 class DiscreteActions:
     def __init__(self, swarm, config):
         self.swarm = swarm
         self.config = config
-        # self.action_methods = {
-        #     0: self.do_nothing,
-        #     1: self.inject_small_perturbations_to_slow_particles,
-        #     2: self.inject_small_perturbations_to_all_particles,
-        #     3: self.inject_small_perturbations_to_fast_particles,
-        #     4: self.inject_medium_perturbations_to_slow_particles,
-        #     5: self.inject_medium_perturbations_to_all_particles,
-        #     6: self.inject_medium_perturbations_to_fast_particles,
-        #     7: self.inject_large_perturbations_to_slow_particles,
-        #     8: self.inject_large_perturbations_to_all_particles,
-        #     9: self.inject_large_perturbations_to_fast_particles,
-        # }
-        #
-        # self.action_names = ['Do nothing',
-        #                      'Slightly perturb slow particles velocity',
-        #                      'Slightly perturb all particles velocity',
-        #                      'Slightly perturb fast particles velocity',
-        #                      'Moderately perturb slow particles velocity',
-        #                      'Moderately perturb all particles velocity',
-        #                      'Moderately perturb fast particles velocity',
-        #                      'Large perturb slow particles velocity',
-        #                      'Large perturb all particles velocity',
-        #                      'Large perturb fast particles velocity']
-
 
         self.action_methods = {
-            0: self.do_nothing,
-            1: self.increase_inertia,
-            2: self.decrease_inertia,
-            3: self.increase_social_factor,
-            4: self.decrease_social_factor,
+            0: self.reset_slow_particles,
+            1: self.reset_all_particles_keep_global_best,
+            2: self.reset_all_particles_without_memory,
+            3: self.reshare_information_with_global_swarm
         }
 
-        self.action_names = ['Do nothing',
-                             'Increase inertia',
-                             'Decrease inertia',
-                             'Increase social factor',
-                             'Decrease social factor', ]
+        self.action_names = [ 'Reset slow particles',
+                              'Reset all particles with preserved information',
+                              'Reset all particles without memory',
+                              'Reshare information with global swarm'
+                             ]
 
     def __call__(self, action):
         if not isinstance(action, int):
@@ -54,14 +58,25 @@ class DiscreteActions:
     def do_nothing(self):
         return
 
+    def reshare_information_with_global_swarm(self):
+        if type(self.swarm) == PSOSubSwarm:
+            self.swarm.share_information_with_global_swarm = True
+
+        self.swarm.update_superswarm_gbest()
+
     def reset_all_particles_without_memory(self):
         self.swarm.reinitialize()
+
+        if type(self.swarm) == PSOSubSwarm:
+            self.swarm.share_information_with_global_swarm = False
 
     def reset_all_particles_keep_global_best(self):
         old_gbest_pos = self.swarm.P[np.argmin(self.swarm.P_vals)]
         old_gbest_val = np.min(self.swarm.P_vals)
 
         self.swarm.reinitialize()
+        if type(self.swarm) == PSOSubSwarm:
+            self.swarm.share_information_with_global_swarm = True
 
         # Keep Previous Solution before resetting.
         if old_gbest_val < self.swarm.gbest_val:

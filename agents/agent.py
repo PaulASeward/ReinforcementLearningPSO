@@ -37,7 +37,7 @@ class BaseAgent:
                 self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)
                 self.env = self.raw_env
 
-            return self.envWW
+            return self.env
 
         if self.config.use_mock_data:
             self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
@@ -93,10 +93,11 @@ class BaseAgent:
         observation, swarm_info = self.env.reset()
         return np.reshape(observation, (1, self.config.observation_length))
 
-    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
+    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal, add_to_replay_buffer=True):
         next_state = np.reshape(next_observation, (1, self.config.observation_length))
         # self.replay_buffer.add([current_state, action, reward*self.config.gamma, next_state, terminal])
-        self.replay_buffer.add([current_state, action, reward, next_state, terminal])
+        if add_to_replay_buffer:
+            self.replay_buffer.add([current_state, action, reward, next_state, terminal])
         return next_state
 
     def save_models(self, step):
@@ -172,7 +173,7 @@ class BaseAgent:
                 q_values = self.get_q_values(current_state)
                 action = self.test_policy.select_action(q_values)
                 next_observation, reward, terminal, swarm_info = self.env.step(action)
-                current_state = np.reshape(next_observation, (1, self.config.observation_length))
+                current_state = self.update_memory_and_state(current_state, action, reward, next_observation, terminal, add_to_replay_buffer=False)
 
                 fitness_reward = swarm_info[
                     "fitness_reward"]  # This is for plotting swarm improvements, not learning purposes.

@@ -98,36 +98,36 @@ class PSOSwarm:
         self.update_relative_fitnesses()
         self.update_velocity_maginitude()
 
-    def _inject_random_perturbations_to_velocities(self, selection_type, factor):
-        self.update_velocity_maginitude()
-        avg_velocity = np.mean(self.velocity_magnitudes)
-
-        # Determine the particles to select based on the selection type
-        if selection_type == 0:  # Slow half particles
-            selected_particles = self.velocity_magnitudes < avg_velocity
-        elif selection_type == 1:  # Fast half particles
-            selected_particles = self.velocity_magnitudes >= avg_velocity
-        elif selection_type == 2:  # All particles
-            selected_particles = np.ones(self.velocity_magnitudes.shape, dtype=bool)  # Select all particles
-        else:
-            raise ValueError("Invalid selection type")
-
-        selected_particles_reshaped = selected_particles[:, np.newaxis]  # Reshape for broadcasting
-
-        # Generate random perturbations based on the factor
-        random_perturbations = np.random.uniform(
-            low=-factor * self.abs_max_velocity,
-            high=factor * self.abs_max_velocity,
-            size=self.V.shape
-        )
-
-        # Apply perturbations to the selected particles
-        perturbed_velocities = self.V + random_perturbations
-        perturbed_velocities = np.clip(perturbed_velocities, -self.abs_max_velocity, self.abs_max_velocity)
-
-        # Update velocities and the swarm
-        self.V = np.where(selected_particles_reshaped, perturbed_velocities, self.V)
-        self.update_swarm_valuations_and_bests()
+    # def _inject_random_perturbations_to_velocities(self, selection_type, factor):
+    #     self.update_velocity_maginitude()
+    #     avg_velocity = np.mean(self.velocity_magnitudes)
+    #
+    #     # Determine the particles to select based on the selection type
+    #     if selection_type == 0:  # Slow half particles
+    #         selected_particles = self.velocity_magnitudes < avg_velocity
+    #     elif selection_type == 1:  # Fast half particles
+    #         selected_particles = self.velocity_magnitudes >= avg_velocity
+    #     elif selection_type == 2:  # All particles
+    #         selected_particles = np.ones(self.velocity_magnitudes.shape, dtype=bool)  # Select all particles
+    #     else:
+    #         raise ValueError("Invalid selection type")
+    #
+    #     selected_particles_reshaped = selected_particles[:, np.newaxis]  # Reshape for broadcasting
+    #
+    #     # Generate random perturbations based on the factor
+    #     random_perturbations = np.random.uniform(
+    #         low=-factor * self.abs_max_velocity,
+    #         high=factor * self.abs_max_velocity,
+    #         size=self.V.shape
+    #     )
+    #
+    #     # Apply perturbations to the selected particles
+    #     perturbed_velocities = self.V + random_perturbations
+    #     perturbed_velocities = np.clip(perturbed_velocities, -self.abs_max_velocity, self.abs_max_velocity)
+    #
+    #     # Update velocities and the swarm
+    #     self.V = np.where(selected_particles_reshaped, perturbed_velocities, self.V)
+    #     self.update_swarm_valuations_and_bests()
 
     def update_relative_fitnesses(self):
         self.relative_fitnesses = (self.P_vals - self.gbest_val) / np.abs(self.P_vals)
@@ -160,8 +160,13 @@ class PSOSwarm:
 
         # Add in the current replacement threshold
         # obs = np.append(obs, self.pbest_replacement_threshold)
-        obs = np.append(obs, self.distance_threshold)
-        obs = np.append(obs, self.velocity_braking)
+        # obs = np.append(obs, self.distance_threshold)
+        # obs = np.append(obs, self.velocity_braking)distance_threshold
+
+        # Compute diversity as average distance to centroid
+        swarm_centroid = np.mean(self.X, axis=0)
+        diversity = np.mean(np.linalg.norm(self.X - swarm_centroid, axis=1))
+        obs = np.append(obs, diversity)
 
         return obs
 
@@ -194,8 +199,8 @@ class PSOSwarm:
 
         self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
 
-        # # Apply breaking factor to the velocity
-        self.V = self.V * self.velocity_braking
+        # # # Apply breaking factor to the velocity
+        # self.V = self.V * self.velocity_braking
 
     def update_positions(self):
         # Clamp position inside boundary and reflect them in case they are out of the boundary based on:
@@ -218,27 +223,27 @@ class PSOSwarm:
 
         self.pbest_replacement_counts += improved_particles  # Update P_vals replacement counter
 
-    def update_pbest_with_non_elitist_selection(self):
-        improved_particles = self.pbest_replacement_threshold * self.current_valuations < self.P_vals
-        self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
-        self.P_vals = np.where(improved_particles, self.current_valuations, self.P_vals)
-
-        self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counts
-
-    def update_pbest_with_distance_threshold(self):
-        # Compute Euclidean distances between the current position and the particle's best
-        distances = np.linalg.norm(self.X - self.P, axis=1)
-
-        # Determine for each particle if the new candidate is better than its current p_best, AND if the new candidate is not a very small (local) improvement
-        # (i.e. distance is above the replacement threshold)
-        threshold = self.distance_threshold * self.diagonal
-        improved_particles = (self.current_valuations < self.P_vals) & (distances > threshold)
-
-        # improved_particles = self.pbest_replacement_threshold * self.current_valuations < self.P_vals
-        self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
-        self.P_vals = np.where(improved_particles, self.current_valuations, self.P_vals)
-
-        self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counter
+    # def update_pbest_with_non_elitist_selection(self):
+    #     improved_particles = self.pbest_replacement_threshold * self.current_valuations < self.P_vals
+    #     self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
+    #     self.P_vals = np.where(improved_particles, self.current_valuations, self.P_vals)
+    #
+    #     self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counts
+    #
+    # def update_pbest_with_distance_threshold(self):
+    #     # Compute Euclidean distances between the current position and the particle's best
+    #     distances = np.linalg.norm(self.X - self.P, axis=1)
+    #
+    #     # Determine for each particle if the new candidate is better than its current p_best, AND if the new candidate is not a very small (local) improvement
+    #     # (i.e. distance is above the replacement threshold)
+    #     threshold = self.distance_threshold * self.diagonal
+    #     improved_particles = (self.current_valuations < self.P_vals) & (distances > threshold)
+    #
+    #     # improved_particles = self.pbest_replacement_threshold * self.current_valuations < self.P_vals
+    #     self.P = np.where(improved_particles[:, np.newaxis], self.X, self.P)
+    #     self.P_vals = np.where(improved_particles, self.current_valuations, self.P_vals)
+    #
+    #     self.pbest_replacement_counts += improved_particles  # Update pbest_val replacement counter
 
     def decay_parameters(self, obs_interval, iteration_idx):
         # Decay the replacement threshold over time back to 1
@@ -275,12 +280,12 @@ class PSOSwarm:
 
         self.update_velocities(global_leader)  # Input global leader particle position
 
-        if self.perturb_velocities:
-            self._inject_random_perturbations_to_velocities(self.perturb_velocity_particle_selection, self.perturb_velocity_factor)
+        # if self.perturb_velocities:
+        #     self._inject_random_perturbations_to_velocities(self.perturb_velocity_particle_selection, self.perturb_velocity_factor)
 
         self.update_positions()
-        # self.update_pbests()
-        self.update_pbest_with_distance_threshold()
+        self.update_pbests()
+        # self.update_pbest_with_distance_threshold()
         self.update_gbest()
 
         # self.decay_parameters(obs_interval, iteration_idx)

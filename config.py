@@ -8,8 +8,7 @@ class Config(object):
     use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
-    # reward_function = "normalized_total_difference_reward"
-    reward_function = "fitness_reward"
+    reward_function = "normalized_total_difference_reward"
     penalty_for_negative_reward = 0
     use_attention_layer = False
     use_ou_noise = True
@@ -273,7 +272,7 @@ class Config(object):
 
         if swarm_size is not None:
             self.swarm_size = swarm_size
-            self.observation_length = self.swarm_size * 3 + 1 + 2 * self.num_sub_swarms
+            self.observation_length = self.swarm_size * 3 + 1 + 1 + (1 * self.num_sub_swarms)
 
         if action_dimensions is not None:
             if self.num_sub_swarms is not None:

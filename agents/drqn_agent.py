@@ -27,10 +27,12 @@ class DRQNAgent(BaseAgent):
         self.update_episode_states(observation)
         return np.reshape(self.episode_states, [1, self.config.trace_length, self.config.observation_length])
 
-    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
+    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal, add_to_replay_buffer=True):
         prev_states = copy.deepcopy(self.episode_states)
         self.update_episode_states(next_observation)  # Updates the states array removing oldest when adding newest for sliding window
-        self.replay_buffer.add([prev_states, action, reward * self.config.gamma, self.episode_states, terminal])
+
+        if add_to_replay_buffer:
+            self.replay_buffer.add([prev_states, action, reward * self.config.gamma, self.episode_states, terminal])
         # self.replay_buffer.add([prev_states, action, reward, self.episode_states, terminal])
         return np.reshape(self.episode_states, [1, self.config.trace_length, self.config.observation_length])
 
