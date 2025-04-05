@@ -107,7 +107,6 @@ if __name__ == "__main__":
 
         if func_eval_budget != max_func_eval:
             raise ValueError("Maximum Function Evaluation budget does not match total allocations of function evaluations.")
-
         main.train()
     else:
         print("Re-Making Plots. Data will be reloaded from the results directory, ", config.results_dir, ", and re-plotted.")
