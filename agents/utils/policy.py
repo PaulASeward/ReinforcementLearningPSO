@@ -154,6 +154,7 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
         self.epsilon_start = epsilon_start
         self.epsilon_end = epsilon_end
         self.num_actions = num_actions
+        self.total_steps = num_steps
 
         self.decay_rate = 1/4 * float(epsilon_start - epsilon_end) / num_steps
         self.step = 0
@@ -174,6 +175,11 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
         num_actions = q_values.shape[0]
 
         if np.random.rand() < epsilon:
+            # In the first half (step < self.total_steps / 2) of the decay, we want to add bias towards doing nothing (action 0)
+            if self.step < self.total_steps / 2:
+                # Add bias towards doing nothing
+                if np.random.rand() < 0.33:
+                    return 0
             return np.random.randint(0, num_actions)
         else:
             return np.argmax(q_values)

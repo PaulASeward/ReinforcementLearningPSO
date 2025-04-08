@@ -1,4 +1,5 @@
 import numpy as np
+from pso.pso_multiswarm import PSOSubSwarm
 
 
 class ContinuousMultiswarmActions:
@@ -49,17 +50,19 @@ class ContinuousActions:
         self.swarm = swarm
         self.config = config
 
-        self.action_names = ['Distance Threshold', 'Velocity Braking']
-        # self.action_names = ['PBest Replacement Threshold']
-        # self.practical_action_high_limit = [1.0]
-        # self.practical_action_low_limit = [0.75]
-        self.practical_action_high_limit = [None, None]
-        self.practical_action_low_limit = [0, None]
+        # self.action_names = ['Distance Threshold', 'Velocity Braking']
+        self.action_names = ['Reset Particle']
+        self.practical_action_high_limit = [1.0]
+        self.practical_action_low_limit = [0]
+        # self.practical_action_high_limit = [None, None]
+        # self.practical_action_low_limit = [0, None]
 
+        self.actual_low_limit_action_space = [0]
+        self.actual_high_limit_action_space = [0.90]
         # self.actual_low_limit_action_space = [self.config.replacement_threshold_min]
         # self.actual_high_limit_action_space = [self.config.replacement_threshold_max]
-        self.actual_low_limit_action_space = [self.config.distance_threshold_min, self.config.velocity_braking_min]
-        self.actual_high_limit_action_space = [self.config.distance_threshold_max, self.config.velocity_braking_max]
+        # self.actual_low_limit_action_space = [self.config.distance_threshold_min, self.config.velocity_braking_min]
+        # self.actual_high_limit_action_space = [self.config.distance_threshold_max, self.config.velocity_braking_max]
 
     def __call__(self, action):
         """
@@ -70,10 +73,25 @@ class ContinuousActions:
         # self.swarm.pbest_replacement_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
         # self.swarm.distance_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
         # self.swarm.velocity_braking = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
-        self.swarm.distance_threshold = np.clip(actions[0], self.config.distance_threshold_min, self.config.distance_threshold_max)
-        self.swarm.velocity_braking = np.clip(actions[1], self.config.velocity_braking_min, self.config.velocity_braking_max)
+        # self.swarm.distance_threshold = np.clip(actions[0], self.config.distance_threshold_min, self.config.distance_threshold_max)
+        # self.swarm.velocity_braking = np.clip(actions[1], self.config.velocity_braking_min, self.config.velocity_braking_max)
+
+        if actions[0] > 0.50:
+            self.reset_all_particles_keep_global_best()
 
     def set_limits(self):
         self.config.lower_bound = np.array(self.actual_low_limit_action_space, dtype=np.float32)
         self.config.upper_bound = np.array(self.actual_high_limit_action_space, dtype=np.float32)
 
+    def reset_all_particles_keep_global_best(self):
+        old_gbest_pos = self.swarm.P[np.argmin(self.swarm.P_vals)]
+        old_gbest_val = np.min(self.swarm.P_vals)
+
+        self.swarm.reinitialize()
+        if type(self.swarm) == PSOSubSwarm:
+            self.swarm.share_information_with_global_swarm = True
+
+        # Keep Previous Solution before resetting.
+        if old_gbest_val < self.swarm.gbest_val:
+            self.swarm.gbest_pos = old_gbest_pos
+            self.swarm.gbest_val = old_gbest_val

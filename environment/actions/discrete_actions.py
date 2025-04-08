@@ -36,27 +36,26 @@ class DiscreteActions:
         self.swarm = swarm
         self.config = config
 
+        self.action_methods = {
+            0: self.reset_all_particles_keep_global_best,
+        }
+
+        self.action_names = [
+                              'Reset particle',
+                             ]
+
         # self.action_methods = {
         #     0: self.reset_slow_particles,
         #     1: self.reset_all_particles_keep_global_best,
+        #     2: self.reset_all_particles_without_memory,
+        #     3: self.reshare_information_with_global_swarm
         # }
         #
         # self.action_names = [ 'Reset slow particles',
         #                       'Reset all particles with preserved information',
+        #                       'Reset all particles without memory',
+        #                       'Reshare information with global swarm'
         #                      ]
-
-        self.action_methods = {
-            0: self.reset_slow_particles,
-            1: self.reset_all_particles_keep_global_best,
-            2: self.reset_all_particles_without_memory,
-            3: self.reshare_information_with_global_swarm
-        }
-
-        self.action_names = [ 'Reset slow particles',
-                              'Reset all particles with preserved information',
-                              'Reset all particles without memory',
-                              'Reshare information with global swarm'
-                             ]
 
     def __call__(self, action):
         if not isinstance(action, int):

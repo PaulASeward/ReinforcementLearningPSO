@@ -3,6 +3,7 @@ import os
 from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
 from agents.ddpg_agent import DDPGAgent
+from agents.ddrpg_agent import DDRPGAgent
 from agents.ppo_agent import PPOAgent
 from config import Config
 import argparse
@@ -14,6 +15,7 @@ class Main:
             "DQN": DQNAgent,
             "DRQN": DRQNAgent,
             "DDPG": DDPGAgent,
+            "DDRPG": DDRPGAgent,
             "PPO": PPOAgent
         }
 
@@ -45,11 +47,11 @@ class Main:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run DQN Agent on PSO Algorithm")
-    parser.add_argument("--network_type", type=str, default="DRQN", help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
+    parser.add_argument("--network_type", type=str, default="DDPG", help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
     parser.add_argument("--swarm_algorithm", type=str, default="PMSO", help="The metaheuristic swarm algorithm to use. Currently only PSO or PMSO is supported")
-    parser.add_argument("--func_num", type=int, default=23, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
-    parser.add_argument("--num_subswarms", type=int, default=2, help="The number of sub swarms. Algorithm must be PMSO Default is 5.")
-    parser.add_argument("--num_actions", type=int, default=9, help="The number of actions to choose from in the action space. Default is 5.")
+    parser.add_argument("--func_num", type=int, default=14, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
+    parser.add_argument("--num_subswarms", type=int, default=25, help="The number of sub swarms. Algorithm must be PMSO Default is 5.")
+    parser.add_argument("--num_actions", type=int, default=26, help="The number of actions to choose from in the action space. Default is 5.")
     parser.add_argument("--action_dimensions", type=int, default=1, help="The number of actions to choose from in the action space. Each subswarm will have this many dimensions.")
     parser.add_argument("--train", type=bool, default=True, help="Whether to train an agent or to replot an agent's results")
     parser.add_argument("--test", type=bool, default=True, help="Whether to evaluate an agent from a trained/loaded state")
@@ -73,7 +75,7 @@ if __name__ == "__main__":
     config.save_buffer = args.save_buffer
 
     assert args.swarm_algorithm in ["PSO", "PMSO"], "Please specify a swarm_algorithm of either PSO or PMSO"
-    assert args.network_type in ["DQN", "DRQN", "DDPG", "PPO"], "Please specify a network_type of either DQN, DRQN, or DDPG"
+    assert args.network_type in ["DQN", "DRQN", "DDPG", "DDRPG", "PPO"], "Please specify a network_type of either DQN, DRQN, or DDPG"
     assert args.func_num in list(range(1, 29)), "Please specify a func_num from 1-28"
     if args.swarm_algorithm == "PMSO":
         assert args.num_subswarms in [1,2,5,10,25,50], "Please specify a num_subswarms from 1,2,5,10,25,50"

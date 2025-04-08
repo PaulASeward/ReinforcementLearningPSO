@@ -54,6 +54,8 @@ class ContinuousPsoGymEnv(gym.Env):
         self._best_relative_fitness_for_plots = None
         self._best_relative_fitness_for_reward = None
         self.total_difference = 0
+        self.last_action = np.zeros(self._action_dimensions, dtype=np.float32)
+
 
         self.reward_functions = {
             "simple_reward": self.simple_reward,
@@ -128,6 +130,10 @@ class ContinuousPsoGymEnv(gym.Env):
         swarm_observation = self.swarm.get_observation()
         observation = np.append(swarm_observation, self._current_episode_percent)
 
+        # Round the last action in each dimension to the nearest integer and append
+        rounded_last_action = np.round(self.last_action)
+        observation = np.append(observation, rounded_last_action)
+
         return observation.astype(np.float32)
 
     def _get_reward(self):
@@ -169,6 +175,7 @@ class ContinuousPsoGymEnv(gym.Env):
         # We need the following line to seed self.np_random
         super().reset(seed=seed)
 
+        self.last_action = np.zeros(self._action_dimensions, dtype=np.float32)
         self._actions_count = 0
         self._episode_ended = False
         self.total_difference = 0
@@ -201,6 +208,7 @@ class ContinuousPsoGymEnv(gym.Env):
         self.actions(action)
         self.swarm.optimize()
 
+        self.last_action = action
         observation = self._get_obs()
         reward = self._get_reward()
         # truncated = False
