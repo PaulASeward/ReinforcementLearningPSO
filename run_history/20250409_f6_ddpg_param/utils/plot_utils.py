@@ -61,7 +61,7 @@ def plot_continuous_actions(config):
                                                             action_names=config.actions_descriptions,
                                                             practical_action_low_limit = config.practical_action_low_limit,
                                                             practical_action_high_limit = config.practical_action_high_limit,
-                                                            num_intervals=3)
+                                                            num_intervals=9)
     else:
         plot_average_continuous_actions_for_single_swarm(config.continuous_action_history_path,
                                                          config.action_values_path,
