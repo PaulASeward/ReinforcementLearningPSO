@@ -61,7 +61,7 @@ def plot_continuous_actions(config):
                                                             action_names=config.actions_descriptions,
                                                             practical_action_low_limit = config.practical_action_low_limit,
                                                             practical_action_high_limit = config.practical_action_high_limit,
-                                                            num_intervals=3)
+                                                            num_intervals=9)
     else:
         plot_average_continuous_actions_for_single_swarm(config.continuous_action_history_path,
                                                          config.action_values_path,
@@ -426,6 +426,32 @@ def plot_average_continuous_actions_for_multiple_swarms(continuous_action_histor
 
         if i == 0:  # Only add legend to the first subplot to avoid repetition
             ax2.legend(loc='upper left')
+
+        # # Make a subplot into a new figure
+        # if i == 3:
+        #     # Create a new figure for the separate plot
+        #     fig_single, ax_single = plt.subplots(figsize=(10, 6))
+        #
+        #     # Re-plot the action dimensions
+        #     for j in range(action_dimensions):
+        #         mean_counts = mean_action_counts[:, j]
+        #         std_dev_counts = std_action_counts[:, j]
+        #         ax_single.plot(x_values, mean_counts, color=f'C{j}', label=action_names[j])
+        #         ax_single.fill_between(x_values, mean_counts - std_dev_counts, mean_counts + std_dev_counts,
+        #                                color=f'C{j}', alpha=0.3)
+        #
+        #     ax_single.set_xlabel("Episode Number")
+        #     ax_single.set_ylabel("Continuous Action Average")
+        #     ax_single.set_title(f'Continuous Action Converged Policy')
+        #     ax_single.set_xticks(x_values)
+        #
+        #     # legends
+        #     fig_single.legend(legend_handles, action_names[:action_dimensions], loc='upper center', title="Actions", bbox_to_anchor=(0.5, 1.21))
+        #     # Save the individual subplot
+        #     single_output_file_path = os.path.splitext(continuous_action_history_path)[0] + f'_interval_{i + 1}.png'
+        #     fig_single.tight_layout()
+        #     fig_single.savefig(single_output_file_path, dpi='figure', format="png", bbox_inches='tight')
+        #     plt.close(fig_single)
 
     # Adjust subplot layout and add single legend
     plt.tight_layout()

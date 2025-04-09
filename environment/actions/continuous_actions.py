@@ -50,22 +50,16 @@ class ContinuousActions:
         self.swarm = swarm
         self.config = config
 
-        self.action_names = ['PBest Replacement Threshold']
-
-        # self.action_names = ['Inertia Param', 'Social Param', 'Cognitive Param']
+        # self.action_names = ['PBest Replacement Threshold']
+        self.action_names = ['Inertia Param', 'Social Param', 'Cognitive Param']
         # self.practical_action_high_limit = [1.0]
         # self.practical_action_low_limit = [0]
-        # self.practical_action_high_limit = [config.w_min, config.c_min, config.c_min]
-        # self.practical_action_low_limit = [config.w_min, config.c_min, config.c_min]
-        #
-        #
-        # self.actual_low_limit_action_space = [config.w_min, config.c_min, config.c_min]
-        # self.actual_high_limit_action_space = [config.w_min, config.c_min, config.c_min]
+        self.practical_action_low_limit = [config.w_min, config.c_min, config.c_min]
+        self.practical_action_high_limit = [config.w_max, config.c_max, config.c_max]
 
-        self.practical_action_high_limit = [None, None, None]
-        self.practical_action_low_limit = [None, None, None]
-        self.actual_low_limit_action_space = [None, None, None]
-        self.actual_high_limit_action_space = [None, None, None]
+        self.actual_low_limit_action_space = [config.w_min, config.c_min, config.c_min]
+        self.actual_high_limit_action_space = [config.w_max, config.c_max, config.c_max]
+
         # self.actual_low_limit_action_space = [self.config.replacement_threshold_min]
         # self.actual_high_limit_action_space = [self.config.replacement_threshold_max]
         # self.actual_low_limit_action_space = [self.config.distance_threshold_min, self.config.velocity_braking_min]

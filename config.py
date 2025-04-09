@@ -8,11 +8,11 @@ class Config(object):
     use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
-    # reward_function = "fitness_reward"
-    reward_function = "normalized_total_difference_reward"
+    reward_function = "fitness_reward"
+    # reward_function = "normalized_total_difference_reward"
     penalty_for_negative_reward = 0
     use_attention_layer = False
-    use_ou_noise = True
+    use_ou_noise = False
 
     # AGENT PARAMETERS
     num_episodes = 20
@@ -86,7 +86,7 @@ class Config(object):
     # DDPG TRAINING PARAMETERS
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.3
+    ou_sigma = 0.6
     # ou_sigma = 0.5
     ou_dt = 1e-2
 
@@ -94,21 +94,10 @@ class Config(object):
     # tau = 0.125
     upper_bound = None
     lower_bound = None
-    # actor_layers = (400, 300)
-    # actor_layers = (64,32)
-    # actor_learning_rate = 5e-4
-    # actor_learning_rate = 1e-3
-    # critic_learning_rate = 1e-3
-    actor_learning_rate = 5e-3
-    critic_learning_rate = 1e-4
-    # actor_learning_rate = 5e-6
-    # critic_learning_rate = 5e-6
-    # critic_layers = (16, 32, 48)
+    actor_learning_rate = 1e-3
+    critic_learning_rate = 1e-3
     actor_layers = (256, 128, 64)
     critic_layers = (256, 128, 64)
-    # actor_layers = (64, 64)
-    # critic_layers = (64, 64, 1)
-    # critic_layers = (600, 300)
     subswarm_action_dim = None
     state_shape = None
     action_bound = None
@@ -275,7 +264,7 @@ class Config(object):
         if swarm_size is not None:
             self.swarm_size = swarm_size
             # self.observation_length = self.swarm_size * 3 + 1
-            self.observation_length = self.swarm_size * 3 + 1 + (1 * self.num_sub_swarms)
+            self.observation_length = self.swarm_size * 3 + 1 + (3 * self.num_sub_swarms)
 
         if action_dimensions is not None:
             if self.num_sub_swarms is not None:

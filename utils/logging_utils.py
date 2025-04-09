@@ -62,8 +62,8 @@ class ResultsLogger:
         self._save_to_csv([self.step, epsilon, cumulative_fitness_reward, fitness, train_loss, cumulative_training_reward], self.config.training_step_results_path)
 
         print(f"Step #{self.step} Fitness Reward:{cumulative_fitness_reward} Training Reward: {cumulative_training_reward} Current Epsilon: {epsilon}")
-        # print("Training Rewards: ", training_rewards)
-        # print("Fitness Rewards: ", fitness_rewards)
+        print("Training Rewards: ", training_rewards)
+        print("Fitness Rewards: ", fitness_rewards)
         tf.summary.scalar("episode_reward", cumulative_fitness_reward, step=self.step-1)
 
     def write_actions_at_eval_interval_to_csv(self):

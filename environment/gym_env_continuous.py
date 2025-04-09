@@ -74,6 +74,9 @@ class ContinuousPsoGymEnv(gym.Env):
             return np.float32(self._penalty_for_negative_reward)
 
     def fitness_reward(self, difference):
+        if self._actions_count == 0:
+            return np.float32(0)
+
         current_best_fitness = self.swarm.get_current_best_fitness()
 
         if self._best_relative_fitness_for_reward is None:
@@ -131,8 +134,8 @@ class ContinuousPsoGymEnv(gym.Env):
         observation = np.append(swarm_observation, self._current_episode_percent)
 
         # Round the last action in each dimension to the nearest integer and append
-        rounded_last_action = np.round(self.last_action)
-        observation = np.append(observation, rounded_last_action)
+        # rounded_last_action = np.round(self.last_action)
+        observation = np.append(observation, self.last_action)
 
         return observation.astype(np.float32)
 
