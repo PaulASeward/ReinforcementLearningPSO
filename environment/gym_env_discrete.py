@@ -48,11 +48,14 @@ class DiscretePsoGymEnv(gym.Env):
         self._episode_values = []
         self._best_fitness = None
         self._best_relative_fitness_for_plots = None
+        self._best_relative_fitness_for_reward = None
+
         self.total_difference = 0
         self.last_action = 0
 
         self.reward_functions = {
             "simple_reward": self.simple_reward,
+            "fitness_reward": self.fitness_reward,
             "difference_reward": self.difference_reward,
             "total_difference_reward": self.total_difference_reward,
             "normalized_total_difference_reward": self.normalized_total_difference_reward,
@@ -65,6 +68,18 @@ class DiscretePsoGymEnv(gym.Env):
             return np.float32(1)
         else:
             return np.float32(self._penalty_for_negative_reward)
+
+    def fitness_reward(self, difference):
+        current_best_fitness = self.swarm.get_current_best_fitness()
+
+        if self._best_relative_fitness_for_reward is None:
+            reward = self._minimum - current_best_fitness
+            self._best_relative_fitness_for_reward = current_best_fitness
+        else:
+            reward = self._best_relative_fitness_for_reward - current_best_fitness
+            self._best_relative_fitness_for_reward = min(self._best_relative_fitness_for_reward, current_best_fitness)
+
+        return max(reward, self._penalty_for_negative_reward)
 
     def difference_reward(self, difference):
         return max(difference, self._penalty_for_negative_reward)
@@ -110,7 +125,7 @@ class DiscretePsoGymEnv(gym.Env):
         # return self.swarm.get_observation()
         swarm_observation = self.swarm.get_observation()
         observation = np.append(swarm_observation, self._current_episode_percent)
-        observation = np.append(observation, self.last_action)
+        # observation = np.append(observation, self.last_action)
 
         return observation.astype(np.float32)
 
@@ -169,6 +184,7 @@ class DiscretePsoGymEnv(gym.Env):
         self._episode_ended = False
         self.total_difference = 0
         self._best_relative_fitness_for_plots = None
+        self._best_relative_fitness_for_reward = None
 
         # Restart the swarm with initializing criteria
         self.swarm.reinitialize()

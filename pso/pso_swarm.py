@@ -163,10 +163,10 @@ class PSOSwarm:
         # obs = np.append(obs, self.distance_threshold)
         # obs = np.append(obs, self.velocity_braking)distance_threshold
 
-        # Compute diversity as average distance to centroid
-        swarm_centroid = np.mean(self.X, axis=0)
-        diversity = np.mean(np.linalg.norm(self.X - swarm_centroid, axis=1))
-        obs = np.append(obs, diversity)
+        # # Compute diversity as average distance to centroid
+        # swarm_centroid = np.mean(self.X, axis=0)
+        # diversity = np.mean(np.linalg.norm(self.X - swarm_centroid, axis=1))
+        # obs = np.append(obs, diversity)
 
         return obs
 

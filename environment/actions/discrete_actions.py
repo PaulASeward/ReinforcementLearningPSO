@@ -40,9 +40,14 @@ class DiscreteActions:
             0: self.reset_all_particles_keep_global_best,
         }
 
-        self.action_names = [
-                              'Reset particle',
-                             ]
+        self.action_names = ['Do nothing', 'Increase inertia', 'Decrease inertia', 'Increase social factor', 'Decrease social factor']
+        self.action_methods = {
+            0: self.do_nothing,
+            1: self.increase_inertia,
+            2: self.decrease_inertia,
+            3: self.increase_social_factor,
+            4: self.decrease_social_factor,
+        }
 
         # self.action_methods = {
         #     0: self.reset_slow_particles,

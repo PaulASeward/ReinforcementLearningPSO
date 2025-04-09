@@ -8,6 +8,7 @@ class Config(object):
     use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
+    # reward_function = "fitness_reward"
     reward_function = "normalized_total_difference_reward"
     penalty_for_negative_reward = 0
     use_attention_layer = False
@@ -64,15 +65,14 @@ class Config(object):
     policy = "ExponentialDecayGreedyEpsilon"
     epsilon_start = 1.0
     epsilon_end = 0.01
-    # epsilon_decay_episodes = 1000
-    # epsilon_decay = float((epsilon_start - epsilon_end)) / float(epsilon_decay_episodes)
-    epsilon_decay = 0.995
+
 
     # Replay Buffer
     # buffer_size = 10000
     buffer_size = 20000
     # buffer_size = 1000000
-    batch_size = 64
+    # batch_size = 64
+    batch_size = 128
     replay_priority_capacity = 100000
     replay_priority_epsilon = 0.01  # small amount to avoid zero priority
     replay_priority_alpha = 0.7  # [0~1] convert the importance of TD error to priority
@@ -81,13 +81,13 @@ class Config(object):
     replay_priority_beta_max_abs_error = 1.0  # clipped abs error
 
     # DRQN TRAINING PARAMETERS
-    trace_length = 10
+    trace_length = 20
 
     # DDPG TRAINING PARAMETERS
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    # ou_sigma = 0.3
-    ou_sigma = 0.5
+    ou_sigma = 0.3
+    # ou_sigma = 0.5
     ou_dt = 1e-2
 
     tau = 0.005
@@ -97,8 +97,10 @@ class Config(object):
     # actor_layers = (400, 300)
     # actor_layers = (64,32)
     # actor_learning_rate = 5e-4
-    actor_learning_rate = 1e-3
-    critic_learning_rate = 1e-3
+    # actor_learning_rate = 1e-3
+    # critic_learning_rate = 1e-3
+    actor_learning_rate = 5e-3
+    critic_learning_rate = 1e-4
     # actor_learning_rate = 5e-6
     # critic_learning_rate = 5e-6
     # critic_layers = (16, 32, 48)
@@ -272,7 +274,8 @@ class Config(object):
 
         if swarm_size is not None:
             self.swarm_size = swarm_size
-            self.observation_length = self.swarm_size * 3 + 1 + (2 * self.num_sub_swarms)
+            # self.observation_length = self.swarm_size * 3 + 1
+            self.observation_length = self.swarm_size * 3 + 1 + (1 * self.num_sub_swarms)
 
         if action_dimensions is not None:
             if self.num_sub_swarms is not None:
