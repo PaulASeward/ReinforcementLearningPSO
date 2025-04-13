@@ -40,15 +40,28 @@ class DiscreteActions:
         #     0: self.reset_all_particles_keep_global_best,
         # }
 
-        self.action_names = ['Do nothing', 'Increase inertia', 'Decrease inertia', 'Increase social factor', 'Decrease social factor', 'Reset Slow Particles', 'Reset All Particles Keep Global Best']
+        # self.action_names = ['Do nothing', 'Increase inertia', 'Decrease inertia', 'Increase social factor', 'Decrease social factor', 'Reset Slow Particles', 'Reset All Particles Keep Global Best']
+        # self.action_methods = {
+        #     0: self.do_nothing,
+        #     1: self.increase_inertia,
+        #     2: self.decrease_inertia,
+        #     3: self.increase_social_factor,
+        #     4: self.decrease_social_factor,
+        #     5: self.reset_slow_particles,
+        #     6: self.reset_all_particles_keep_global_best,
+        # }
+
+        self.action_names = ['Do nothing', 'Increase all velocities', 'Decrease all velocities', 'Increase max velocity', 'Decrease max velocity', 'Speed up slower half', 'Slow down faster half',  'Reset Slower half', 'Reset All Particles Keep Global Best']
         self.action_methods = {
             0: self.do_nothing,
-            1: self.increase_inertia,
-            2: self.decrease_inertia,
-            3: self.increase_social_factor,
-            4: self.decrease_social_factor,
-            5: self.reset_slow_particles,
-            6: self.reset_all_particles_keep_global_best,
+            1: self.increase_all_velocities,
+            2: self.decrease_all_velocities,
+            3: self.increase_max_velocity,
+            4: self.decrease_max_velocity,
+            5: self.increase_velocities_of_slow_velocities,
+            6: self.decrease_velocities_of_fast_particles,
+            7: self.reset_slow_particles,
+            8: self.reset_all_particles_keep_global_best,
         }
 
         # self.action_methods = {
@@ -120,13 +133,107 @@ class DiscreteActions:
 
         self.swarm.update_swarm_valuations_and_bests()
 
-    def reset_particles_using_lattice(self):
+    def _reset_particles_position_using_lattice(self):
         grid_points = int(np.cbrt(self.swarm.swarm_size))  # Assuming cubic grid
         lattice = np.linspace(-1 * self.swarm.rangeF, self.swarm.rangeF, grid_points)
         positions = np.array(np.meshgrid(*([lattice] * self.swarm.dimension))).T.reshape(-1, self.swarm.dimension)
         np.random.shuffle(positions)
         self.swarm.X[:positions.shape[0]] = positions[:self.swarm.swarm_size]
-        self.swarm.V = np.zeros_like(self.swarm.V)
+
+    def _reset_particles_position_to_random(self):
+        self.swarm.X = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF, size=(self.swarm.swarm_size, self.swarm.dimension))
+
+    def _reset_particles_velocity_to_random(self):
+        self.swarm.V = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF, size=(self.swarm.swarm_size, self.swarm.dimension))
+
+    def _reset_particles_velocity_to_zero(self):
+        self.swarm.V = np.full((self.swarm.swarm_size, self.swarm.dimension), 0.0)
+
+    def _forget_memory(self):
+        self.swarm.P = self.swarm.X
+        self.swarm.P_vals = None
+
+    def reset_all_particles_velocity_to_random_keep_position(self):
+        self._reset_particles_velocity_to_random()
+
+    def reset_slow_particles_velocity_to_random_keep_position(self):
+        avg_velocity = self._calculate_average_velocity()
+        slow_particles = self.swarm.velocity_magnitudes < avg_velocity
+        replacement_velocities = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF,
+                                                  size=(self.swarm.swarm_size, self.swarm.dimension))
+        slow_particles_reshaped = slow_particles[:, np.newaxis]  # Reshape to match self.swarm.X
+        self.swarm.V = np.where(slow_particles_reshaped, replacement_velocities, self.swarm.V)
+
+    def reset_fast_particles_velocity_to_random_keep_position(self):
+        avg_velocity = self._calculate_average_velocity()
+        fast_particles = self.swarm.velocity_magnitudes > avg_velocity
+        replacement_velocities = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF,
+                                                  size=(self.swarm.swarm_size, self.swarm.dimension))
+        fast_particles_reshaped = fast_particles[:, np.newaxis]  # Reshape to match self.swarm.X
+        self.swarm.V = np.where(fast_particles_reshaped, replacement_velocities, self.swarm.V)
+
+    def reset_particles_velocity_to_random_reset_position(self):
+        self._reset_particles_position_to_random()
+        self._reset_particles_velocity_to_random()
+        self.swarm.update_swarm_valuations_and_bests()
+
+    def reset_slow_velocity_to_random_reset_position(self):
+        avg_velocity = self._calculate_average_velocity()
+        slow_particles = self.swarm.velocity_magnitudes < avg_velocity
+        slow_particles_reshaped = slow_particles[:, np.newaxis]  # Reshape to match self.swarm.X
+        replacement_velocities = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF, size=(self.swarm.swarm_size, self.swarm.dimension))
+        replacement_positions = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF, size=(self.swarm.swarm_size, self.swarm.dimension))
+
+        self.swarm.X = np.where(slow_particles_reshaped, replacement_positions, self.swarm.X)
+        self.swarm.V = np.where(slow_particles_reshaped, replacement_velocities, self.swarm.V)
+        self.swarm.P = np.where(slow_particles_reshaped, self.swarm.X, self.swarm.P)
+
+        self.swarm.update_swarm_valuations_and_bests()
+
+    def reset_fast_velocity_to_random_reset_position(self):
+        avg_velocity = self._calculate_average_velocity()
+        fast_particles = self.swarm.velocity_magnitudes > avg_velocity
+        fast_particles_reshaped = fast_particles[:, np.newaxis]  # Reshape to match self.swarm.X
+
+        replacement_velocities = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF, size=(self.swarm.swarm_size, self.swarm.dimension))
+        replacement_positions = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF, size=(self.swarm.swarm_size, self.swarm.dimension))
+
+        self.swarm.X = np.where(fast_particles_reshaped, replacement_positions, self.swarm.X)
+        self.swarm.V = np.where(fast_particles_reshaped, replacement_velocities, self.swarm.V)
+        self.swarm.P = np.where(fast_particles_reshaped, self.swarm.X, self.swarm.P)
+
+        self.swarm.update_swarm_valuations_and_bests()
+
+    def reset_particles_velocity_to_zero_reset_position(self):
+        self._reset_particles_position_to_random()
+        self._reset_particles_velocity_to_zero()
+        self.swarm.update_swarm_valuations_and_bests()
+
+    def reset_slow_velocity_to_zero_reset_position(self):
+        avg_velocity = self._calculate_average_velocity()
+        slow_particles = self.swarm.velocity_magnitudes < avg_velocity
+        slow_particles_reshaped = slow_particles[:, np.newaxis]
+
+        replacement_velocities = np.full((self.swarm.swarm_size, self.swarm.dimension), 0.0)
+        replacement_positions = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF, size=(self.swarm.swarm_size, self.swarm.dimension))
+
+        self.swarm.X = np.where(slow_particles_reshaped, replacement_positions, self.swarm.X)
+        self.swarm.V = np.where(slow_particles_reshaped, replacement_velocities, self.swarm.V)
+        self.swarm.P = np.where(slow_particles_reshaped, self.swarm.X, self.swarm.P)
+        self.swarm.update_swarm_valuations_and_bests()
+
+    def reset_fast_velocity_to_zero_reset_position(self):
+        avg_velocity = self._calculate_average_velocity()
+        fast_particles = self.swarm.velocity_magnitudes > avg_velocity
+        fast_particles_reshaped = fast_particles[:, np.newaxis]
+
+        replacement_velocities = np.full((self.swarm.swarm_size, self.swarm.dimension), 0.0)
+        replacement_positions = np.random.uniform(low=-1 * self.swarm.rangeF, high=self.swarm.rangeF, size=(self.swarm.swarm_size, self.swarm.dimension))
+
+        self.swarm.X = np.where(fast_particles_reshaped, replacement_positions, self.swarm.X)
+        self.swarm.V = np.where(fast_particles_reshaped, replacement_velocities, self.swarm.V)
+        self.swarm.P = np.where(fast_particles_reshaped, self.swarm.X, self.swarm.P)
+
         self.swarm.update_swarm_valuations_and_bests()
 
     def increase_all_velocities(self):

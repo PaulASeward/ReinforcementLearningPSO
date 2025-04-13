@@ -19,7 +19,7 @@ class PSOSwarm:
         self.rangeF = config.rangeF
         self.perturb_velocities = False
         self.perturb_velocity_factor = None
-        self.velocity_scaling_factor = None
+        self.velocity_scaling_factor = 1.0
         self.perturb_velocity_particle_selection = None
         self.perturb_positions = False
         self.perturb_position_factor = None
@@ -69,6 +69,7 @@ class PSOSwarm:
         self.c2 = self.config.c2
         self.pbest_replacement_threshold = self.config.replacement_threshold
         self.distance_threshold = self.config.distance_threshold
+        self.velocity_scaling_factor = 1.0
         self.velocity_braking = self.config.velocity_braking
         self.abs_max_velocity = self.rangeF
 
@@ -200,7 +201,7 @@ class PSOSwarm:
         self.V = np.clip(self.V, -self.abs_max_velocity, self.abs_max_velocity)
 
         # # # Apply breaking factor to the velocity
-        # self.V = self.V * self.velocity_braking
+        self.V = self.V * self.velocity_scaling_factor
 
     def update_positions(self):
         # Clamp position inside boundary and reflect them in case they are out of the boundary based on:
@@ -254,9 +255,11 @@ class PSOSwarm:
         # self.pbest_replacement_threshold += (1 - self.pbest_replacement_threshold) * linear_decay_rate
         # self.pbest_replacement_threshold = min(1, self.pbest_replacement_threshold)
 
-        self.distance_threshold += (0 - self.distance_threshold) * linear_decay_rate
+        # self.distance_threshold += (0 - self.distance_threshold) * linear_decay_rate
+        #
+        # self.velocity_braking += (1 - self.velocity_braking) * linear_decay_rate
 
-        self.velocity_braking += (1 - self.velocity_braking) * linear_decay_rate
+        self.velocity_scaling_factor += (1 - self.velocity_scaling_factor) * linear_decay_rate
 
     def update_gbest(self):
         self.gbest_pos = self.P[np.argmin(self.P_vals)]  # Vector of globally best visited position.
@@ -289,7 +292,7 @@ class PSOSwarm:
         # self.update_pbest_with_distance_threshold()
         self.update_gbest()
 
-        # self.decay_parameters(obs_interval, iteration_idx)
+        self.decay_parameters(obs_interval, iteration_idx)
 
 
 
