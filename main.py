@@ -47,17 +47,18 @@ class Main:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run DQN Agent on PSO Algorithm")
-    parser.add_argument("--network_type", type=str, default="DDPG", help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
+    parser.add_argument("--network_type", type=str, default="DRQN", help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
     parser.add_argument("--swarm_algorithm", type=str, default="PSO", help="The metaheuristic swarm algorithm to use. Currently only PSO or PMSO is supported")
-    parser.add_argument("--func_num", type=int, default=6, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
+    parser.add_argument("--func_num", type=int, default=23, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
     parser.add_argument("--num_subswarms", type=int, default=1, help="The number of sub swarms. Algorithm must be PMSO Default is 5.")
-    parser.add_argument("--num_actions", type=int, default=5, help="The number of actions to choose from in the action space. Default is 5.")
-    parser.add_argument("--action_dimensions", type=int, default=3, help="The number of actions to choose from in the action space. Each subswarm will have this many dimensions.")
+    parser.add_argument("--num_actions", type=int, default=7, help="The number of actions to choose from in the action space. Default is 5.")
+    parser.add_argument("--action_dimensions", type=int, default=1, help="The number of actions to choose from in the action space. Each subswarm will have this many dimensions.")
     parser.add_argument("--train", type=bool, default=True, help="Whether to train an agent or to replot an agent's results")
     parser.add_argument("--test", type=bool, default=True, help="Whether to evaluate an agent from a trained/loaded state")
     parser.add_argument("--num_final_tests", type=int, default=100, help="How many times to evaluate an pretrained agent")
     parser.add_argument("--mock", type=bool, default=False, help="To use a mock data environment for evaluating")
     parser.add_argument("--priority_replay", type=bool, default=False, help="To use a priority replay buffer for training")
+    parser.add_argument("--over_sample_exploration", type=int, default=3, help="How much, if any, to oversample initial exploration to lean learning towards intitial examples.  None, 0, keep same behavior. 1+ will oversample exploration")
     parser.add_argument("--steps", type=int, default=2000, help="number of iterations to train")
     parser.add_argument("--save_models", type=bool, default=True, help="Whether to save the models")
     parser.add_argument("--save_buffer", type=bool, default=True, help="Whether to save the experience buffer")
@@ -83,7 +84,7 @@ if __name__ == "__main__":
     config.update_properties(network_type=args.network_type, swarm_algorithm=args.swarm_algorithm, func_num=args.func_num, num_actions=args.num_actions, load_checkpoint=args.load_checkpoint,
                              action_dimensions=args.action_dimensions, num_subswarms=args.num_subswarms, swarm_size=50, dimensions=30, num_episodes=20,
                              num_swarm_obs_intervals=10, swarm_obs_interval_length=30,
-                             train_steps=args.steps)
+                             train_steps=args.steps, over_sample_exploration=args.over_sample_exploration)
     assert config.dim in [2, 5, 10, 20, 20, 30, 40, 50, 60, 70, 80, 90, 100], "Please specify a dim from 2,5,10,20,30,40,50,60,70,80,90,100"
 
     print("==== Experiment: ", config.experiment)

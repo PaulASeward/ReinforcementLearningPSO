@@ -69,7 +69,8 @@ class Config(object):
 
     # Replay Buffer
     # buffer_size = 10000
-    buffer_size = 20000
+    # buffer_size = 20000
+    buffer_size = 30000
     # buffer_size = 1000000
     # batch_size = 64
     batch_size = 128
@@ -86,7 +87,7 @@ class Config(object):
     # DDPG TRAINING PARAMETERS
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    ou_sigma = 0.6
+    ou_sigma = 0.25
     # ou_sigma = 0.5
     ou_dt = 1e-2
 
@@ -214,11 +215,12 @@ class Config(object):
         self.num_sub_swarms = None
         self.network_type = None
         self.dim = None
+        self.over_sample_exploration = None
 
     def clone(self):
         return copy.deepcopy(self)
 
-    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, load_checkpoint=None, action_dimensions=None, num_subswarms=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
+    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, load_checkpoint=None, action_dimensions=None, num_subswarms=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None, over_sample_exploration=None):
         if func_num is not None:
             self.func_num = func_num
 
@@ -264,7 +266,7 @@ class Config(object):
         if swarm_size is not None:
             self.swarm_size = swarm_size
             # self.observation_length = self.swarm_size * 3 + 1
-            self.observation_length = self.swarm_size * 3 + 1 + (3 * self.num_sub_swarms)
+            self.observation_length = self.swarm_size * 3 + 1 + (2 * self.num_sub_swarms)
 
         if action_dimensions is not None:
             if self.num_sub_swarms is not None:
@@ -273,6 +275,9 @@ class Config(object):
             else:
                 self.action_dimensions = action_dimensions
             self.ou_mu = np.zeros(self.action_dimensions)
+
+        if over_sample_exploration is not None:
+            self.over_sample_exploration = over_sample_exploration
 
         if network_type is not None:
             if network_type in ["DQN", "DRQN"]:

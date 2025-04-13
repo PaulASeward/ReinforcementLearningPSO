@@ -198,6 +198,7 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound
         self.range = self.upper_bound - self.lower_bound
+        # self.upper_bound = [1.0] * config.action_dimensions
 
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start

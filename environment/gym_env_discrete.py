@@ -125,7 +125,7 @@ class DiscretePsoGymEnv(gym.Env):
         # return self.swarm.get_observation()
         swarm_observation = self.swarm.get_observation()
         observation = np.append(swarm_observation, self._current_episode_percent)
-        # observation = np.append(observation, self.last_action)
+        observation = np.append(observation, self.last_action)
 
         return observation.astype(np.float32)
 
