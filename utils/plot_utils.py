@@ -608,6 +608,40 @@ def plot_actions_with_values_over_iteration_intervals(actions_counts_path, actio
         if i == 0:  # Only add legend to the first subplot to avoid repetition
             ax2.legend(loc='upper left')
 
+        # # Make a subplot into a new figure
+        # if i == 8:
+        #     # Create a new figure for the separate plot
+        #     fig_single, ax_single = plt.subplots(figsize=(10, 6))
+        #
+        #     bottom = np.zeros(num_episodes)
+        #     for action_num in range(num_actions):
+        #         action_occurrences = [np.count_nonzero(interval_data[:, episode] == action_num) for episode in
+        #                               range(num_episodes)]
+        #         ax_single.bar(x_values, action_occurrences, bottom=bottom, label=action_names[action_num])
+        #         bottom += action_occurrences
+        #
+        #
+        #     ax_single.set_xlabel("Episode Number")
+        #     ax_single.set_ylabel("Action Count")
+        #     ax_single.set_title(f'Discrete Action Converged Policy')
+        #     ax_single.set_xticks(x_values)
+        #
+        #     # Add line graph overlay
+        #     ax2_single = ax_single.twinx()
+        #     ax2_single.plot(x_values, average_value_per_episode, color='black', marker='o', label='RL PSO')
+        #     ax2_single.plot(x_values, standard_pso_distance, color='red', marker='o', label='Standard PSO')
+        #     ax2_single.set_ylabel("Average Best Minimum Explored Relative to Function Minimum")
+        #     ax2_single.set_ylim(min_line_value, max_line_value)
+        #     ax2_single.legend(loc='upper left')
+        #
+        #     # legends
+        #     fig_single.legend(legend_handles, action_names[:num_actions], loc='upper center', title="Actions", ncol=2, bbox_to_anchor=(0.5, 1.21))
+        #     # Save the individual subplot
+        #     single_output_file_path = os.path.splitext(actions_counts_path)[0] + f'_interval_{i + 1}.png'
+        #     fig_single.tight_layout()
+        #     fig_single.savefig(single_output_file_path, dpi='figure', format="png", bbox_inches='tight')
+        #     plt.close(fig_single)
+
     # Adjust subplot layout and add single legend
     plt.tight_layout()
 
