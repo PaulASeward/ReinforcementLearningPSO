@@ -50,19 +50,14 @@ class ContinuousActions:
         self.swarm = swarm
         self.config = config
 
-        # self.action_names = ['Reset Particle']
+        self.action_names = ['Velocity Scaling Factor']
         # self.action_names = ['PBest Distance Threshold', 'Velocity Braking Factor']
-        self.action_names = ['Inertia Param', 'Social Param', 'Cognitive Param']
-        # self.practical_action_high_limit = [1.0]
-        # self.practical_action_low_limit = [0.0]
+        # self.action_names = ['Inertia Param', 'Social Param', 'Cognitive Param']
+        self.practical_action_high_limit = [1.25]
+        self.practical_action_low_limit = [0.75]
         #
-        # self.actual_low_limit_action_space = [0.0]
-        # self.actual_high_limit_action_space = [1.0]
-        self.practical_action_low_limit = [config.w_min, config.c_min, config.c_min]
-        self.practical_action_high_limit = [config.w_max, config.c_max, config.c_max]
-
-        self.actual_low_limit_action_space = [config.w_min, config.c_min, config.c_min]
-        self.actual_high_limit_action_space = [config.w_max, config.c_max, config.c_max]
+        # self.actual_low_limit_action_space = [config.w_min, config.c_min, config.c_min]
+        # self.actual_high_limit_action_space = [config.w_max, config.c_max, config.c_max]
 
         # self.practical_action_low_limit = [0, self.config.velocity_braking_min]
         # self.practical_action_high_limit = [self.config.distance_threshold_max, self.config.velocity_braking_max]
@@ -70,8 +65,8 @@ class ContinuousActions:
         # self.actual_low_limit_action_space = [self.config.distance_threshold_min, self.config.velocity_braking_min]
         # self.actual_high_limit_action_space = [self.config.distance_threshold_max, self.config.velocity_braking_max]
 
-        # self.practical_action_low_limit = [self.config.replacement_threshold_min]
-        # self.practical_action_high_limit = [1.0]
+        self.actual_low_limit_action_space = [0.75]
+        self.actual_high_limit_action_space = [1.25]
         #
         # self.actual_low_limit_action_space = [self.config.replacement_threshold_min]
         # self.actual_high_limit_action_space = [self.config.replacement_threshold_max]
@@ -79,15 +74,16 @@ class ContinuousActions:
     def __call__(self, action):
         actions = np.array(action)
 
-        self.swarm.w = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
-        self.swarm.c1 = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
-        self.swarm.c2 = np.clip(actions[2], self.practical_action_low_limit[2], self.practical_action_high_limit[2])
+        # self.swarm.w = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
+        # self.swarm.c1 = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
+        # self.swarm.c2 = np.clip(actions[2], self.practical_action_low_limit[2], self.practical_action_high_limit[2])
 
         # self.swarm.pbest_replacement_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
         # self.swarm.distance_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
         # self.swarm.velocity_braking = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
         # self.swarm.distance_threshold = np.clip(actions[0], 0, self.config.distance_threshold_max)
         # self.swarm.velocity_braking = np.clip(actions[1], self.config.velocity_braking_min, self.config.velocity_braking_max)
+        self.swarm.velocity_scaling_factor = np.clip(actions[0], self.config.practical_action_low_limit[0], self.config.practical_action_high_limit[0])
         #
         # if actions[0] > 0.50:
         #     self.reset_all_particles_keep_global_best()

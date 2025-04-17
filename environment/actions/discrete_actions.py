@@ -126,7 +126,7 @@ class DiscreteActions:
 
         self.swarm.update_superswarm_gbest()
 
-    def reset_all_particles_without_memory(self):
+    def reset_all_particles_without_memory_sharing(self):
         self.swarm.reinitialize()
 
         if type(self.swarm) == PSOSubSwarm:

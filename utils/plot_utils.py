@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import matplotlib.cm as cm
 from matplotlib.patches import Patch
 import matplotlib.colors as mcolors
 import os
@@ -348,7 +349,7 @@ def plot_average_continuous_actions_for_single_swarm(continuous_action_history_p
     plt.close()
 
 
-def plot_average_continuous_actions_for_multiple_swarms(continuous_action_history_path, actions_values_path, standard_pso_values_path, function_min_value, action_dimensions, action_names, practical_action_low_limit, practical_action_high_limit, num_intervals=9):
+def plot_average_continuous_actions_for_multiple_swarms(continuous_action_history_path, actions_values_path, standard_pso_values_path, function_min_value, action_dimensions, action_names, practical_action_low_limit, practical_action_high_limit, num_intervals=9, separate_plot_for_interval=9):
     output_file_name = os.path.splitext(continuous_action_history_path)[0] + '_multiple_swarms.png'
     action_counts = np.load(continuous_action_history_path)
 
@@ -427,31 +428,67 @@ def plot_average_continuous_actions_for_multiple_swarms(continuous_action_histor
         if i == 0:  # Only add legend to the first subplot to avoid repetition
             ax2.legend(loc='upper left')
 
-        # # Make a subplot into a new figure
-        # if i == 3:
-        #     # Create a new figure for the separate plot
-        #     fig_single, ax_single = plt.subplots(figsize=(10, 6))
+        # Make a subplot into a new figure
+        if separate_plot_for_interval is not None and i == separate_plot_for_interval:
+            # Create a new figure for the separate plot
+            fig_single, ax_single = plt.subplots(figsize=(10, 6))
+
+            cmap = cm.get_cmap('turbo')  # Or 'plasma', 'turbo', etc.
+            colors = [mcolors.to_hex(cmap(i / int(action_dimensions-1))) for i in range(action_dimensions)]
+            # colors = [mcolors.to_hex((0.3 * (1 - j / max(action_dimensions - 1, 1)), 0.5 * (1 - j / max(action_dimensions - 1, 1)), 1.0)) for j in range(action_dimensions)]
+            # legend_handles = [Patch(facecolor=f'C{i}') for i in range(action_dimensions)]
+            legend_handles = [Patch(facecolor=colors[i]) for i in range(action_dimensions)]
+
+            # Re-plot the action dimensions
+            for j in range(action_dimensions):
+                mean_counts = mean_action_counts[:, j]
+                ax_single.plot(x_values, mean_counts, color=colors[j], label=action_names[j])
+                std_dev_counts = std_action_counts[:, j]
+                ax_single.fill_between(x_values, mean_counts - std_dev_counts, mean_counts + std_dev_counts,
+                                       color=colors[j], alpha=0.3)
+                # ax_single.plot(x_values, mean_counts, color=f'C{j}', label=action_names[j])
+                # ax_single.fill_between(x_values, mean_counts - std_dev_counts, mean_counts + std_dev_counts,
+                #                        color=f'C{j}', alpha=0.3)
+
+            ax_single.set_xlabel("Episode Number")
+            ax_single.set_ylabel("Continuous Action Average")
+            ax_single.set_title(f'Continuous Action Converged Policy')
+            ax_single.set_xticks(x_values)
+
+
+
+            # legends
+            fig_single.legend(legend_handles, action_names[:action_dimensions], loc='upper center', title="Actions", ncol=5, bbox_to_anchor=(0.5, 1.21))
+            # Save the individual subplot
+            single_output_file_path = os.path.splitext(continuous_action_history_path)[0] + f'_interval_{i + 1}.png'
+            fig_single.tight_layout()
+            fig_single.savefig(single_output_file_path, dpi='figure', format="png", bbox_inches='tight')
+            plt.close(fig_single)
+
+        # if separate_plot_for_interval is not None and i == separate_plot_for_interval:
+        #     fig_heatmap, ax_heatmap = plt.subplots(figsize=(12, 6))
         #
-        #     # Re-plot the action dimensions
-        #     for j in range(action_dimensions):
-        #         mean_counts = mean_action_counts[:, j]
-        #         std_dev_counts = std_action_counts[:, j]
-        #         ax_single.plot(x_values, mean_counts, color=f'C{j}', label=action_names[j])
-        #         ax_single.fill_between(x_values, mean_counts - std_dev_counts, mean_counts + std_dev_counts,
-        #                                color=f'C{j}', alpha=0.3)
+        #     # Extract binary actions (1 if > 0.5, else 0)
+        #     binary_actions = (interval_data > 0.5).astype(int)  # shape: [num_steps, action_dims]
+        #     heatmap_data = np.sum(binary_actions, axis=0).T  # Shape: (25, 20) for (y, x)
+        #     heatmap = ax_heatmap.imshow(heatmap_data, cmap='viridis', aspect='auto', origin='lower')
         #
-        #     ax_single.set_xlabel("Episode Number")
-        #     ax_single.set_ylabel("Continuous Action Average")
-        #     ax_single.set_title(f'Continuous Action Converged Policy')
-        #     ax_single.set_xticks(x_values)
+        #     ax_heatmap.set_xlabel("Timestep")
+        #     ax_heatmap.set_ylabel("Action Dimension")
+        #     ax_heatmap.set_title(f'Reset Counts (Action Value in Dimension >0.5)')
+        #     ax_heatmap.set_xticks(np.arange(20))
+        #     ax_heatmap.set_yticks(np.arange(25))
+        #     ax_heatmap.set_yticklabels([f"{name}" for name in action_names[:25]])  # if needed
         #
-        #     # legends
-        #     fig_single.legend(legend_handles, action_names[:action_dimensions], loc='upper center', title="Actions", bbox_to_anchor=(0.5, 1.21))
-        #     # Save the individual subplot
-        #     single_output_file_path = os.path.splitext(continuous_action_history_path)[0] + f'_interval_{i + 1}.png'
-        #     fig_single.tight_layout()
-        #     fig_single.savefig(single_output_file_path, dpi='figure', format="png", bbox_inches='tight')
-        #     plt.close(fig_single)
+        #     # Color bar
+        #     cbar = plt.colorbar(heatmap, ax=ax_heatmap)
+        #     cbar.set_label("Reset Count")
+        #
+        #     # Save heatmap figure
+        #     heatmap_file = os.path.splitext(continuous_action_history_path)[0] + f'_interval_{i + 1}_heatmap.png'
+        #     fig_heatmap.tight_layout()
+        #     fig_heatmap.savefig(heatmap_file, dpi='figure', format="png", bbox_inches='tight')
+        #     plt.close(fig_heatmap)
 
     # Adjust subplot layout and add single legend
     plt.tight_layout()
