@@ -8,7 +8,7 @@ class Config(object):
     use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
-    reward_function = "fitness_reward"
+    reward_function = "relative_fitness_reward"
     # reward_function = "normalized_total_difference_reward"
     penalty_for_negative_reward = 0
     use_attention_layer = False
