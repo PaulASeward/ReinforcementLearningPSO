@@ -266,7 +266,7 @@ class Config(object):
         if swarm_size is not None:
             self.swarm_size = swarm_size
             # self.observation_length = self.swarm_size * 3 + 1
-            self.observation_length = self.swarm_size * 3 + 1 + (1 * self.num_sub_swarms) + (2 * self.num_sub_swarms)
+            self.observation_length = self.swarm_size * 3 + 1 + (1 * self.num_sub_swarms) + (1 * self.num_sub_swarms)
 
         if action_dimensions is not None:
             if self.num_sub_swarms is not None:
