@@ -64,18 +64,18 @@ class DiscreteActions:
         #     8: self.reset_all_particles_keep_global_best,
         # }
 
-        self.action_names = [
-            'Reset slow particles velocity to random keep position',
-            'Reset fast particles velocity to random keep position',
-            'Reset slow particles velocity to random reset position',
-            'Reset slow velocity to zero reset position'
-        ]
-        self.action_methods = {
-            0: self.reset_slow_particles_velocity_to_random_keep_position,
-            1: self.reset_fast_particles_velocity_to_random_keep_position,
-            2: self.reset_slow_particles_velocity_to_random_reset_position,
-            3: self.reset_slow_velocity_to_zero_reset_position,
-        }
+        # self.action_names = [
+        #     'Reset slow particles velocity to random keep position',
+        #     'Reset fast particles velocity to random keep position',
+        #     'Reset slow particles velocity to random reset position',
+        #     'Reset slow velocity to zero reset position'
+        # ]
+        # self.action_methods = {
+        #     0: self.reset_slow_particles_velocity_to_random_keep_position,
+        #     1: self.reset_fast_particles_velocity_to_random_keep_position,
+        #     2: self.reset_slow_particles_velocity_to_random_reset_position,
+        #     3: self.reset_slow_velocity_to_zero_reset_position,
+        # }
 
         # self.action_names = ['Reset slow particles velocity to random keep position',
         #                      'Reset fast particles velocity to random keep position',
@@ -98,18 +98,18 @@ class DiscreteActions:
         #     8: self.reset_fast_velocity_to_zero_reset_position,
         # }
 
-        # self.action_methods = {
-        #     0: self.reset_slow_particles,
-        #     1: self.reset_all_particles_keep_global_best,
-        #     2: self.reset_all_particles_without_memory,
-        #     3: self.reshare_information_with_global_swarm
-        # }
-        #
-        # self.action_names = [ 'Reset slow particles',
-        #                       'Reset all particles with preserved information',
-        #                       'Reset all particles without memory',
-        #                       'Reshare information with global swarm'
-        #                      ]
+        self.action_methods = {
+            0: self.reset_slow_particles,
+            1: self.reset_all_particles_keep_global_best,
+            2: self.reset_all_particles_without_memory_sharing,
+            3: self.reshare_information_with_global_swarm
+        }
+
+        self.action_names = [ 'Reset slow particles',
+                              'Reset all particles with preserved information',
+                              'Reset all particles without memory',
+                              'Reshare information with global swarm'
+                             ]
 
     def __call__(self, action):
         if not isinstance(action, int):
