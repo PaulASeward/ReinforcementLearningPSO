@@ -1,5 +1,7 @@
 import tensorflow as tf
 import datetime
+
+import os
 from keras.api._v2.keras.optimizers import Adam, RMSprop, Adagrad, SGD
 
 
@@ -9,9 +11,9 @@ class BaseModel:
     """
     def __init__(self, config, network_type):
         self.config = config
-        self.model_dir = config.model_dir
-        self.dir_output = self.model_dir + "/output/" + config.experiment + "/" + str(datetime.datetime.utcnow()) + "/"
-        self.dir_model = self.model_dir + "/net/" + config.experiment + "/" + str(datetime.datetime.utcnow()) + "/"
+        self.network_type = network_type
+        self.checkpoint_dir = config.checkpoint_dir
+        self.load_checkpoint_dir = config.load_checkpoint_dir
 
         self.optimizer = None
         self.debug = not True
@@ -43,52 +45,34 @@ class BaseModel:
     def nn_model(self):
         raise NotImplementedError("Method not implemented")
 
+    def save_model(self, step):
+        if not self.config.save_models:
+            return
+
+        step_dir_path = os.path.join(self.checkpoint_dir, "step_" + str(step))
+        os.makedirs(step_dir_path, exist_ok=True)
+
+        model_step_path = os.path.join(step_dir_path, self.network_type + ".h5")
+        self.model.save(model_step_path)
+
+    def load_model(self):
+        if self.load_checkpoint_dir is None:
+            raise ValueError("Load checkpoint directory is not provided")
+
+        if not os.path.exists(self.load_checkpoint_dir):
+            raise ValueError("Load checkpoint directory does not exist: ", self.load_checkpoint_dir)
+
+        model_step_path = os.path.join(self.load_checkpoint_dir, self.network_type + ".h5")
+
+        if not os.path.exists(model_step_path):
+            raise ValueError("Model file does not exist: ", model_step_path)
+
+        self.model = tf.keras.models.load_model(model_step_path)
+
     def predict(self, state):
         return self.model.predict(state, verbose=0)
 
     def get_action_q_values(self, state):
         q_value_array = self.predict(state)
         return q_value_array[0]
-
-    # def initialize_session(self):
-    #     print("Initializing tf session")
-    #     self.sess = tf.Session()
-    #     self.sess.run(tf.global_variables_initializer())
-    #     self.saver = tf.train.Saver()
-    #
-    # def close_session(self):
-    #     self.sess.close()
-    #
-    # def add_summary(self, summary_tags, histogram_tags):
-    #     self.summary_placeholders = {}
-    #     self.summary_ops = {}
-    #
-    #     for tag in summary_tags:
-    #         self.summary_placeholders[tag] = tf.placeholder(tf.float32, None, name=tag)
-    #         self.summary_ops[tag] = tf.summary.scalar(tag, self.summary_placeholders[tag])
-    #
-    #     for tag in histogram_tags:
-    #         self.summary_placeholders[tag] = tf.placeholder('float32', None, name=tag)
-    #         self.summary_ops[tag] = tf.summary.histogram(tag, self.summary_placeholders[tag])
-    #
-    #     self.file_writer = tf.summary.FileWriter(self.dir_output + "/train", self.sess.graph)
-    #
-    # def inject_summary(self, tag_dict, step):
-    #     summary_str_lists = self.sess.run([self.summary_ops[tag] for tag in tag_dict], {
-    #         self.summary_placeholders[tag]: value for tag, value in tag_dict.items()
-    #     })
-    #     for summ in summary_str_lists:
-    #         self.file_writer.add_summary(summ, step)
-    #
-    # def save_session(self):
-    #     """Saves session = weights"""
-    #     if not os.path.exists(self.dir_model):
-    #         os.makedirs(self.dir_model)
-    #     self.saver.save(self.sess, self.dir_model)
-    #
-    # def restore_session(self, path=None):
-    #     if path is not None:
-    #         self.saver.restore(self.sess, path)
-    #     else:
-    #         self.saver.restore(self.sess, self.dir_model)
 

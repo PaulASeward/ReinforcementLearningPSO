@@ -50,7 +50,8 @@ class DDPGAgent(BaseAgent):
         return False
 
     def replay_experience(self):
-        if self.replay_buffer.size() < self.config.batch_size * 20:
+        # if self.replay_buffer.size() < self.config.batch_size * 50:
+        if self.is_in_exploration_state:
             return None, None, None  # Not enough experience to replay yet.
 
         actor_losses = []
@@ -95,37 +96,12 @@ class DDPGAgent(BaseAgent):
 
         return total_losses, actor_losses, critic_losses
 
-    def test(self, step):
-        cumulative_training_rewards = []
-        cumulative_fitness_rewards = []
+    def save_models(self, step):
+        self.actor_network.save_model(step)
+        self.critic_network.save_model(step)
 
-        for _ in range(self.config.test_episodes):
-            actions, rewards, fitness_rewards, swarm_observations, terminal = [], [], [], [], False
-            current_state = self.initialize_current_state()
-
-            while not terminal:
-                q_values = self.get_q_values(current_state)
-                action = self.test_policy.select_action(q_values)
-                next_observation, reward, terminal, swarm_info = self.env.step(action)
-                current_state = np.reshape(next_observation, (1, self.config.observation_length))
-
-                fitness_reward = swarm_info[
-                    "fitness_reward"]  # This is for plotting swarm improvements, not learning purposes.
-                actions.append(action)
-                fitness_rewards.append(fitness_reward)
-                rewards.append(reward)
-                swarm_observations.append(swarm_info)
-
-            cumulative_training_reward = np.sum(rewards)
-            cumulative_fitness_reward = np.sum(fitness_rewards)
-            print(f"EVALUATION STEP #{step} Fitness Reward:{cumulative_fitness_reward} Training Reward: {cumulative_training_reward}")
-            print("EVALUATION_ACTION: ", actions)
-
-            cumulative_fitness_rewards.append(cumulative_fitness_reward)
-            cumulative_training_rewards.append(cumulative_training_reward)
-
-        avg_fitness_reward = np.mean(cumulative_fitness_rewards)
-        avg_training_reward = np.mean(cumulative_training_rewards)
-
-        print(f"Average Fitness Reward: {avg_fitness_reward} Average Training Reward: {avg_training_reward}")
-        self.results_logger._save_to_csv([step, self.policy.current_epsilon, avg_fitness_reward, avg_training_reward], self.config.test_step_results_path)
+    def load_models(self):
+        self.actor_network.load_model()
+        self.critic_network.load_model()
+        self.actor_network_target.load_model()
+        self.critic_network_target.load_model()

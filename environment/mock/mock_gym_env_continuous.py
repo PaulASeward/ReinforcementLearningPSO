@@ -31,9 +31,9 @@ class MockContinuousPsoGymEnv(gym.Env):
 
         self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
         self.actions = ContinuousActions(swarm=self.swarm, config=config)
-        config.continuous_action_offset = self.actions.action_offset
         config.actions_descriptions = self.actions.action_names[:self._action_dimensions]
-
+        config.practical_action_low_limit = self.actions.practical_action_low_limit
+        config.practical_action_high_limit = self.actions.practical_action_high_limit
 
         self._actions_count = 0
         self._episode_ended = False

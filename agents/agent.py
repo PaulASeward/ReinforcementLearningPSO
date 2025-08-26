@@ -3,7 +3,7 @@ import gymnasium as gym
 import os
 from datetime import datetime
 from environment.gym_env_discrete import DiscretePsoGymEnv
-from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy
+from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy, GreedyPolicy
 import numpy as np
 
 
@@ -13,10 +13,13 @@ class BaseAgent:
         self.target_model = None
         self.model = None
         self.policy = None
+        self.test_policy = None
         self.config = config
         self.log_dir = os.path.join(config.log_dir, config.experiment, datetime.now().strftime("%Y%m%d-%H%M%S"))
         self.writer = tf.summary.create_file_writer(self.log_dir)
         self.results_logger = None
+        self.starting_step = 0
+        self.is_in_exploration_state = True
 
         self.raw_env = None
         self.env = None
@@ -24,6 +27,7 @@ class BaseAgent:
         self.build_environment()
         if config.policy == "ExponentialDecayGreedyEpsilon":
             self.policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.num_actions)
+            self.test_policy = GreedyPolicy()
 
     def build_environment(self):
         if self.config.use_discrete_env:
@@ -35,22 +39,6 @@ class BaseAgent:
                 self.env = self.raw_env
 
             return self.env
-
-        if self.config.swarm_algorithm == "PMSO":
-            low_limit_subswarm_action_space = [self.config.w_min, self.config.c_min, self.config.c_min]
-            high_limit_subswarm_action_space = [self.config.w_max, self.config.c_max, self.config.c_max]
-
-            self.config.lower_bound = np.array(
-                [low_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)],
-                dtype=np.float32).flatten()
-            self.config.upper_bound = np.array(
-                [high_limit_subswarm_action_space for _ in range(self.config.num_sub_swarms)],
-                dtype=np.float32).flatten()
-        else:
-            self.config.lower_bound = np.array([self.config.w_min, self.config.c_min, self.config.c_min],
-                                               dtype=np.float32)
-            self.config.upper_bound = np.array([self.config.w_max, self.config.c_max, self.config.c_max],
-                                               dtype=np.float32)
 
         if self.config.use_mock_data:
             self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
@@ -74,7 +62,8 @@ class BaseAgent:
         return False
 
     def replay_experience(self):
-        if self.replay_buffer.size() < self.config.batch_size:
+        # if self.replay_buffer.size() < self.config.batch_size * 50:
+        if self.is_in_exploration_state:
             return None, None, None  # Not enough experience to replay yet.
 
         losses = []
@@ -106,20 +95,40 @@ class BaseAgent:
         observation, swarm_info = self.env.reset()
         return np.reshape(observation, (1, self.config.observation_length))
 
-    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
+    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal, add_to_replay_buffer=True):
         next_state = np.reshape(next_observation, (1, self.config.observation_length))
         # self.replay_buffer.add([current_state, action, reward*self.config.gamma, next_state, terminal])
-        self.replay_buffer.add([current_state, action, reward, next_state, terminal])
+        if add_to_replay_buffer:
+            self.replay_buffer.add([current_state, action, reward, next_state, terminal])
+
+            # Oversample exploration if desired. Could add in only explore for positive rewards
+            if self.config.over_sample_exploration is not None and self.config.over_sample_exploration > 1 and self.is_in_exploration_state:
+                times_to_oversample = int(self.config.over_sample_exploration)
+                for _ in range(times_to_oversample):
+                    self.replay_buffer.add([current_state, action, reward, next_state, terminal])
         return next_state
 
-    def test(self, step):
+    def save_models(self, step):
+        pass
+
+    def load_from_checkpoint(self, step):
+        self.replay_buffer.load()
+        self.load_models()
+        self.starting_step = step
+        episilon_values = np.loadtxt(self.config.epsilon_values_path, delimiter=",")
+        self.policy.current_epsilon = episilon_values[-1]
+        self.policy.step = step * self.config.num_episodes
+
+    def load_models(self):
         pass
 
     def train(self):
         with self.writer.as_default():
-            for step in range(self.config.train_steps):
+            for step in range(self.starting_step, self.config.train_steps):
                 actions, rewards, fitness_rewards, swarm_observations, terminal = [], [], [], [], False
                 current_state = self.initialize_current_state()
+                if step > 250:
+                    self.is_in_exploration_state = False
 
                 while not terminal:
                     q_values = self.get_q_values(current_state)
@@ -140,6 +149,8 @@ class BaseAgent:
                 if step % self.config.eval_interval == 0:
                     # Run a test episode to evaluate the model without noise
                     self.test(step)
+                    self.save_models(step)
+                    self.replay_buffer.save()
 
                 [losses, actor_losses, critic_losses] = self.replay_experience()
                 early_stop = self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
@@ -150,3 +161,48 @@ class BaseAgent:
                 if early_stop:
                     break
             self.results_logger.print_execution_time()
+
+    def test(self, step=None, number_of_tests=None):
+        if self.test_policy is None:
+            return
+
+        if step is None:
+            step = self.config.train_steps
+
+        if number_of_tests is None:
+            number_of_tests = self.config.test_episodes
+
+        cumulative_training_rewards = []
+        cumulative_fitness_rewards = []
+
+        for _ in range(number_of_tests):
+            actions, rewards, fitness_rewards, swarm_observations, terminal = [], [], [], [], False
+            current_state = self.initialize_current_state()
+
+            while not terminal:
+                q_values = self.get_q_values(current_state)
+                action = self.test_policy.select_action(q_values)
+                next_observation, reward, terminal, swarm_info = self.env.step(action)
+                current_state = self.update_memory_and_state(current_state, action, reward, next_observation, terminal, add_to_replay_buffer=False)
+
+                fitness_reward = swarm_info[
+                    "fitness_reward"]  # This is for plotting swarm improvements, not learning purposes.
+                actions.append(action)
+                fitness_rewards.append(fitness_reward)
+                rewards.append(reward)
+                swarm_observations.append(swarm_info)
+
+            cumulative_training_reward = np.sum(rewards)
+            cumulative_fitness_reward = np.sum(fitness_rewards)
+            print(f"EVALUATION STEP #{step} Fitness Reward:{cumulative_fitness_reward} Training Reward: {cumulative_training_reward}")
+            print("EVALUATION_ACTION: ", actions)
+
+            cumulative_fitness_rewards.append(cumulative_fitness_reward)
+            cumulative_training_rewards.append(cumulative_training_reward)
+
+        avg_fitness_reward = np.mean(cumulative_fitness_rewards)
+        std_dev_fitness_reward = np.std(cumulative_fitness_rewards)
+        avg_training_reward = np.mean(cumulative_training_rewards)
+
+        print(f"Average Fitness Reward: {avg_fitness_reward} Average Training Reward: {avg_training_reward}")
+        self.results_logger._save_to_csv([step, self.policy.current_epsilon, avg_fitness_reward, std_dev_fitness_reward, avg_training_reward], self.config.test_step_results_path)

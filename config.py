@@ -8,7 +8,8 @@ class Config(object):
     use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
-    reward_function = "smoothed_total_difference_reward"
+    reward_function = "fitness_reward"
+    # reward_function = "normalized_total_difference_reward"
     penalty_for_negative_reward = 0
     use_attention_layer = False
     use_ou_noise = False
@@ -17,12 +18,14 @@ class Config(object):
     num_episodes = 20
     num_swarm_obs_intervals = 10
     swarm_obs_interval_length = 30
-    observation_length = 151
+    # observation_length = 151
+    observation_length = 152
 
     train_steps = 20000
     log_interval = 200
     eval_interval = 500
-    test_episodes = 10
+    test_episodes = 5
+    num_final_tests = 100
 
     replay_experience_length = 1
 
@@ -50,23 +53,27 @@ class Config(object):
     env_meta_data_name = "meta_data.csv"
 
     # Model/Checkpoint Files
-    model_dir = os.path.join(results_dir, "saved_session", "network_models")
     checkpoint_dir = os.path.join(results_dir, "saved_session", "model_checkpoints")
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
     log_dir = os.path.join(results_dir, "saved_session", "logs")
+    save_models = True
+    save_buffer = False
+    load_checkpoint_dir = None
 
     # EPSILON GREEDY PARAMETERS
     policy = "ExponentialDecayGreedyEpsilon"
     epsilon_start = 1.0
     epsilon_end = 0.01
-    # epsilon_decay_episodes = 1000
-    # epsilon_decay = float((epsilon_start - epsilon_end)) / float(epsilon_decay_episodes)
-    epsilon_decay = 0.995
+
 
     # Replay Buffer
     # buffer_size = 10000
-    buffer_size = 20000
+    # buffer_size = 20000
+    buffer_size = 30000
     # buffer_size = 1000000
-    batch_size = 64
+    # batch_size = 64
+    batch_size = 128
     replay_priority_capacity = 100000
     replay_priority_epsilon = 0.01  # small amount to avoid zero priority
     replay_priority_alpha = 0.7  # [0~1] convert the importance of TD error to priority
@@ -75,32 +82,24 @@ class Config(object):
     replay_priority_beta_max_abs_error = 1.0  # clipped abs error
 
     # DRQN TRAINING PARAMETERS
-    trace_length = 10
+    trace_length = 20
 
     # DDPG TRAINING PARAMETERS
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
-    # ou_sigma = 0.1
-    ou_sigma = 0.15
+    ou_sigma = 0.25
+    # ou_sigma = 0.5
     ou_dt = 1e-2
 
-    tau = 0.001
+    tau = 0.005
     # tau = 0.125
     upper_bound = None
     lower_bound = None
-    # actor_layers = (400, 300)
-    # actor_layers = (64,32)
-    actor_learning_rate = 1e-4
+    actor_learning_rate = 1e-3
     critic_learning_rate = 1e-3
-    # actor_learning_rate = 5e-6
-    # critic_learning_rate = 5e-6
-    # critic_layers = (16, 32, 48)
-    actor_layers = (64, 128, 256)
-    critic_layers = (64, 128, 256)
-    # actor_layers = (64, 64)
-    # critic_layers = (64, 64, 1)
-    # critic_layers = (600, 300)
-    action_dim = None
+    actor_layers = (256, 128, 64)
+    critic_layers = (256, 128, 64)
+    subswarm_action_dim = None
     state_shape = None
     action_bound = None
     action_shift = None
@@ -118,10 +117,8 @@ class Config(object):
     train_value_iterations = 10
 
     actions_descriptions = None
-    continuous_action_offset = None
-
-    dir_save = "saved_session/"
-    restore = False
+    practical_action_low_limit = None
+    practical_action_high_limit = None
 
     # LEARNING PARAMETERS
     # discount_factor = 0.01
@@ -147,21 +144,42 @@ class Config(object):
     is_sub_swarm = False
 
     w = 0.729844  # Inertia weight
-    # w_min = 0.33  # Min of 5 decreases of 10%
-    w_min = 0.43  # Min of 5 decreases of 10%
-    w_max = 1.175  # Max of 5 increases of 10%
     c1 = 2.05 * w  # Social component Learning Factor
     c2 = 2.05 * w  # Cognitive component Learning Factor
+
+    # w_min = 0.43  # Min of 5 decreases of 10%
+    # w_max = 1.175  # Max of 5 increases of 10%
+    w_min = 0.23  # Min of 5 decreases of 10%
+    w_max = 1.375  # Max of 5 increases of 10%
+
     c_min = 0.883  # Min of 5 decreases of 10%
-    # c_min = 0.583  # Min of 5 decreases of 10%
     c_max = 2.409  # Max of 5 increases of 10%
+
+    # w_min = 0  # Min of 5 decreases of 10%
+    # w_max = 1.44  # Max of 5 increases of 10%
+    # c_min = 0  # Min of 5 decreases of 10%
+    # c_max = 3.3 # Max of 5 increases of 10%
     rangeF = 100
-    v_min = 59.049
-    v_max = 161.051
+    # v_min = 59.049
+    # v_max = 161.051
+
+    v_min = 50
+    v_max = 150
+
+    v_min_scaling_factor = 0.5
+    v_max_scaling_factor = 1.5
+
+    velocity_braking = 1.0
+    velocity_braking_min = 0.75
+    velocity_braking_max = 1.25
+
+    distance_threshold = 0.00
+    distance_threshold_min = -0.20
+    distance_threshold_max = 0.20
+
     replacement_threshold = 1.0
-    replacement_threshold_min = 0.5
-    replacement_threshold_max = 1.0
-    replacement_threshold_decay = 0.95
+    replacement_threshold_min = 0.75
+    replacement_threshold_max = 1.25
 
     def __init__(self):
         self.func_num = None
@@ -184,6 +202,7 @@ class Config(object):
         self.critic_loss_file = None
         self.interval_actions_counts_path = None
         self.standard_pso_path = None
+        self.experience_buffer_path = None
         self.experiment = None
         self.num_eval_intervals = None
         self.label_iterations_intervals = None
@@ -196,36 +215,32 @@ class Config(object):
         self.num_sub_swarms = None
         self.network_type = None
         self.dim = None
+        self.over_sample_exploration = None
 
     def clone(self):
         return copy.deepcopy(self)
 
-    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, action_dimensions=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None):
+    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, load_checkpoint=None, action_dimensions=None, num_subswarms=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None, over_sample_exploration=None):
         if func_num is not None:
             self.func_num = func_num
 
         if num_actions is not None:
             self.num_actions = num_actions
 
-        if action_dimensions is not None:
-            self.action_dimensions = action_dimensions
-            self.ou_mu = np.zeros(self.action_dimensions)
-
-        if swarm_size is not None:
-            self.swarm_size = swarm_size
-            self.observation_length = self.swarm_size * 3 + 1
+        if load_checkpoint is not None:
+            self.load_checkpoint_dir = os.path.join(self.checkpoint_dir, load_checkpoint)
 
         if dimensions is not None:
             self.dim = dimensions
 
-        if num_episodes is not None:
+        if num_episodes is not None:  # The number of episodes in each Reinforcement Learning Iterations before terminating.
             self.num_episodes = num_episodes
             self.trace_length = num_episodes if num_episodes < 20 else 20
 
-        if num_swarm_obs_intervals is not None:
+        if num_swarm_obs_intervals is not None:  # The number of swarm observation intervals. Ex) At 10 evenly spaced observation intervals, observations in the swarm will be collected. Default is 10.
             self.num_swarm_obs_intervals = num_swarm_obs_intervals
 
-        if swarm_obs_interval_length is not None:
+        if swarm_obs_interval_length is not None:  # The number of observations per episode conducted in the swarm. Ex) Particle Best Replacement Counts are averaged over the last _ observations before an episode terminates and action is decided. Default is 30.
             self.swarm_obs_interval_length = swarm_obs_interval_length
 
         self.obs_per_episode = self.swarm_obs_interval_length * self.num_swarm_obs_intervals
@@ -241,8 +256,28 @@ class Config(object):
 
         if swarm_algorithm is not None:
             self.swarm_algorithm = swarm_algorithm
-            if swarm_algorithm == "PMSO":
-                self.num_sub_swarms = 5
+
+        if num_subswarms is not None:
+            if self.swarm_algorithm == "PMSO":
+                self.num_sub_swarms = num_subswarms
+            else:
+                self.num_sub_swarms = 1
+
+        if swarm_size is not None:
+            self.swarm_size = swarm_size
+            # self.observation_length = self.swarm_size * 3 + 1
+            self.observation_length = self.swarm_size * 3 + 1 + (1 * self.num_sub_swarms) + (1 * self.num_sub_swarms)
+
+        if action_dimensions is not None:
+            if self.num_sub_swarms is not None:
+                self.subswarm_action_dim = action_dimensions
+                self.action_dimensions = action_dimensions * self.num_sub_swarms
+            else:
+                self.action_dimensions = action_dimensions
+            self.ou_mu = np.zeros(self.action_dimensions)
+
+        if over_sample_exploration is not None:
+            self.over_sample_exploration = over_sample_exploration
 
         if network_type is not None:
             if network_type in ["DQN", "DRQN"]:
@@ -269,3 +304,4 @@ class Config(object):
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
             self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
             self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.func_num}.csv")
+            self.experience_buffer_path = os.path.join(self.results_dir, f"experience_buffer.pkl")

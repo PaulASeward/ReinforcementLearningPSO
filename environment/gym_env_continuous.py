@@ -24,21 +24,29 @@ class ContinuousPsoGymEnv(gym.Env):
         self._avg_standard_pso_increase = self._avg_swarm_improvement / self._max_episodes
         self._penalty_for_negative_reward = config.penalty_for_negative_reward
 
+        self.standard_pso_results = np.genfromtxt(config.standard_pso_path, delimiter=',', skip_header=1)
+        self.standard_pso_cumulative_relative_fitness = abs(self._minimum - self.standard_pso_results[:, 1])
+
         self._observation_length = config.observation_length
         low_limits_obs_space = np.zeros(self._observation_length, dtype=np.float32)  # 150-dimensional array with all elements set to 0
         high_limits_obs_space = np.full(self._observation_length, np.inf, dtype=np.float32)
 
-        self.action_space = gym.spaces.Box(low=config.lower_bound, high=config.upper_bound, shape=(self._action_dimensions,), dtype=np.float32)
-        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
-
         if config.swarm_algorithm == "PMSO":
             self.swarm = PSOMultiSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
             self.actions = ContinuousMultiswarmActions(swarm=self.swarm, config=config)
+            self.actions.set_limits()
         else:
             self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
             self.actions = ContinuousActions(swarm=self.swarm, config=config)
+            self.actions.set_limits()
         config.actions_descriptions = self.actions.action_names[:self._action_dimensions]
-        config.continuous_action_offset = self.actions.action_offset
+        config.practical_action_low_limit = self.actions.practical_action_low_limit
+        config.practical_action_high_limit = self.actions.practical_action_high_limit
+
+        self.action_space = gym.spaces.Box(low=config.lower_bound, high=config.upper_bound,
+                                          shape=(self._action_dimensions,), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
+                                                shape=(self._observation_length,), dtype=np.float32)
 
         self._actions_count = 0
         self._current_episode_percent = 0
@@ -47,10 +55,15 @@ class ContinuousPsoGymEnv(gym.Env):
         self._episode_values = []
         self._best_fitness = None
         self._best_relative_fitness_for_plots = None
+        self._best_relative_fitness_for_reward = None
         self.total_difference = 0
+        self.last_action = np.zeros(self._action_dimensions, dtype=np.float32)
+
 
         self.reward_functions = {
             "simple_reward": self.simple_reward,
+            "fitness_reward": self.fitness_reward,
+            "relative_fitness_reward": self.relative_fitness_to_pso_reward,
             "difference_reward": self.difference_reward,
             "total_difference_reward": self.total_difference_reward,
             "normalized_total_difference_reward": self.normalized_total_difference_reward,
@@ -60,9 +73,42 @@ class ContinuousPsoGymEnv(gym.Env):
 
     def simple_reward(self, difference):
         if difference > 0:
-            return 1
+            return np.float32(1)
         else:
-            return self._penalty_for_negative_reward
+            return np.float32(self._penalty_for_negative_reward)
+
+    def fitness_reward(self, difference):
+        if self._actions_count == 0:
+            return np.float32(0)
+
+        current_best_fitness = self.swarm.get_current_best_fitness()
+
+        if self._best_relative_fitness_for_reward is None:
+            reward = self._minimum - current_best_fitness
+            self._best_relative_fitness_for_reward = current_best_fitness
+        else:
+            reward = self._best_relative_fitness_for_reward - current_best_fitness
+            self._best_relative_fitness_for_reward = min(self._best_relative_fitness_for_reward, current_best_fitness)
+
+        return max(reward, self._penalty_for_negative_reward)
+
+    def relative_fitness_to_pso_reward(self, difference):
+        current_best_fitness = self.swarm.get_current_best_fitness()
+        if self._actions_count == 0:
+            x=1
+        canonical_distance_from_global_optimum = self.standard_pso_cumulative_relative_fitness[self._actions_count-1]
+
+        if self._best_relative_fitness_for_reward is None:
+            self._best_relative_fitness_for_reward = current_best_fitness
+        else:
+            self._best_relative_fitness_for_reward = min(self._best_relative_fitness_for_reward, current_best_fitness)
+
+        current_distance_from_global_optimum = abs(self._minimum - self._best_relative_fitness_for_reward)
+        reward = canonical_distance_from_global_optimum - current_distance_from_global_optimum
+        # reward = max(reward, self._penalty_for_negative_reward)
+        # reward /= self._pso_variance
+
+        return reward
 
     def difference_reward(self, difference):
         return max(difference, self._penalty_for_negative_reward)
@@ -109,6 +155,10 @@ class ContinuousPsoGymEnv(gym.Env):
         swarm_observation = self.swarm.get_observation()
         observation = np.append(swarm_observation, self._current_episode_percent)
 
+        # Round the last action in each dimension to the nearest integer and append
+        # rounded_last_action = np.round(self.last_action)
+        observation = np.append(observation, self.last_action)
+
         return observation.astype(np.float32)
 
     def _get_reward(self):
@@ -119,7 +169,11 @@ class ContinuousPsoGymEnv(gym.Env):
         self._best_fitness = min(self._best_fitness, current_best_f)
 
         reward = self.reward_functions[self.reward_function](difference)
-        return reward.astype(np.float32)
+        if type(reward) is int:
+            reward = np.float32(reward)
+        else:
+            reward = reward.astype(np.float32)
+        return reward
 
     def _get_fitness_reward_for_plots(self):
         current_best_fitness = self.swarm.get_current_best_fitness()
@@ -146,10 +200,12 @@ class ContinuousPsoGymEnv(gym.Env):
         # We need the following line to seed self.np_random
         super().reset(seed=seed)
 
+        self.last_action = np.zeros(self._action_dimensions, dtype=np.float32)
         self._actions_count = 0
         self._episode_ended = False
         self.total_difference = 0
         self._best_relative_fitness_for_plots = None
+        self._best_relative_fitness_for_reward = None
         self._current_episode_percent = 0
 
         # Restart the swarm with initializing criteria
@@ -177,6 +233,7 @@ class ContinuousPsoGymEnv(gym.Env):
         self.actions(action)
         self.swarm.optimize()
 
+        self.last_action = action
         observation = self._get_obs()
         reward = self._get_reward()
         # truncated = False

@@ -26,7 +26,7 @@ class ActorNetworkModel(BaseModel):
         x = Dense(self.config.actor_layers[0], name="L0", activation=tf.nn.leaky_relu, kernel_initializer=init)(first_input)
         for index in range(1, len(self.config.actor_layers)):
             x = Dense(self.config.actor_layers[index], name=f"L{index}", activation=tf.nn.leaky_relu, kernel_initializer=init)(x)
-            # x = BatchNormalization()(x)
+            x = BatchNormalization()(x)
 
         # Output layer
         unscaled_output = Dense(self.config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)

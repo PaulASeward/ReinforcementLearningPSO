@@ -14,12 +14,6 @@ class ResultsLogger:
         self.start_time = time.time()
         self.last_log_interval_time = self.start_time
 
-        self.average_loss = []
-        self.average_actor_loss = []
-        self.average_critic_loss = []
-        self.average_returns = []
-        self.average_fitness = []
-
         # Initialize the results with to be stored
         self.swarm_episode_observations = np.empty((0, 20), dtype=object)  # NumPy array for better handling
         self.eval_interval_count = 0
@@ -68,8 +62,8 @@ class ResultsLogger:
         self._save_to_csv([self.step, epsilon, cumulative_fitness_reward, fitness, train_loss, cumulative_training_reward], self.config.training_step_results_path)
 
         print(f"Step #{self.step} Fitness Reward:{cumulative_fitness_reward} Training Reward: {cumulative_training_reward} Current Epsilon: {epsilon}")
-        # print("Training Rewards: ", training_rewards)
-        # print("Fitness Rewards: ", fitness_rewards)
+        print("Training Rewards: ", training_rewards)
+        print("Fitness Rewards: ", fitness_rewards)
         tf.summary.scalar("episode_reward", cumulative_fitness_reward, step=self.step-1)
 
     def write_actions_at_eval_interval_to_csv(self):
@@ -95,15 +89,13 @@ class ResultsLogger:
         else:
             train_loss = np.mean(train_loss)
 
-        self.average_loss.append(train_loss)
-        np.savetxt(self.config.loss_file, self.average_loss, delimiter=", ", fmt='% s')
-
         # Calculate average episode time
         current_time = time.time()
         log_interval_run_time = current_time - self.last_log_interval_time
         self.last_log_interval_time = current_time
         average_episode_time = log_interval_run_time / self.config.log_interval
 
+        self._save_to_csv([train_loss], self.config.loss_file)
         print(f"Step #{self.step} Loss:{train_loss} Average Episode Time: {average_episode_time / 60} minutes")
         # print('step = {0}: loss = {1}'.format(step, train_loss))
 
@@ -117,14 +109,11 @@ class ResultsLogger:
         avg_return = np.mean(reward_sums)  # Total return of all episodes for an iteration
         avg_fitness = np.mean(fitness)  # Furthest minimum value explored for an iteration
 
-        self.average_returns.append(avg_return)
-        self.average_fitness.append(avg_fitness)
-
         self.write_actions_at_eval_interval_to_csv()
         self.eval_interval_count += 1
 
-        np.savetxt(self.config.average_returns_path, self.average_returns, delimiter=", ", fmt='% s')
-        np.savetxt(self.config.fitness_path, self.average_fitness, delimiter=", ", fmt='% s')
+        self._save_to_csv([avg_return], self.config.average_returns_path)
+        self._save_to_csv([avg_fitness], self.config.fitness_path)
 
         print('step = {0}: Average Return = {1} Average Fitness = {2}'.format(self.step, avg_return, avg_fitness))
 
@@ -161,16 +150,15 @@ class ContinuousActionsResultsLogger(ResultsLogger):
         self.continuous_action_history = np.zeros((self.config.train_steps, self.config.num_episodes, self.config.action_dimensions), dtype=np.float32)
 
     def store_results_at_log_interval(self, train_loss=None, actor_losses=None, critic_losses=None):
-        losses = [(train_loss, self.average_loss), (actor_losses, self.average_actor_loss), (critic_losses, self.average_critic_loss)]
+        losses = {
+            "train": (train_loss, self.config.loss_file),
+            "actor": (actor_losses, self.config.actor_loss_file),
+            "critic": (critic_losses, self.config.critic_loss_file),
+        }
 
-        for loss_pair, file in zip(losses, [self.config.loss_file, self.config.actor_loss_file, self.config.critic_loss_file]):
-            loss, avg_loss = loss_pair
-            if loss is None:
-                loss = 0.0
-            else:
-                loss = np.mean(loss)
-            avg_loss.append(loss)
-            np.savetxt(file, avg_loss, delimiter=", ", fmt='% s')
+        for loss_type, (loss, file) in losses.items():
+            loss_value = 0.0 if loss is None else np.mean(loss)
+            self._save_to_csv([loss_value], file)
 
         # Calculate average episode time
         current_time = time.time()

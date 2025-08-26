@@ -14,12 +14,12 @@ class DRQNModel(BaseModel):
         return tf.keras.Sequential(
             [
                 Input((self.config.trace_length, self.config.observation_length)),
-                LSTM(32, activation="tanh"),
-                Dense(16, activation="relu"),
+                LSTM(256, activation="tanh"),
+                Dense(128, activation="relu"),
+                Dense(64, activation="relu"),
                 Dense(self.config.num_actions),
             ]
         )
-
 
     def train(self, states, targets):
         targets = tf.stop_gradient(targets)

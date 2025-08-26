@@ -27,10 +27,23 @@ class DRQNAgent(BaseAgent):
         self.update_episode_states(observation)
         return np.reshape(self.episode_states, [1, self.config.trace_length, self.config.observation_length])
 
-    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
+    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal, add_to_replay_buffer=True):
         prev_states = copy.deepcopy(self.episode_states)
         self.update_episode_states(next_observation)  # Updates the states array removing oldest when adding newest for sliding window
-        self.replay_buffer.add([prev_states, action, reward * self.config.gamma, self.episode_states, terminal])
-        # self.replay_buffer.add([prev_states, action, reward, self.episode_states, terminal])
+
+        if add_to_replay_buffer:
+            self.replay_buffer.add([prev_states, action, reward * self.config.gamma, self.episode_states, terminal])
+
+            # Oversample exploration if desired. Could add in only explore for positive rewards
+            if self.config.over_sample_exploration is not None and self.config.over_sample_exploration > 0 and self.is_in_exploration_state:
+                times_to_oversample = int(self.config.over_sample_exploration)
+                for _ in range(times_to_oversample):
+                    self.replay_buffer.add([prev_states, action, reward * self.config.gamma, self.episode_states, terminal])
         return np.reshape(self.episode_states, [1, self.config.trace_length, self.config.observation_length])
 
+    def save_models(self, step):
+        self.model.save_model(step)
+
+    def load_models(self):
+        self.model.load_model()
+        self.target_model.load_model()

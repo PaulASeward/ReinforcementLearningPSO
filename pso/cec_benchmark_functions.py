@@ -393,7 +393,7 @@ class CEC_functions:
             self.M2 = self.read_M(d, 3)
             fit.append((self.Y(X, 14, rf) + 100) / 1)
 
-            Y = Y = self.cf_cal(X, delta, bias, np.array(fit)) + 800
+            Y = self.cf_cal(X, delta, bias, np.array(fit)) + 800
 
         elif fun_num == 23:
             d = len(X)

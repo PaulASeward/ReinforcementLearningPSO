@@ -154,8 +154,9 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
         self.epsilon_start = epsilon_start
         self.epsilon_end = epsilon_end
         self.num_actions = num_actions
+        self.total_steps = num_steps
 
-        self.decay_rate = float(epsilon_start - epsilon_end) / num_steps
+        self.decay_rate = 1/4 * float(epsilon_start - epsilon_end) / num_steps
         self.step = 0
 
     def select_action(self, q_values, **kwargs):
@@ -174,6 +175,11 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
         num_actions = q_values.shape[0]
 
         if np.random.rand() < epsilon:
+            # In the first half (step < self.total_steps / 2) of the decay, we want to add bias towards doing nothing (action 0)
+            # if self.step < self.total_steps / 2:
+            #     # Add bias towards doing nothing
+            #     if np.random.rand() < 0.33:
+            #         return 0
             return np.random.randint(0, num_actions)
         else:
             return np.argmax(q_values)
@@ -191,13 +197,15 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
             self.ou_noise = NormalNoise(config=config, size=config.action_dimensions)
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound
+        self.range = self.upper_bound - self.lower_bound
+        # self.upper_bound = [1.0] * config.action_dimensions
 
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start
         self.epsilon_end = config.epsilon_end
         # self.decay_rate = float(self.epsilon_start - self.epsilon_end) / config.train_steps
-        # self.decay_rate = 1/5 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
-        self.decay_rate = 1/2 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        self.decay_rate = 1/4 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
+        # self.decay_rate = 1/2 * float(self.epsilon_start - self.epsilon_end) / config.train_steps
         self.step = 0
 
     def select_action(self, q_values, **kwargs):
@@ -205,7 +213,7 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
         self.current_epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-self.decay_rate * self.step)
         epsilon = max(self.current_epsilon, self.epsilon_end)
 
-        noise = self.ou_noise() * epsilon
+        noise = self.ou_noise() * epsilon * self.range
         raw_action = q_values + noise
         action = np.clip(raw_action, self.lower_bound, self.upper_bound)
         return action
