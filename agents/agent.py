@@ -21,7 +21,6 @@ class BaseAgent:
         self.starting_step = 0
         self.is_in_exploration_state = True
 
-        self.raw_env = None
         self.env = None
 
         self.build_environment()
@@ -32,20 +31,16 @@ class BaseAgent:
     def build_environment(self):
         if self.config.use_discrete_env:
             if self.config.use_mock_data:
-                self.raw_env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config)
-                self.env = self.raw_env
+                self.env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config)
             else:
-                self.raw_env = gym.make("DiscretePsoGymEnv-v0", config=self.config)
-                self.env = self.raw_env
+                self.env = gym.make("DiscretePsoGymEnv-v0", config=self.config)
 
             return self.env
 
         if self.config.use_mock_data:
-            self.raw_env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
+            self.env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
         else:
-            self.raw_env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
-            self.env = self.raw_env
+            self.env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
 
         self.config.state_shape = self.env.observation_space.shape
 
