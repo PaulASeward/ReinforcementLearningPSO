@@ -1,12 +1,31 @@
+from typing import List, Callable
+import gymnasium as gym
+
 import numpy as np
+
+from config import Config
 from pso.pso_multiswarm import PSOSubSwarm, PSOMultiSwarm
 from environment.actions.actions import Action
+from pso.pso_swarm import PSOSwarm
 
 
 class ContinuousMultiswarmActions(Action):
-    def __init__(self, swarm: PSOMultiSwarm, config):
+    def __init__(
+            self,
+            swarm: PSOMultiSwarm,
+            config: Config,
+            action_callback: Callable,
+            action_names: List[str],
+            practical_action_high_limit: List[float],
+            practical_action_low_limit: List[float],
+            actual_action_high_limit: List[float],
+            actual_action_low_limit: List[float]
+    ):
         super(Action, self).__init__(swarm, config)
-        self.subswarm_actions = [ContinuousActions(sub_swarm, config) for sub_swarm in self.swarm.sub_swarms]
+        self.subswarm_actions = [
+            ContinuousActions(sub_swarm, config, action_callback, action_names, practical_action_high_limit,
+                              practical_action_low_limit, actual_action_high_limit, actual_action_low_limit) for
+            sub_swarm in swarm.sub_swarms]
 
         self.action_names = [
             f"SubSwarm {i + 1} {action_name}"
@@ -25,6 +44,24 @@ class ContinuousMultiswarmActions(Action):
             for limit in subswarm.practical_action_low_limit
         ]
 
+        # TODO: Remove this after logic relocation
+        config.practical_action_low_limit = self.practical_action_low_limit
+        config.practical_action_high_limit = self.practical_action_high_limit
+        config.actions_descriptions = self.action_names[:config.env_config.action_dimensions]
+
+        self.set_limits()
+
+    def __call__(self, action):
+        # Restructure the flattened action from size(config.num_sub_swarms * 3) to size (config.num_sub_swarms, 3)
+        # reshaped_arr = action.reshape(3, 5)
+        reformatted_action = np.array(action).reshape(self.config.pso_config.num_sub_swarms,
+                                                      self.config.env_config.subswarm_action_dim)
+
+        # Action should be a dedicated action for each subswarm
+        for i, subswarm_action in enumerate(self.subswarm_actions):
+            subswarm_action(reformatted_action[i])
+
+    def set_limits(self):
         self.lower_bound = np.array([
             subswarm.actual_low_limit_action_space
             for subswarm in self.subswarm_actions
@@ -35,82 +72,59 @@ class ContinuousMultiswarmActions(Action):
             for subswarm in self.subswarm_actions
         ], dtype=np.float32).flatten()
 
-    def __call__(self, action):
-        # Restructure the flattened action from size(config.num_sub_swarms * 3) to size (config.num_sub_swarms, 3)
-        # reshaped_arr = action.reshape(3, 5)
-        reformatted_action = np.array(action).reshape(self.config.pso_config.num_sub_swarms, self.config.env_config.subswarm_action_dim)
+        self.config.lower_bound = self.lower_bound
+        self.config.upper_bound = self.upper_bound
 
-        # Action should be a dedicated action for each subswarm
-        for i, subswarm_action in enumerate(self.subswarm_actions):
-            subswarm_action(reformatted_action[i])
+    def get_action_space(self):
+        return gym.spaces.Box(low=self.lower_bound, high=self.upper_bound,
+                              shape=(self.config.env_config.action_dimensions,), dtype=np.float32)
 
-    def set_limits(self):
-        self.config.lower_bound = np.array([
-            subswarm.actual_low_limit_action_space
-            for subswarm in self.subswarm_actions
-        ], dtype=np.float32).flatten()
+    def get_observation_space(self):
+        low_limits_obs_space = np.zeros(self.config.env_config.observation_length,
+                                        dtype=np.float32)  # 150-dimensional array with all elements set to 0
+        high_limits_obs_space = np.full(self.config.env_config.observation_length, np.inf, dtype=np.float32)
 
-        self.config.upper_bound = np.array([
-            subswarm.actual_high_limit_action_space
-            for subswarm in self.subswarm_actions
-        ], dtype=np.float32).flatten()
+        return gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
+                              shape=(self.config.env_config.observation_length,), dtype=np.float32)
 
 
 class ContinuousActions(Action):
-    def __init__(self, swarm, config):
+    def __init__(
+            self,
+            swarm: PSOSwarm,
+            config: Config,
+            action_callback: Callable,
+            action_names: List[str],
+            practical_action_high_limit: List[float],
+            practical_action_low_limit: List[float],
+            actual_action_high_limit: List[float],
+            actual_action_low_limit: List[float]
+    ):
         super(Action, self).__init__(swarm, config)
-        self.action_names = ['Velocity Scaling Factor']
-        # self.action_names = ['PBest Distance Threshold', 'Velocity Braking Factor']
-        # self.action_names = ['Inertia', 'Social', 'Cognitive']
-        self.practical_action_low_limit = [10]
-        self.practical_action_high_limit = [190]
-        # self.practical_action_low_limit = [0.75]
-        # self.practical_action_high_limit = [1.25]
+        self.action_names = action_names
+        self.action_callback = action_callback
+        self.practical_action_high_limit = practical_action_high_limit
+        self.practical_action_low_limit = practical_action_low_limit
+        self.actual_action_high_limit = actual_action_high_limit
+        self.actual_action_low_limit = actual_action_low_limit
 
-        #
-        # self.actual_low_limit_action_space = [config.w_min, config.c_min, config.c_min]
-        # self.actual_high_limit_action_space = [config.w_max, config.c_max, config.c_max]
-        # self.practical_action_low_limit = [config.w_min, config.c_min, config.c_min]
-        # self.practical_action_high_limit = [config.w_max, config.c_max, config.c_max]
+        # TODO: Remove this after logic relocation
+        config.practical_action_low_limit = self.practical_action_low_limit
+        config.practical_action_high_limit = self.practical_action_high_limit
+        config.actions_descriptions = self.action_names[:config.env_config.action_dimensions]
 
-        # self.practical_action_low_limit = [0, self.config.velocity_braking_min]
-        # self.practical_action_high_limit = [self.config.distance_threshold_max, self.config.velocity_braking_max]
-        #
-        # self.actual_low_limit_action_space = [self.config.distance_threshold_min, self.config.velocity_braking_min]
-        # self.actual_high_limit_action_space = [self.config.distance_threshold_max, self.config.velocity_braking_max]
-        #
-        self.actual_low_limit_action_space = [10]
-        self.actual_high_limit_action_space = [190]
-        # self.actual_low_limit_action_space = [0.75]
-        # self.actual_high_limit_action_space = [1.25]
-        #
-        # self.actual_low_limit_action_space = [self.config.replacement_threshold_min]
-        # self.actual_high_limit_action_space = [self.config.replacement_threshold_max]
-
-        self.lower_bound = np.array(self.actual_low_limit_action_space, dtype=np.float32)
-        self.upper_bound = np.array(self.actual_high_limit_action_space, dtype=np.float32)
+        self.set_limits()
 
     def __call__(self, action):
         actions = np.array(action)
-
-        # self.swarm.w = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
-        # self.swarm.c1 = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
-        # self.swarm.c2 = np.clip(actions[2], self.practical_action_low_limit[2], self.practical_action_high_limit[2])
-
-        # self.swarm.pbest_replacement_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
-        # self.swarm.distance_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
-        # self.swarm.velocity_braking = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
-        # self.swarm.distance_threshold = np.clip(actions[0], 0, self.config.distance_threshold_max)
-        self.swarm.abs_max_velocity = np.clip(actions[0], self.practical_action_low_limit[0],
-                                              self.practical_action_high_limit[0])
-        # self.swarm.velocity_scaling_factor = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
-        #
-        # if actions[0] > 0.50:
-        #     self.reset_all_particles_keep_global_best()
+        self.action_callback(actions, self.practical_action_high_limit, self.practical_action_low_limit)
 
     def set_limits(self):
-        self.config.lower_bound = np.array(self.actual_low_limit_action_space, dtype=np.float32)
-        self.config.upper_bound = np.array(self.actual_high_limit_action_space, dtype=np.float32)
+        self.lower_bound = np.array(self.actual_low_limit_action_space, dtype=np.float32)
+        self.upper_bound = np.array(self.actual_high_limit_action_space, dtype=np.float32)
+
+        self.config.lower_bound = self.lower_bound
+        self.config.upper_bound = self.upper_bound
 
     def reset_all_particles_keep_global_best(self):
         old_gbest_pos = self.swarm.P[np.argmin(self.swarm.P_vals)]

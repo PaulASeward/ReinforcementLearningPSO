@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Callable
 
 import numpy as np
 import gymnasium as gym
@@ -8,6 +8,7 @@ from pso.pso_multiswarm import PSOSwarm
 
 
 class Action:
+    action_callback: Callable
     action_names: List[str] = []
     lower_bound: np.ndarray = None
     upper_bound: np.ndarray = None
@@ -26,4 +27,10 @@ class Action:
         self.config = config
 
     def __call__(self, action):
+        raise NotImplementedError
+
+    def get_action_space(self):
+        raise NotImplementedError
+
+    def get_observation_space(self):
         raise NotImplementedError

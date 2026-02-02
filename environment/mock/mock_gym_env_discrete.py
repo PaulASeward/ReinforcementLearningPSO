@@ -5,6 +5,7 @@ import numpy as np
 from pso.cec_benchmark_functions import CEC_functions
 from environment.actions.discrete_actions import DiscreteActions
 from pso.pso_swarm import PSOSwarm
+from environment.actions.actions import Action
 
 
 class MockDiscretePsoGymEnv(gym.Env):
@@ -12,7 +13,7 @@ class MockDiscretePsoGymEnv(gym.Env):
 
     # reward_range = (-float("inf"), float("inf"))
 
-    def __init__(self, config):
+    def __init__(self, config, actions: Action):
         self._func_num = config.pso_config.func_num
         self._num_actions = config.env_config.num_actions
         self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
@@ -24,16 +25,12 @@ class MockDiscretePsoGymEnv(gym.Env):
         self._swarm_size = config.pso_config.swarm_size
         self._dim = config.pso_config.pso_dim
 
+        self.swarm = actions.swarm
+        self.actions = actions
+        self.action_space = actions.get_action_space()
+        self.observation_space = actions.get_observation_space()
+
         self._observation_length = config.env_config.observation_length
-        low_limits_obs_space = np.zeros(self._observation_length)  # 150-dimensional array with all elements set to 0
-        high_limits_obs_space = np.full(self._observation_length, np.inf)
-
-        self.action_space = gym.spaces.Discrete(self._num_actions)
-        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
-
-        self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num), config=config)
-        self.actions = DiscreteActions(swarm=self.swarm, config=config)
-        config.actions_descriptions = self.actions.action_names[:self._num_actions]
 
         self._actions_count = 0
         self._episode_ended = False

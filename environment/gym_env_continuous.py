@@ -1,9 +1,6 @@
 import gymnasium as gym
 import numpy as np
-from pso.cec_benchmark_functions import CEC_functions
-from environment.actions.continuous_actions import ContinuousActions, ContinuousMultiswarmActions
-from pso.pso_swarm import PSOSwarm
-from pso.pso_multiswarm import PSOMultiSwarm
+from environment.actions.actions import Action
 
 
 class ContinuousPsoGymEnv(gym.Env):
@@ -11,7 +8,7 @@ class ContinuousPsoGymEnv(gym.Env):
 
     # reward_range = (-float("inf"), float("inf"))
 
-    def __init__(self, config):
+    def __init__(self, config, actions: Action):
         self._func_num = config.pso_config.func_num
         self._action_dimensions = config.env_config.action_dimensions
         self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
@@ -27,26 +24,10 @@ class ContinuousPsoGymEnv(gym.Env):
         self.standard_pso_results = np.genfromtxt(config.standard_pso_path, delimiter=',', skip_header=1)
         self.standard_pso_cumulative_relative_fitness = abs(self._minimum - self.standard_pso_results[:, 1])
 
-        self._observation_length = config.env_config.observation_length
-        low_limits_obs_space = np.zeros(self._observation_length, dtype=np.float32)  # 150-dimensional array with all elements set to 0
-        high_limits_obs_space = np.full(self._observation_length, np.inf, dtype=np.float32)
-
-        if config.pso_config.swarm_algorithm == "PMSO":
-            self.swarm = PSOMultiSwarm(objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num), config=config)
-            self.actions = ContinuousMultiswarmActions(swarm=self.swarm, config=config)
-            self.actions.set_limits()
-        else:
-            self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num), config=config)
-            self.actions = ContinuousActions(swarm=self.swarm, config=config)
-            self.actions.set_limits()
-        config.actions_descriptions = self.actions.action_names[:self._action_dimensions]
-        config.practical_action_low_limit = self.actions.practical_action_low_limit
-        config.practical_action_high_limit = self.actions.practical_action_high_limit
-
-        self.action_space = gym.spaces.Box(low=config.lower_bound, high=config.upper_bound,
-                                          shape=(self._action_dimensions,), dtype=np.float32)
-        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
-                                                shape=(self._observation_length,), dtype=np.float32)
+        self.swarm = actions.swarm
+        self.actions = actions
+        self.action_space = actions.get_action_space()
+        self.observation_space = actions.get_observation_space()
 
         self._actions_count = 0
         self._current_episode_percent = 0

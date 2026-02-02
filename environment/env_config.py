@@ -1,5 +1,8 @@
 import gymnasium as gym
 
+from environment.actions.actions import Action
+
+
 class RLEnvConfig(object):
     # AGENT PARAMETERS
     num_episodes = 20
@@ -21,7 +24,7 @@ class RLEnvConfig(object):
     action_space: gym.spaces.Box = None
     observation_space: gym.spaces.Box = None
 
-    def __init__(self, num_actions, swarm_size, num_sub_swarms, action_dimensions=None, num_episodes=20):
+    def __init__(self, action_space: Action, num_actions, swarm_size, num_sub_swarms, action_dimensions=None, num_episodes=20):
         # TODO: Make this dynamic to the action/observation space
         num_sub_swarms = num_sub_swarms if num_sub_swarms is not None else 1
         self.observation_length = swarm_size * 3 + (1 * num_sub_swarms) + (1 * num_sub_swarms)

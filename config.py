@@ -3,6 +3,7 @@ import copy
 
 import numpy as np
 
+from environment.actions.actions import Action
 from environment.env_config import RLEnvConfig
 from pso.pso_config import PSOConfig
 
@@ -99,6 +100,8 @@ class Config(object):
     train_policy_iterations = 10
     train_value_iterations = 10
 
+    over_sample_exploration = None
+
     actions_descriptions = None
     practical_action_low_limit = None
     practical_action_high_limit = None
@@ -122,7 +125,9 @@ class Config(object):
     # EVALUATION PARAMETERS
     # number_evaluations = 10000
 
-    def __init__(self, pso_config: PSOConfig, env_config: RLEnvConfig, network_type, load_checkpoint=None, train_steps=2000, over_sample_exploration=None):
+    action_space: Action
+
+    def __init__(self, pso_config: PSOConfig, env_config: RLEnvConfig, network_type, load_checkpoint=None, train_steps=2000):
         self.pso_config = pso_config
         self.env_config = env_config
 
@@ -144,8 +149,6 @@ class Config(object):
         self.num_eval_intervals = train_steps // self.eval_interval
         self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
         self.label_iterations_intervals = range(0, train_steps + self.eval_interval, self.train_steps // 20)
-
-        self.over_sample_exploration = over_sample_exploration
 
         self.network_type = network_type
         self.experiment = self.network_type + "_" + self.pso_config.swarm_algorithm + "_F" + str(
@@ -170,3 +173,4 @@ class Config(object):
 
     def clone(self):
         return copy.deepcopy(self)
+

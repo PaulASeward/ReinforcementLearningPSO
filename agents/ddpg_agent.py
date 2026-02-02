@@ -6,6 +6,9 @@ from environment.gym_env_continuous import ContinuousPsoGymEnv
 from tf_agents.environments import tf_py_environment
 
 import gymnasium as gym
+
+from actions_builder import build_continuous_action_space, build_continuous_action_space
+
 from agents.utils.experience_buffer import ExperienceBufferStandard as StandardReplayBuffer
 from agents.utils.experience_buffer import ExperienceBufferPriority as PriorityReplayBuffer
 from agents.model_networks.ddpg_model import ActorNetworkModel, CriticNetworkModel
@@ -28,6 +31,9 @@ class DDPGAgent(BaseAgent):
 
         self.update_model_target_weights(tau=1.0)
         self.replay_buffer = PriorityReplayBuffer(config=config) if config.use_priority_replay else StandardReplayBuffer(config=config)
+
+    def build_action_space(self):
+        self.config.action_space = build_continuous_action_space(self.config)
 
     def get_q_values(self, state):
         return self.actor_network.get_action_q_values(state)

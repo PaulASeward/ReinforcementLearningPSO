@@ -21,7 +21,6 @@ class DDRPGAgent(BaseAgent):
         self.results_logger = ResultsLogger(config)
         self.episode_states = np.zeros([self.config.env_config.trace_length, self.config.env_config.observation_length])
 
-
         self.actor_network = ActorNetworkModel(config)
         self.actor_network_target = ActorNetworkModel(config)
 

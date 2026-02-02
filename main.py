@@ -69,16 +69,17 @@ if __name__ == "__main__":
 
     pso_config = PSOConfig(func_num=args.func_num, swarm_algorithm=args.swarm_algorithm, num_subswarms=args.num_subswarms)
     rl_env_config = RLEnvConfig(action_dimensions=args.action_dimensions, num_actions=args.num_actions, swarm_size=pso_config.swarm_size, num_sub_swarms=pso_config.num_sub_swarms)
+    config = Config(pso_config=pso_config, env_config=rl_env_config, network_type=args.network_type, load_checkpoint=args.load_checkpoint, train_steps=args.steps)
 
-    config = Config(pso_config=pso_config, env_config=rl_env_config, network_type=args.network_type, load_checkpoint=args.load_checkpoint, train_steps=args.steps, over_sample_exploration=args.over_sample_exploration)
+
     config.train = args.train
     config.test = args.test
     config.num_final_tests = args.num_final_tests
     config.use_mock_data = args.mock
     config.use_priority_replay = args.priority_replay
     config.save_models = args.save_models
-    config.load_checkpoint = args.load_checkpoint
     config.save_buffer = args.save_buffer
+    config.over_sample_exploration = args.over_sample_exploration
 
     assert args.swarm_algorithm in ["PSO", "PMSO"], "Please specify a swarm_algorithm of either PSO or PMSO"
     assert args.network_type in ["DQN", "DRQN", "DDPG", "DDRPG", "PPO"], "Please specify a network_type of either DQN, DRQN, or DDPG"

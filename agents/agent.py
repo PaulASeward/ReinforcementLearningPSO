@@ -28,7 +28,12 @@ class BaseAgent:
             self.policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.env_config.num_actions)
             self.test_policy = GreedyPolicy()
 
+    def build_action_space(self):
+        raise NotImplementedError
+
     def build_environment(self):
+        self.build_action_space()
+
         if self.config.use_discrete_env:
             if self.config.use_mock_data:
                 self.env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config)
