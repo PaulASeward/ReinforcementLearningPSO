@@ -1,6 +1,4 @@
 import gymnasium as gym
-from prompt_toolkit.key_binding.bindings.named_commands import self_insert
-
 
 class RLEnvConfig(object):
     # AGENT PARAMETERS

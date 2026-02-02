@@ -122,83 +122,51 @@ class Config(object):
     # EVALUATION PARAMETERS
     # number_evaluations = 10000
 
-    def __init__(self, pso_config: PSOConfig, env_config: RLEnvConfig):
+    def __init__(self, pso_config: PSOConfig, env_config: RLEnvConfig, network_type, load_checkpoint=None, train_steps=2000, over_sample_exploration=None):
         self.pso_config = pso_config
         self.env_config = env_config
 
-        self.experiment_config_path = None
-        self.action_counts_path = None
-        self.continuous_action_history_path = None
-        self.action_values_path = None
-        self.test_step_results_path = None
-        self.action_training_values_path = None
-        self.epsilon_values_path = None
-        self.fitness_plot_path = None
-        self.average_returns_plot_path = None
-        self.fitness_path = None
-        self.episode_results_path = None
-        self.training_step_results_path = None
-        self.average_returns_path = None
-        self.loss_file = None
-        self.actor_loss_file = None
-        self.critic_loss_file = None
-        self.interval_actions_counts_path = None
-        self.standard_pso_path = None
-        self.experience_buffer_path = None
-        self.experiment = None
-        self.num_eval_intervals = None
-        self.label_iterations_intervals = None
-        self.iteration_intervals = None
-        self.iterations = None
-        self.network_type = None
-        self.over_sample_exploration = None
+        if env_config.action_dimensions is not None:
+            self.ou_mu = np.zeros(self.env_config.action_dimensions)
 
-    def clone(self):
-        return copy.deepcopy(self)
-
-    def update_properties(self, network_type=None, load_checkpoint=None, train_steps=None, over_sample_exploration=None):
+        if network_type in ["DQN", "DRQN"]:
+            self.use_discrete_env = True
+        else:
+            self.use_discrete_env = False
 
         if load_checkpoint is not None:
             self.load_checkpoint_dir = os.path.join(self.checkpoint_dir, load_checkpoint)
 
-        if train_steps is not None:
-            self.train_steps = train_steps
-            self.log_interval = train_steps // 100  # normal is 100
-            self.eval_interval = train_steps // 40  # Normal is 40
-            self.iterations = range(0, train_steps, self.eval_interval)
-            self.num_eval_intervals = train_steps // self.eval_interval
-            self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
-            self.label_iterations_intervals = range(0, train_steps + self.eval_interval, self.train_steps // 20)
+        self.train_steps = train_steps
+        self.log_interval = train_steps // 100  # normal is 100
+        self.eval_interval = train_steps // 40  # Normal is 40
+        self.iterations = range(0, train_steps, self.eval_interval)
+        self.num_eval_intervals = train_steps // self.eval_interval
+        self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
+        self.label_iterations_intervals = range(0, train_steps + self.eval_interval, self.train_steps // 20)
 
-        if self.env_config.action_dimensions is not None:
-            self.ou_mu = np.zeros(self.env_config.action_dimensions)
+        self.over_sample_exploration = over_sample_exploration
 
-        if over_sample_exploration is not None:
-            self.over_sample_exploration = over_sample_exploration
+        self.network_type = network_type
+        self.experiment = self.network_type + "_" + self.pso_config.swarm_algorithm + "_F" + str(
+            self.pso_config.func_num)
+        self.experiment_config_path = os.path.join(self.results_dir, f"experiment_config.json")
+        self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
+        self.loss_file = os.path.join(self.results_dir, f"average_training_loss.csv")
+        self.actor_loss_file = os.path.join(self.results_dir, f"actor_loss.csv")
+        self.critic_loss_file = os.path.join(self.results_dir, f"critic_loss.csv")
+        self.average_returns_path = os.path.join(self.results_dir, f"average_returns.csv")
+        self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
+        self.episode_results_path = os.path.join(self.results_dir, f"episode_results.csv")
+        self.training_step_results_path = os.path.join(self.results_dir, f"step_results.csv")
+        self.test_step_results_path = os.path.join(self.results_dir, f"test_results.csv")
+        self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
+        self.action_training_values_path = os.path.join(self.results_dir, f"actions_training_values.csv")
+        self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.npy")
+        self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
+        self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
+        self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.pso_config.func_num}.csv")
+        self.experience_buffer_path = os.path.join(self.results_dir, f"experience_buffer.pkl")
 
-        if network_type is not None:
-            if network_type in ["DQN", "DRQN"]:
-                self.use_discrete_env = True
-            else:
-                self.use_discrete_env = False
-
-            self.network_type = network_type
-            experiment = self.network_type + "_" + self.pso_config.swarm_algorithm + "_F" + str(self.pso_config.func_num)
-            self.experiment = experiment
-            self.experiment_config_path = os.path.join(self.results_dir, f"experiment_config.json")
-            self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
-            self.loss_file = os.path.join(self.results_dir, f"average_training_loss.csv")
-            self.actor_loss_file = os.path.join(self.results_dir, f"actor_loss.csv")
-            self.critic_loss_file = os.path.join(self.results_dir, f"critic_loss.csv")
-            self.average_returns_path = os.path.join(self.results_dir, f"average_returns.csv")
-            self.fitness_path = os.path.join(self.results_dir, f"average_fitness.csv")
-            self.episode_results_path = os.path.join(self.results_dir, f"episode_results.csv")
-            self.training_step_results_path = os.path.join(self.results_dir, f"step_results.csv")
-            self.test_step_results_path = os.path.join(self.results_dir, f"test_results.csv")
-            self.action_values_path = os.path.join(self.results_dir, f"actions_values.csv")
-            self.action_training_values_path = os.path.join(self.results_dir, f"actions_training_values.csv")
-            self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.npy")
-            self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
-            self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
-            self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.pso_config.func_num}.csv")
-            self.experience_buffer_path = os.path.join(self.results_dir, f"experience_buffer.pkl")
+    def clone(self):
+        return copy.deepcopy(self)

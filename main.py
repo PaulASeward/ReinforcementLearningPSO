@@ -70,7 +70,7 @@ if __name__ == "__main__":
     pso_config = PSOConfig(func_num=args.func_num, swarm_algorithm=args.swarm_algorithm, num_subswarms=args.num_subswarms)
     rl_env_config = RLEnvConfig(action_dimensions=args.action_dimensions, num_actions=args.num_actions, swarm_size=pso_config.swarm_size, num_sub_swarms=pso_config.num_sub_swarms)
 
-    config = Config(pso_config=pso_config, env_config=rl_env_config)
+    config = Config(pso_config=pso_config, env_config=rl_env_config, network_type=args.network_type, load_checkpoint=args.load_checkpoint, train_steps=args.steps, over_sample_exploration=args.over_sample_exploration)
     config.train = args.train
     config.test = args.test
     config.num_final_tests = args.num_final_tests
@@ -86,7 +86,6 @@ if __name__ == "__main__":
     if args.swarm_algorithm == "PMSO":
         assert args.num_subswarms in [1,2,5,10,25,50], "Please specify a num_subswarms from 1,2,5,10,25,50"
 
-    config.update_properties(network_type=args.network_type, load_checkpoint=args.load_checkpoint, train_steps=args.steps, over_sample_exploration=args.over_sample_exploration)
     assert pso_config.pso_dim in [2, 5, 10, 20, 20, 30, 40, 50, 60, 70, 80, 90, 100], "Please specify a dim from 2,5,10,20,30,40,50,60,70,80,90,100"
 
     print("==== Experiment: ", config.experiment)
