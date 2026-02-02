@@ -12,14 +12,14 @@ class DiscretePsoGymEnv(gym.Env):
     # reward_range = (-float("inf"), float("inf"))
 
     def __init__(self, config):
-        self._func_num = config.func_num
-        self._minimum = config.fDeltas[config.func_num - 1]
+        self._func_num = config.pso_config.func_num
+        self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
         self._max_episodes = config.num_episodes
         self._standard_pso_values_path = config.standard_pso_path
 
-        self._best_standard_pso = config.best_f_standard_pso[config.func_num - 1]
-        self._pso_variance = config.standard_deviations[config.func_num - 1] ** 2
-        self._avg_swarm_improvement = config.swarm_improvement_pso[config.func_num - 1]
+        self._best_standard_pso = config.pso_config.best_f_standard_pso[config.pso_config.func_num - 1]
+        self._pso_variance = config.pso_config.standard_deviations[config.pso_config.func_num - 1] ** 2
+        self._avg_swarm_improvement = config.pso_config.swarm_improvement_pso[config.pso_config.func_num - 1]
         self._avg_standard_pso_increase = self._avg_swarm_improvement / self._max_episodes
         self._penalty_for_negative_reward = config.penalty_for_negative_reward
 
@@ -28,11 +28,11 @@ class DiscretePsoGymEnv(gym.Env):
         high_limits_obs_space = np.full(self._observation_length, np.inf)
 
 
-        if config.swarm_algorithm == "PMSO":
-            self.swarm = PSOMultiSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
+        if config.pso_config.swarm_algorithm == "PMSO":
+            self.swarm = PSOMultiSwarm(objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num), config=config)
             self.actions = DiscreteMultiswarmActions(swarm=self.swarm, config=config)
         else:
-            self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
+            self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num), config=config)
             self.actions = DiscreteActions(swarm=self.swarm, config=config)
             config.num_actions = len(self.actions.action_names)
 

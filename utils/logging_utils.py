@@ -51,7 +51,7 @@ class ResultsLogger:
         #     print(ep_dict)
         cumulative_training_reward = np.sum(training_rewards)
         cumulative_fitness_reward = np.sum(fitness_rewards)
-        fitness = self.config.fDeltas[self.config.func_num - 1] - cumulative_fitness_reward
+        fitness = self.config.pso_config.fDeltas[self.config.pso_config.func_num - 1] - cumulative_fitness_reward
 
         self._save_to_csv(fitness_rewards, self.config.action_values_path)
         self._save_to_csv(training_rewards, self.config.action_training_values_path)
@@ -104,7 +104,7 @@ class ResultsLogger:
         rewards = np.genfromtxt(self.config.action_values_path, delimiter=',')
         recent_rewards = rewards[-self.config.eval_interval:, :]
         reward_sums = np.sum(recent_rewards, axis=1)
-        fitness = self.config.fDeltas[self.config.func_num - 1] - reward_sums
+        fitness = self.config.pso_config.fDeltas[self.config.pso_config.func_num - 1] - reward_sums
 
         avg_return = np.mean(reward_sums)  # Total return of all episodes for an iteration
         avg_fitness = np.mean(fitness)  # Furthest minimum value explored for an iteration

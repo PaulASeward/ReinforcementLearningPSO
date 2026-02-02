@@ -15,21 +15,21 @@ def plot_standard_results(config):
 
 
 def plot_discrete_actions(config):
-    if config.swarm_algorithm == "PMSO":
+    if config.pso_config.swarm_algorithm == "PMSO":
         plot_actions_over_iteration_intervals_for_multiple_swarms(config.interval_actions_counts_path, config.fitness_path,
                                               'Iteration Intervals', 'Action Count',
                                               'Action Distribution Over Iteration Intervals',
                                               config.iteration_intervals,
                                               config.label_iterations_intervals,
-                                              config.actions_descriptions, num_subswarms=config.num_sub_swarms)
+                                              config.actions_descriptions, num_subswarms=config.pso_config.num_sub_swarms)
         plot_actions_with_values_over_iteration_intervals_for_multiple_swarms(config.action_counts_path,
                                                                               config.action_values_path,
                                                                               standard_pso_values_path=config.standard_pso_path,
-                                                                              function_min_value=config.fDeltas[
-                                                                                  config.func_num - 1],
+                                                                              function_min_value=config.pso_config.fDeltas[
+                                                                                  config.pso_config.func_num - 1],
                                                                               num_actions=config.num_actions,
                                                                               action_names=config.actions_descriptions,
-                                                                              num_subswarms=config.num_sub_swarms)
+                                                                              num_subswarms=config.pso_config.num_sub_swarms)
     else:
         plot_actions_over_iteration_intervals(config.interval_actions_counts_path, config.fitness_path,
                                               'Iteration Intervals', 'Action Count',
@@ -40,8 +40,8 @@ def plot_discrete_actions(config):
         plot_actions_with_values_over_iteration_intervals(config.action_counts_path,
                                                           config.action_values_path,
                                                           standard_pso_values_path=config.standard_pso_path,
-                                                          function_min_value=config.fDeltas[
-                                                              config.func_num - 1],
+                                                          function_min_value=config.pso_config.fDeltas[
+                                                              config.pso_config.func_num - 1],
                                                           num_actions=config.num_actions,
                                                           action_names=config.actions_descriptions)
 
@@ -52,12 +52,12 @@ def plot_continuous_actions(config):
     plot_data_over_iterations(config.critic_loss_file, 'Average Critic Loss', 'Iteration', config.log_interval)
 
 
-    if config.swarm_algorithm == "PMSO":
+    if config.pso_config.swarm_algorithm == "PMSO":
         plot_average_continuous_actions_for_multiple_swarms(config.continuous_action_history_path,
                                                             config.action_values_path,
                                                             standard_pso_values_path=config.standard_pso_path,
-                                                            function_min_value=config.fDeltas[
-                                                                config.func_num - 1],
+                                                            function_min_value=config.pso_config.fDeltas[
+                                                                config.pso_config.func_num - 1],
                                                             action_dimensions=config.action_dimensions,
                                                             action_names=config.actions_descriptions,
                                                             practical_action_low_limit = config.practical_action_low_limit,
@@ -67,8 +67,8 @@ def plot_continuous_actions(config):
         plot_average_continuous_actions_for_single_swarm(config.continuous_action_history_path,
                                                          config.action_values_path,
                                                          standard_pso_values_path=config.standard_pso_path,
-                                                         function_min_value=config.fDeltas[
-                                                             config.func_num - 1],
+                                                         function_min_value=config.pso_config.fDeltas[
+                                                             config.pso_config.func_num - 1],
                                                          action_dimensions=config.action_dimensions,
                                                          action_names=config.actions_descriptions,
                                                          practical_action_low_limit=config.practical_action_low_limit,

@@ -81,10 +81,10 @@ class PSOMultiSwarm(PSOSwarm):
         # PSO Parameters
         # clone config to avoid changing the original config
         self.sub_swarm_config = config.clone()
-        self.sub_swarm_size = config.swarm_size // config.num_sub_swarms
-        self.sub_swarm_config.swarm_size = self.sub_swarm_size
-        self.sub_swarm_config.is_sub_swarm = True
-        self.num_sub_swarms = config.num_sub_swarms
+        self.sub_swarm_size = config.pso_config.swarm_size // config.pso_config.num_sub_swarms
+        self.sub_swarm_config.pso_config.swarm_size = self.sub_swarm_size
+        self.sub_swarm_config.pso_config.is_sub_swarm = True
+        self.num_sub_swarms = config.pso_config.num_sub_swarms
         self.subswarms = []
 
         # Initialize the swarm's positions velocities and best solutions

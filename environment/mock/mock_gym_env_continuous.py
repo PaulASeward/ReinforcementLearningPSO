@@ -11,16 +11,16 @@ class MockContinuousPsoGymEnv(gym.Env):
     # reward_range = (-float("inf"), float("inf"))
 
     def __init__(self, config):
-        self._func_num = config.func_num
+        self._func_num = config.pso_config.func_num
         self._action_dimensions = config.action_dimensions
-        self._minimum = config.fDeltas[config.func_num - 1]
+        self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
 
         self._max_episodes = config.num_episodes
         self._num_swarm_obs_intervals = config.num_swarm_obs_intervals
         self._swarm_obs_interval_length = config.swarm_obs_interval_length
         self._obs_per_episode = config.obs_per_episode
-        self._swarm_size = config.swarm_size
-        self._dim = config.dim
+        self._swarm_size = config.pso_config.swarm_size
+        self._dim = config.pso_config.pso_dim
 
         self._observation_length = config.observation_length
         low_limits_obs_space = np.zeros(self._observation_length)  # 150-dimensional array with all elements set to 0
@@ -29,7 +29,7 @@ class MockContinuousPsoGymEnv(gym.Env):
         self.action_space = gym.spaces.Box(low=config.lower_bound, high=config.upper_bound, shape=(3,), dtype=np.float32)
         self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
 
-        self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.dim, fun_num=config.func_num), config=config)
+        self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num), config=config)
         self.actions = ContinuousActions(swarm=self.swarm, config=config)
         config.actions_descriptions = self.actions.action_names[:self._action_dimensions]
         config.practical_action_low_limit = self.actions.practical_action_low_limit

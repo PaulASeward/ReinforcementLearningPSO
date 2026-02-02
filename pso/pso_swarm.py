@@ -10,13 +10,13 @@ class PSOSwarm:
 
         # PSO Parameters
         self.config = config
-        self.w = config.w  # Inertia weight to prevent velocities becoming too large
-        self.c1 = config.c1  # Social component Learning Factor
-        self.c2 = config.c2  # Cognitive component Learning Factor
+        self.w = config.pso_config.w  # Inertia weight to prevent velocities becoming too large
+        self.c1 = config.pso_config.c1  # Social component Learning Factor
+        self.c2 = config.pso_config.c2  # Cognitive component Learning Factor
         self.function = objective_function
-        self.dimension = config.dim
-        self.swarm_size = config.swarm_size
-        self.rangeF = config.rangeF
+        self.dimension = config.pso_config.pso_dim
+        self.swarm_size = config.pso_config.swarm_size
+        self.rangeF = config.pso_config.rangeF
         self.perturb_velocities = False
         self.perturb_velocity_factor = None
         self.velocity_scaling_factor = 1.0
@@ -26,9 +26,9 @@ class PSOSwarm:
         self.perturb_position_particle_selection = None
 
         # Threshold Params
-        self.pbest_replacement_threshold = config.replacement_threshold
-        self.distance_threshold = config.distance_threshold
-        self.velocity_braking = config.velocity_braking
+        self.pbest_replacement_threshold = config.pso_config.replacement_threshold
+        self.distance_threshold = config.pso_config.distance_threshold
+        self.velocity_braking = config.pso_config.velocity_braking
 
         # Observation Parameters
         self.num_swarm_obs_intervals = config.num_swarm_obs_intervals
@@ -64,13 +64,13 @@ class PSOSwarm:
         self.P_vals = None
 
         # Reset the adjustable parameters to starting values
-        self.w = self.config.w
-        self.c1 = self.config.c1
-        self.c2 = self.config.c2
-        self.pbest_replacement_threshold = self.config.replacement_threshold
-        self.distance_threshold = self.config.distance_threshold
+        self.w = self.config.pso_config.w
+        self.c1 = self.config.pso_config.c1
+        self.c2 = self.config.pso_config.c2
+        self.pbest_replacement_threshold = self.config.pso_config.replacement_threshold
+        self.distance_threshold = self.config.pso_config.distance_threshold
         self.velocity_scaling_factor = 1.0
-        self.velocity_braking = self.config.velocity_braking
+        self.velocity_braking = self.config.pso_config.velocity_braking
         self.abs_max_velocity = self.rangeF
 
         self.initialize_stored_counts()

@@ -3,6 +3,8 @@ import copy
 
 import numpy as np
 
+from pso.pso_config import PSOConfig
+
 
 class Config(object):
     use_discrete_env = None
@@ -26,17 +28,7 @@ class Config(object):
     eval_interval = 500
     test_episodes = 5
     num_final_tests = 100
-
     replay_experience_length = 1
-
-    # EXPERIMENT PARAMETERS
-    fDeltas = [-1400, -1300, -1200, -1100, -1000, -900, -800, -700, -600,
-               -500, -400, -300, -200, -100, 100, 200, 300, 400, 500, 600,
-               700, 800, 900, 1000, 1100, 1200, 1300, 1400]
-
-    best_f_standard_pso = [0,0,0,0,0,-26,-112,-21,-26,0,-85,-120,-200,-2279,-4080,-1,-104,-130,-5,-12,-305,-2513,-4594,-276,0,0,0,0]
-    swarm_improvement_pso = [0,0,0,0,2,31,20,1,0,18,2,10,20,118,1300,1,43,141,4,1,1,237,1075,1,0,0,0,0]
-    standard_deviations = [0.00e+00, 7.82e+05, 7.06e+07, 4.55e+03, 0.00e+00, 4.34e+00, 1.74e+01, 5.51e-2, 1.95e+00, 5.53e-2, 1.51e+01, 1.72e+01, 2.21e+01, 3.80e+02, 6.25e+02, 3.51e-1, 1.55e+01, 2.68e+01, 1.30e+00, 5.12e-1, 5.30e+01, 5.15e+02, 7.06e+02, 5.64e+00, 7.12e+00, 4.61e+01, 7.43e+01, 2.82e-13]
 
     # Output files
     results_dir = "results"
@@ -137,50 +129,9 @@ class Config(object):
     # EVALUATION PARAMETERS
     # number_evaluations = 10000
 
-    # PSO Config:
-    topology = 'global'
-    is_sub_swarm = False
+    def __init__(self, pso_config: PSOConfig):
+        self.pso_config = pso_config
 
-    w = 0.729844  # Inertia weight
-    c1 = 2.05 * w  # Social component Learning Factor
-    c2 = 2.05 * w  # Cognitive component Learning Factor
-
-    # w_min = 0.43  # Min of 5 decreases of 10%
-    # w_max = 1.175  # Max of 5 increases of 10%
-    w_min = 0.23  # Min of 5 decreases of 10%
-    w_max = 1.375  # Max of 5 increases of 10%
-
-    c_min = 0.883  # Min of 5 decreases of 10%
-    c_max = 2.409  # Max of 5 increases of 10%
-
-    # w_min = 0  # Min of 5 decreases of 10%
-    # w_max = 1.44  # Max of 5 increases of 10%
-    # c_min = 0  # Min of 5 decreases of 10%
-    # c_max = 3.3 # Max of 5 increases of 10%
-    rangeF = 100
-    # v_min = 59.049
-    # v_max = 161.051
-
-    v_min = 50
-    v_max = 150
-
-    v_min_scaling_factor = 0.5
-    v_max_scaling_factor = 1.5
-
-    velocity_braking = 1.0
-    velocity_braking_min = 0.75
-    velocity_braking_max = 1.25
-
-    distance_threshold = 0.00
-    distance_threshold_min = -0.20
-    distance_threshold_max = 0.20
-
-    replacement_threshold = 1.0
-    replacement_threshold_min = 0.75
-    replacement_threshold_max = 1.25
-
-    def __init__(self):
-        self.func_num = None
         self.action_dimensions = None
         self.experiment_config_path = None
         self.action_counts_path = None
@@ -207,29 +158,20 @@ class Config(object):
         self.iteration_intervals = None
         self.obs_per_episode = None
         self.iterations = None
-        self.swarm_size = None
         self.num_actions = None
-        self.swarm_algorithm = None
-        self.num_sub_swarms = None
         self.network_type = None
-        self.dim = None
         self.over_sample_exploration = None
 
     def clone(self):
         return copy.deepcopy(self)
 
-    def update_properties(self, network_type=None, swarm_algorithm=None, func_num=None, num_actions=None, load_checkpoint=None, action_dimensions=None, num_subswarms=None, swarm_size=None, dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None, over_sample_exploration=None):
-        if func_num is not None:
-            self.func_num = func_num
+    def update_properties(self, network_type=None, num_actions=None, load_checkpoint=None, action_dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None, over_sample_exploration=None):
 
         if num_actions is not None:
             self.num_actions = num_actions
 
         if load_checkpoint is not None:
             self.load_checkpoint_dir = os.path.join(self.checkpoint_dir, load_checkpoint)
-
-        if dimensions is not None:
-            self.dim = dimensions
 
         if num_episodes is not None:  # The number of episodes in each Reinforcement Learning Iterations before terminating.
             self.num_episodes = num_episodes
@@ -252,26 +194,13 @@ class Config(object):
             self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
             self.label_iterations_intervals = range(0, train_steps + self.eval_interval, self.train_steps // 20)
 
-        if swarm_algorithm is not None:
-            self.swarm_algorithm = swarm_algorithm
-
-        if num_subswarms is not None:
-            if self.swarm_algorithm == "PMSO":
-                self.num_sub_swarms = num_subswarms
-            else:
-                self.num_sub_swarms = 1
-
-        if swarm_size is not None:
-            self.swarm_size = swarm_size
-            # self.observation_length = self.swarm_size * 3 + 1
-            self.observation_length = self.swarm_size * 3 + (1 * self.num_sub_swarms) + (1 * self.num_sub_swarms)
+        # self.observation_length = self.swarm_size * 3 + 1
+        self.observation_length = self.pso_config.swarm_size * 3 + (1 * self.pso_config.num_sub_swarms) + (1 * self.pso_config.num_sub_swarms)
 
         if action_dimensions is not None:
-            if self.num_sub_swarms is not None:
-                self.subswarm_action_dim = action_dimensions
-                self.action_dimensions = action_dimensions * self.num_sub_swarms
-            else:
-                self.action_dimensions = action_dimensions
+            self.subswarm_action_dim = action_dimensions
+            self.action_dimensions = action_dimensions * self.pso_config.num_sub_swarms
+
             self.ou_mu = np.zeros(self.action_dimensions)
 
         if over_sample_exploration is not None:
@@ -284,7 +213,7 @@ class Config(object):
                 self.use_discrete_env = False
 
             self.network_type = network_type
-            experiment = self.network_type + "_" + self.swarm_algorithm + "_F" + str(self.func_num)
+            experiment = self.network_type + "_" + self.pso_config.swarm_algorithm + "_F" + str(self.pso_config.func_num)
             self.experiment = experiment
             self.experiment_config_path = os.path.join(self.results_dir, f"experiment_config.json")
             self.interval_actions_counts_path = os.path.join(self.results_dir, f"interval_actions_counts.csv")
@@ -301,5 +230,5 @@ class Config(object):
             self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.npy")
             self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
             self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
-            self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.func_num}.csv")
+            self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.pso_config.func_num}.csv")
             self.experience_buffer_path = os.path.join(self.results_dir, f"experience_buffer.pkl")

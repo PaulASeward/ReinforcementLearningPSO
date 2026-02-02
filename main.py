@@ -1,5 +1,5 @@
 import os
-
+from pso.pso_config import PSOConfig
 from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
 from agents.ddpg_agent import DDPGAgent
@@ -65,7 +65,9 @@ if __name__ == "__main__":
     parser.add_argument("--load_checkpoint", type=str, default=None, help="Load checkpoint to previously saved models. (e.g., 'step_100') Algorithms with two models will load both ")
     args, remaining = parser.parse_known_args()
 
-    config = Config()
+    pso_config = PSOConfig(func_num=args.func_num, swarm_algorithm=args.swarm_algorithm, num_subswarms=args.num_subswarms)
+
+    config = Config(pso_config=pso_config)
     config.train = args.train
     config.test = args.test
     config.num_final_tests = args.num_final_tests
@@ -81,11 +83,11 @@ if __name__ == "__main__":
     if args.swarm_algorithm == "PMSO":
         assert args.num_subswarms in [1,2,5,10,25,50], "Please specify a num_subswarms from 1,2,5,10,25,50"
 
-    config.update_properties(network_type=args.network_type, swarm_algorithm=args.swarm_algorithm, func_num=args.func_num, num_actions=args.num_actions, load_checkpoint=args.load_checkpoint,
-                             action_dimensions=args.action_dimensions, num_subswarms=args.num_subswarms, swarm_size=50, dimensions=30, num_episodes=20,
+    config.update_properties(network_type=args.network_type, num_actions=args.num_actions, load_checkpoint=args.load_checkpoint,
+                             action_dimensions=args.action_dimensions, num_episodes=20,
                              num_swarm_obs_intervals=10, swarm_obs_interval_length=30,
                              train_steps=args.steps, over_sample_exploration=args.over_sample_exploration)
-    assert config.dim in [2, 5, 10, 20, 20, 30, 40, 50, 60, 70, 80, 90, 100], "Please specify a dim from 2,5,10,20,30,40,50,60,70,80,90,100"
+    assert pso_config.pso_dim in [2, 5, 10, 20, 20, 30, 40, 50, 60, 70, 80, 90, 100], "Please specify a dim from 2,5,10,20,30,40,50,60,70,80,90,100"
 
     print("==== Experiment: ", config.experiment)
     print("==== Args used:")
@@ -101,11 +103,11 @@ if __name__ == "__main__":
         print(">> Logging Interval:", config.log_interval)
         print(">> Number of Episodes per Iteration:", config.num_episodes)
 
-        func_eval_budget = config.dim * 10000
-        max_func_eval = config.swarm_size * config.num_episodes * config.obs_per_episode
-        print(f"=== Function Evaluation Budget: {config.dim} dimensions x 10 000/dim = {func_eval_budget} Function Evaluations")
+        func_eval_budget = pso_config.pso_dim * 10000
+        max_func_eval = pso_config.swarm_size * config.num_episodes * config.obs_per_episode
+        print(f"=== Function Evaluation Budget: {pso_config.pso_dim} dimensions x 10 000/dim = {func_eval_budget} Function Evaluations")
         print(f"=== Observations Per Episode: {config.num_swarm_obs_intervals} Number of Swarm Observation Intervals per Episode x {config.swarm_obs_interval_length} Number of Observations in each Interval  = {config.obs_per_episode}  Observations per Episode")
-        print(f"=== Function Evaluation Allocation: {config.swarm_size} Swarm Size (# Particles) x {config.num_episodes} Episodes x {config.obs_per_episode} Observations per Episode  = {max_func_eval} Function Evaluations")
+        print(f"=== Function Evaluation Allocation: {pso_config.swarm_size} Swarm Size (# Particles) x {config.num_episodes} Episodes x {config.obs_per_episode} Observations per Episode  = {max_func_eval} Function Evaluations")
         print()
 
         if func_eval_budget != max_func_eval:

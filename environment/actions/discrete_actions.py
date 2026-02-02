@@ -30,7 +30,6 @@ class DiscreteMultiswarmActions(Action):
         self.subswarm_actions[subswarm_index](action_index)
 
 
-
 class DiscreteActions(Action):
     def __init__(self, swarm, config):
         super(Action, self).__init__(swarm, config)
@@ -329,43 +328,43 @@ class DiscreteActions(Action):
 
     def increase_max_velocity(self):
         self.swarm.abs_max_velocity *= 1.10
-        self.swarm.abs_max_velocity = np.clip(self.swarm.abs_max_velocity, self.config.v_min, self.config.v_max)
+        self.swarm.abs_max_velocity = np.clip(self.swarm.abs_max_velocity, self.config.pso_config.v_min, self.config.pso_config.v_max)
 
     def decrease_max_velocity(self):
         self.swarm.abs_max_velocity *= 0.90
-        self.swarm.abs_max_velocity = np.clip(self.swarm.abs_max_velocity, self.config.v_min, self.config.v_max)
+        self.swarm.abs_max_velocity = np.clip(self.swarm.abs_max_velocity, self.config.pso_config.v_min, self.config.pso_config.v_max)
 
     def increase_social_factor(self):
         self.swarm.c1 *= 1.10  # Social component
-        self.swarm.c1 = np.clip(self.swarm.c1, self.config.c_min, self.config.c_max)
+        self.swarm.c1 = np.clip(self.swarm.c1, self.config.pso_config.c_min, self.config.pso_config.c_max)
 
         self.swarm.c2 *= 0.90  # Cognitive component
-        self.swarm.c2 = np.clip(self.swarm.c2, self.config.c_min, self.config.c_max)
+        self.swarm.c2 = np.clip(self.swarm.c2, self.config.pso_config.c_min, self.config.pso_config.c_max)
 
     def increase_inertia(self):
         self.swarm.w *= 1.10
-        self.swarm.w = np.clip(self.swarm.w, self.config.w_min, self.config.w_max)
+        self.swarm.w = np.clip(self.swarm.w, self.config.pso_config.w_min, self.config.pso_config.w_max)
 
     def decrease_inertia(self):
         self.swarm.w *= 0.90
-        self.swarm.w = np.clip(self.swarm.w, self.config.w_min, self.config.w_max)
+        self.swarm.w = np.clip(self.swarm.w, self.config.pso_config.w_min, self.config.pso_config.w_max)
 
     def decrease_social_factor(self):
         self.swarm.c1 *= 0.90
-        self.swarm.c1 = np.clip(self.swarm.c1, self.config.c_min, self.config.c_max)
+        self.swarm.c1 = np.clip(self.swarm.c1, self.config.pso_config.c_min, self.config.pso_config.c_max)
 
         self.swarm.c2 *= 1.10
-        self.swarm.c2 = np.clip(self.swarm.c2, self.config.c_min, self.config.c_max)
+        self.swarm.c2 = np.clip(self.swarm.c2, self.config.pso_config.c_min, self.config.pso_config.c_max)
 
     # Threshold actions to promote exploration vs exploitation
     def decrease_pbest_replacement_threshold(self):
         self.swarm.pbest_replacement_threshold *= self.swarm.pbest_replacement_threshold_decay
         self.swarm.pbest_replacement_threshold = np.clip(self.swarm.pbest_replacement_threshold,
-                                                         self.config.pbest_replacement_threshold_min,
-                                                         self.config.pbest_replacement_threshold_max)
+                                                         self.config.pso_config.pbest_replacement_threshold_min,
+                                                         self.config.pso_config.pbest_replacement_threshold_max)
 
     def increase_pbest_replacement_threshold(self):
         self.swarm.pbest_replacement_threshold *= 1.10
         self.swarm.pbest_replacement_threshold = np.clip(self.swarm.pbest_replacement_threshold,
-                                                         self.config.pbest_replacement_threshold_min,
-                                                         self.config.pbest_replacement_threshold_max)
+                                                         self.config.pso_config.pbest_replacement_threshold_min,
+                                                         self.config.pso_config.pbest_replacement_threshold_max)
