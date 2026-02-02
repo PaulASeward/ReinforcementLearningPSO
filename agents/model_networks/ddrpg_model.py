@@ -14,7 +14,7 @@ class ActorNetworkModel(BaseModel):
         init = tf.random_normal_initializer(stddev=0.0005)
 
         # State as input
-        initial_input = Input(shape=(self.rl_env_config.trace_length, *self.config.state_shape), dtype=tf.float32)
+        initial_input = Input(shape=(self.config.env_config.trace_length, *self.config.state_shape), dtype=tf.float32)
 
         x = LSTM(self.config.lstm_size, return_sequences=False)(initial_input)
         x = BatchNormalization()(x)
@@ -25,7 +25,7 @@ class ActorNetworkModel(BaseModel):
             x = BatchNormalization()(x)
 
         # Output layer
-        unscaled_output = Dense(self.rl_env_config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)
+        unscaled_output = Dense(self.config.env_config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)
         scaling_factor = (self.config.upper_bound - self.config.lower_bound) / 2.0
         shift_factor = (self.config.upper_bound + self.config.lower_bound) / 2.0
         output = Lambda(lambda x: x * scaling_factor + shift_factor)(unscaled_output)
@@ -56,8 +56,8 @@ class CriticNetworkModel(BaseModel):
         init = tf.random_normal_initializer(stddev=0.0005)
 
         # State as input
-        state_input = Input(shape=(self.rl_env_config.trace_length, *self.config.state_shape), dtype=tf.float32)
-        action_input = Input(shape=(self.rl_env_config.trace_length, self.rl_env_config.action_dimensions), dtype=tf.float32)
+        state_input = Input(shape=(self.config.env_config.trace_length, *self.config.state_shape), dtype=tf.float32)
+        action_input = Input(shape=(self.config.env_config.trace_length, self.config.env_config.action_dimensions), dtype=tf.float32)
 
         state_features = LSTM(self.config.lstm_size, return_sequences=False)(state_input)
         state_features = BatchNormalization()(state_features)

@@ -29,7 +29,7 @@ class ActorNetworkModel(BaseModel):
             x = BatchNormalization()(x)
 
         # Output layer
-        unscaled_output = Dense(self.rl_env_config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)
+        unscaled_output = Dense(self.config.env_config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)
         scaling_factor = (self.config.upper_bound - self.config.lower_bound) / 2.0
         shift_factor = (self.config.upper_bound + self.config.lower_bound) / 2.0
         output = Lambda(lambda x: x * scaling_factor + shift_factor)(unscaled_output)
@@ -58,7 +58,7 @@ class CriticNetworkModel(BaseModel):
 
     def nn_model(self):
         init = tf.random_normal_initializer(stddev=0.0005)
-        action_input_shape = (self.rl_env_config.action_dimensions,)
+        action_input_shape = (self.config.env_config.action_dimensions,)
 
         # State as input
         state_input = Input(shape=self.config.state_shape, dtype=tf.float32)

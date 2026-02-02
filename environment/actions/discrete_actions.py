@@ -14,7 +14,7 @@ class DiscreteMultiswarmActions(Action):
             for action_name in subswarm.action_names
         ]
 
-        self.rl_env_config.num_actions = len(self.action_names)
+        self.config.env_config.num_actions = len(self.action_names)
 
     def __call__(self, action):
         # Do nothing

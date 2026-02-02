@@ -27,7 +27,7 @@ def plot_discrete_actions(config):
                                                                               standard_pso_values_path=config.standard_pso_path,
                                                                               function_min_value=config.pso_config.fDeltas[
                                                                                   config.pso_config.func_num - 1],
-                                                                              num_actions=rl_env_config.num_actions,
+                                                                              num_actions=config.env_config.num_actions,
                                                                               action_names=config.actions_descriptions,
                                                                               num_subswarms=config.pso_config.num_sub_swarms)
     else:
@@ -42,7 +42,7 @@ def plot_discrete_actions(config):
                                                           standard_pso_values_path=config.standard_pso_path,
                                                           function_min_value=config.pso_config.fDeltas[
                                                               config.pso_config.func_num - 1],
-                                                          num_actions=rl_env_config.num_actions,
+                                                          num_actions=config.env_config.num_actions,
                                                           action_names=config.actions_descriptions)
 
 
@@ -58,7 +58,7 @@ def plot_continuous_actions(config):
                                                             standard_pso_values_path=config.standard_pso_path,
                                                             function_min_value=config.pso_config.fDeltas[
                                                                 config.pso_config.func_num - 1],
-                                                            action_dimensions=rl_env_config.action_dimensions,
+                                                            action_dimensions=config.env_config.action_dimensions,
                                                             action_names=config.actions_descriptions,
                                                             practical_action_low_limit = config.practical_action_low_limit,
                                                             practical_action_high_limit = config.practical_action_high_limit,
@@ -69,7 +69,7 @@ def plot_continuous_actions(config):
                                                          standard_pso_values_path=config.standard_pso_path,
                                                          function_min_value=config.pso_config.fDeltas[
                                                              config.pso_config.func_num - 1],
-                                                         action_dimensions=rl_env_config.action_dimensions,
+                                                         action_dimensions=config.env_config.action_dimensions,
                                                          action_names=config.actions_descriptions,
                                                          practical_action_low_limit=config.practical_action_low_limit,
                                                          practical_action_high_limit=config.practical_action_high_limit,

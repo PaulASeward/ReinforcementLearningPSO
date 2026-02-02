@@ -25,7 +25,7 @@ class BaseAgent:
 
         self.build_environment()
         if config.policy == "ExponentialDecayGreedyEpsilon":
-            self.policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=rl_env_config.num_actions)
+            self.policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.env_config.num_actions)
             self.test_policy = GreedyPolicy()
 
     def build_environment(self):
@@ -78,20 +78,20 @@ class BaseAgent:
         return losses, None, None
 
     def get_actions(self):
-        print(f"num_actions: {self.rl_env_config.num_actions}")
+        print(f"num_actions: {self.config.env_config.num_actions}")
 
         for index, description in enumerate(self.config.actions_descriptions):
-            if index + 1 <= self.rl_env_config.num_actions:
+            if index + 1 <= self.config.env_config.num_actions:
                 action_no = str(index + 1)
                 print(f"Action #{action_no} Description: {description}")
 
     def initialize_current_state(self):
         self.policy.reset()
         observation, swarm_info = self.env.reset()
-        return np.reshape(observation, (1, self.rl_env_config.observation_length))
+        return np.reshape(observation, (1, self.config.env_config.observation_length))
 
     def update_memory_and_state(self, current_state, action, reward, next_observation, terminal, add_to_replay_buffer=True):
-        next_state = np.reshape(next_observation, (1, self.rl_env_config.observation_length))
+        next_state = np.reshape(next_observation, (1, self.config.env_config.observation_length))
         # self.replay_buffer.add([current_state, action, reward*self.config.gamma, next_state, terminal])
         if add_to_replay_buffer:
             self.replay_buffer.add([current_state, action, reward, next_state, terminal])

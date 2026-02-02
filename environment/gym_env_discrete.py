@@ -23,7 +23,7 @@ class DiscretePsoGymEnv(gym.Env):
         self._avg_standard_pso_increase = self._avg_swarm_improvement / self._max_episodes
         self._penalty_for_negative_reward = config.penalty_for_negative_reward
 
-        self._observation_length = rl_env_config.observation_length
+        self._observation_length = config.env_config.observation_length
         low_limits_obs_space = np.zeros(self._observation_length)  # 150-dimensional array with all elements set to 0
         high_limits_obs_space = np.full(self._observation_length, np.inf)
 
@@ -34,10 +34,10 @@ class DiscretePsoGymEnv(gym.Env):
         else:
             self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num), config=config)
             self.actions = DiscreteActions(swarm=self.swarm, config=config)
-            rl_env_config.num_actions = len(self.actions.action_names)
+            config.env_config.num_actions = len(self.actions.action_names)
 
-        config.actions_descriptions = self.actions.action_names[:rl_env_config.num_actions]
-        self.action_space = gym.spaces.Discrete(rl_env_config.num_actions)
+        config.actions_descriptions = self.actions.action_names[:config.env_config.num_actions]
+        self.action_space = gym.spaces.Discrete(config.env_config.num_actions)
         self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
                                                 shape=(self._observation_length,), dtype=np.float32)
 

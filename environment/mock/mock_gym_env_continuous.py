@@ -12,7 +12,7 @@ class MockContinuousPsoGymEnv(gym.Env):
 
     def __init__(self, config):
         self._func_num = config.pso_config.func_num
-        self._action_dimensions = rl_env_config.action_dimensions
+        self._action_dimensions = config.env_config.action_dimensions
         self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
 
         self._max_episodes = config.env_config.num_episodes
@@ -22,7 +22,7 @@ class MockContinuousPsoGymEnv(gym.Env):
         self._swarm_size = config.pso_config.swarm_size
         self._dim = config.pso_config.pso_dim
 
-        self._observation_length = rl_env_config.observation_length
+        self._observation_length = config.env_config.observation_length
         low_limits_obs_space = np.zeros(self._observation_length)  # 150-dimensional array with all elements set to 0
         high_limits_obs_space = np.full(self._observation_length, np.inf)
 

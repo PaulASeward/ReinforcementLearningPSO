@@ -192,13 +192,13 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
 class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
     def __init__(self, config):
         if config.use_ou_noise:
-            self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=rl_env_config.action_dimensions)
+            self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.env_config.action_dimensions)
         else:
-            self.ou_noise = NormalNoise(config=config, size=rl_env_config.action_dimensions)
+            self.ou_noise = NormalNoise(config=config, size=config.env_config.action_dimensions)
         self.lower_bound = config.lower_bound
         self.upper_bound = config.upper_bound
         self.range = self.upper_bound - self.lower_bound
-        # self.upper_bound = [1.0] * rl_env_config.action_dimensions
+        # self.upper_bound = [1.0] * config.env_config.action_dimensions
 
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start
