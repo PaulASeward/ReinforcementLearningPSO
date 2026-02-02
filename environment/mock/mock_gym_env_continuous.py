@@ -15,10 +15,10 @@ class MockContinuousPsoGymEnv(gym.Env):
         self._action_dimensions = config.action_dimensions
         self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
 
-        self._max_episodes = config.num_episodes
-        self._num_swarm_obs_intervals = config.num_swarm_obs_intervals
-        self._swarm_obs_interval_length = config.swarm_obs_interval_length
-        self._obs_per_episode = config.obs_per_episode
+        self._max_episodes = config.env_config.num_episodes
+        self._num_swarm_obs_intervals = config.env_config.num_swarm_obs_intervals
+        self._swarm_obs_interval_length = config.env_config.swarm_obs_interval_length
+        self._obs_per_episode = config.env_config.obs_per_episode
         self._swarm_size = config.pso_config.swarm_size
         self._dim = config.pso_config.pso_dim
 

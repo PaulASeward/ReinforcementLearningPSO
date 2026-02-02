@@ -14,7 +14,7 @@ class DiscretePsoGymEnv(gym.Env):
     def __init__(self, config):
         self._func_num = config.pso_config.func_num
         self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
-        self._max_episodes = config.num_episodes
+        self._max_episodes = config.env_config.num_episodes
         self._standard_pso_values_path = config.standard_pso_path
 
         self._best_standard_pso = config.pso_config.best_f_standard_pso[config.pso_config.func_num - 1]

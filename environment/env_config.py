@@ -1,16 +1,16 @@
-import os
-import copy
-
-import numpy as np
 import gymnasium as gym
+
+from pso.pso_config import PSOConfig
 
 
 class RLEnvConfig(object):
     # AGENT PARAMETERS
     num_episodes = 20
     trace_length = 20
+
     num_swarm_obs_intervals = 10
     swarm_obs_interval_length = 30
+    obs_per_episode = swarm_obs_interval_length / num_swarm_obs_intervals
 
     # Defines environment specific config such as action and observation space.
     observation_length = None
@@ -18,12 +18,16 @@ class RLEnvConfig(object):
 
     num_actions = None
     action_dimensions = None
-
-    swarm_algorithm = None
     subswarm_action_dim = None
-    num_sub_swarms = None
-    swarm_size = None  # Should not live here since it is a PSO param
 
     # Maybe?
     action_space: gym.spaces.Box = None
     observation_space: gym.spaces.Box = None
+
+    def __init__(self, swarm_size, num_sub_swarms, num_episodes=20):
+        # TODO: Make this dynamic to the action/observation space
+        num_sub_swarms = num_sub_swarms if num_sub_swarms is not None else 1
+        self.observation_length = swarm_size * 3 + (1 * num_sub_swarms) + (1 * num_sub_swarms)
+
+        self.num_episodes = num_episodes
+        self.trace_length = num_episodes if num_episodes < 20 else 20

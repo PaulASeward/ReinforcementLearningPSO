@@ -218,16 +218,16 @@ class PPOBuffer:
     """
 
     def __init__(self, config):
-        self.obs_buf = np.zeros((config.num_episodes, config.observation_length), dtype=np.float32)
-        self.act_buf = np.zeros((config.num_episodes, config.action_dimensions), dtype=np.float32)
-        self.adv_buf = np.zeros(config.num_episodes, dtype=np.float32)
-        self.rew_buf = np.zeros(config.num_episodes, dtype=np.float32)
-        self.ret_buf = np.zeros(config.num_episodes, dtype=np.float32)
-        self.val_buf = np.zeros(config.num_episodes, dtype=np.float32)
-        self.logp_buf = np.zeros(config.num_episodes, dtype=np.float32)
+        self.obs_buf = np.zeros((config.env_config.num_episodes, config.observation_length), dtype=np.float32)
+        self.act_buf = np.zeros((config.env_config.num_episodes, config.action_dimensions), dtype=np.float32)
+        self.adv_buf = np.zeros(config.env_config.num_episodes, dtype=np.float32)
+        self.rew_buf = np.zeros(config.env_config.num_episodes, dtype=np.float32)
+        self.ret_buf = np.zeros(config.env_config.num_episodes, dtype=np.float32)
+        self.val_buf = np.zeros(config.env_config.num_episodes, dtype=np.float32)
+        self.logp_buf = np.zeros(config.env_config.num_episodes, dtype=np.float32)
 
         self.gamma, self.lam = config.gamma, config.lam
-        self.ptr, self.path_start_idx, self.max_size = 0, 0, config.num_episodes
+        self.ptr, self.path_start_idx, self.max_size = 0, 0, config.env_config.num_episodes
 
     def store(self, obs, act, rew, val, logp):
         assert self.ptr < self.max_size     # buffer has to have room so you can store

@@ -10,7 +10,7 @@ class ResultsLogger:
         self.config = config
         self.step = 0
         self.train_steps = config.train_steps
-        self.num_episodes = config.num_episodes
+        self.num_episodes = config.env_config.num_episodes
         self.start_time = time.time()
         self.last_log_interval_time = self.start_time
 
@@ -147,7 +147,7 @@ class DiscreteActionsResultsLogger(ResultsLogger):
 class ContinuousActionsResultsLogger(ResultsLogger):
     def __init__(self, config):
         super().__init__(config)
-        self.continuous_action_history = np.zeros((self.config.train_steps, self.config.num_episodes, self.config.action_dimensions), dtype=np.float32)
+        self.continuous_action_history = np.zeros((self.config.train_steps, self.config.env_config.num_episodes, self.config.action_dimensions), dtype=np.float32)
 
     def store_results_at_log_interval(self, train_loss=None, actor_losses=None, critic_losses=None):
         losses = {

@@ -112,7 +112,7 @@ class BaseAgent:
         self.starting_step = step
         episilon_values = np.loadtxt(self.config.epsilon_values_path, delimiter=",")
         self.policy.current_epsilon = episilon_values[-1]
-        self.policy.step = step * self.config.num_episodes
+        self.policy.step = step * self.config.env_config.num_episodes
 
     def load_models(self):
         pass

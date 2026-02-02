@@ -19,7 +19,7 @@ class DDRPGAgent(BaseAgent):
     def __init__(self, config):
         super(DDRPGAgent, self).__init__(config)
         self.results_logger = ResultsLogger(config)
-        self.episode_states = np.zeros([self.config.trace_length, self.config.observation_length])
+        self.episode_states = np.zeros([self.rl_env_config.trace_length, self.config.observation_length])
 
 
         self.actor_network = ActorNetworkModel(config)
@@ -59,11 +59,11 @@ class DDRPGAgent(BaseAgent):
         self.episode_states[-1] = next_observation
 
     def initialize_current_state(self):
-        self.episode_states = np.zeros([self.config.trace_length,
+        self.episode_states = np.zeros([self.rl_env_config.trace_length,
                                         self.config.observation_length])  # Starts with choosing an action from empty states. Uses rolling window size 4
         observation, swarm_info = self.env.reset()
         self.update_episode_states(observation)
-        return np.reshape(self.episode_states, [1, self.config.trace_length, self.config.observation_length])
+        return np.reshape(self.episode_states, [1, self.rl_env_config.trace_length, self.config.observation_length])
 
     def update_memory_and_state(self, current_state, action, reward, next_observation, terminal,
                                 add_to_replay_buffer=True):
@@ -74,7 +74,7 @@ class DDRPGAgent(BaseAgent):
         if add_to_replay_buffer:
             self.replay_buffer.add([prev_states, action, reward * self.config.gamma, self.episode_states, terminal])
         # self.replay_buffer.add([prev_states, action, reward, self.episode_states, terminal])
-        return np.reshape(self.episode_states, [1, self.config.trace_length, self.config.observation_length])
+        return np.reshape(self.episode_states, [1, self.rl_env_config.trace_length, self.config.observation_length])
 
 
     def replay_experience(self):
@@ -89,7 +89,7 @@ class DDRPGAgent(BaseAgent):
                 states, actions, rewards, next_states, dones = self.replay_buffer.sample(self.config.batch_size)
 
                 next_actions = self.actor_network_target.predict(next_states)
-                next_actions = np.tile(next_actions[:, np.newaxis, :], (1, self.config.trace_length, 1))
+                next_actions = np.tile(next_actions[:, np.newaxis, :], (1, self.rl_env_config.trace_length, 1))
 
                 next_q_values = self.critic_network_target.predict([next_states, next_actions])
                 rewards = rewards[:, np.newaxis]  # Shape (64, 1)

@@ -1,4 +1,6 @@
 import os
+
+from environment.env_config import RLEnvConfig
 from pso.pso_config import PSOConfig
 from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
@@ -66,8 +68,9 @@ if __name__ == "__main__":
     args, remaining = parser.parse_known_args()
 
     pso_config = PSOConfig(func_num=args.func_num, swarm_algorithm=args.swarm_algorithm, num_subswarms=args.num_subswarms)
+    rl_env_config = RLEnvConfig(swarm_size=pso_config.swarm_size, num_sub_swarms=pso_config.num_sub_swarms)
 
-    config = Config(pso_config=pso_config)
+    config = Config(pso_config=pso_config, env_config=rl_env_config)
     config.train = args.train
     config.test = args.test
     config.num_final_tests = args.num_final_tests
@@ -84,9 +87,7 @@ if __name__ == "__main__":
         assert args.num_subswarms in [1,2,5,10,25,50], "Please specify a num_subswarms from 1,2,5,10,25,50"
 
     config.update_properties(network_type=args.network_type, num_actions=args.num_actions, load_checkpoint=args.load_checkpoint,
-                             action_dimensions=args.action_dimensions, num_episodes=20,
-                             num_swarm_obs_intervals=10, swarm_obs_interval_length=30,
-                             train_steps=args.steps, over_sample_exploration=args.over_sample_exploration)
+                             action_dimensions=args.action_dimensions, train_steps=args.steps, over_sample_exploration=args.over_sample_exploration)
     assert pso_config.pso_dim in [2, 5, 10, 20, 20, 30, 40, 50, 60, 70, 80, 90, 100], "Please specify a dim from 2,5,10,20,30,40,50,60,70,80,90,100"
 
     print("==== Experiment: ", config.experiment)
@@ -101,13 +102,13 @@ if __name__ == "__main__":
         print(">> Training mode. Number of Steps to Train:", config.train_steps)
         print(">> Evaluation Interval:", config.eval_interval)
         print(">> Logging Interval:", config.log_interval)
-        print(">> Number of Episodes per Iteration:", config.num_episodes)
+        print(">> Number of Episodes per Iteration:", config.env_config.num_episodes)
 
         func_eval_budget = pso_config.pso_dim * 10000
-        max_func_eval = pso_config.swarm_size * config.num_episodes * config.obs_per_episode
+        max_func_eval = pso_config.swarm_size * config.env_config.num_episodes * rl_env_config.obs_per_episode
         print(f"=== Function Evaluation Budget: {pso_config.pso_dim} dimensions x 10 000/dim = {func_eval_budget} Function Evaluations")
-        print(f"=== Observations Per Episode: {config.num_swarm_obs_intervals} Number of Swarm Observation Intervals per Episode x {config.swarm_obs_interval_length} Number of Observations in each Interval  = {config.obs_per_episode}  Observations per Episode")
-        print(f"=== Function Evaluation Allocation: {pso_config.swarm_size} Swarm Size (# Particles) x {config.num_episodes} Episodes x {config.obs_per_episode} Observations per Episode  = {max_func_eval} Function Evaluations")
+        print(f"=== Observations Per Episode: {rl_env_config.num_swarm_obs_intervals} Number of Swarm Observation Intervals per Episode x {rl_env_config.swarm_obs_interval_length} Number of Observations in each Interval  = {rl_env_config.obs_per_episode}  Observations per Episode")
+        print(f"=== Function Evaluation Allocation: {pso_config.swarm_size} Swarm Size (# Particles) x {config.env_config.num_episodes} Episodes x {rl_env_config.obs_per_episode} Observations per Episode  = {max_func_eval} Function Evaluations")
         print()
 
         if func_eval_budget != max_func_eval:

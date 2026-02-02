@@ -3,6 +3,7 @@ import copy
 
 import numpy as np
 
+from environment.env_config import RLEnvConfig
 from pso.pso_config import PSOConfig
 
 
@@ -17,9 +18,6 @@ class Config(object):
     use_ou_noise = False
 
     # AGENT PARAMETERS
-    num_episodes = 20
-    num_swarm_obs_intervals = 10
-    swarm_obs_interval_length = 30
     # observation_length = 151
     observation_length = 152
 
@@ -73,9 +71,6 @@ class Config(object):
     replay_priority_beta_increment = 0.001
     replay_priority_beta_max_abs_error = 1.0  # clipped abs error
 
-    # DRQN TRAINING PARAMETERS
-    trace_length = 20
-
     # DDPG TRAINING PARAMETERS
     ou_mu = None  # Will be set to zeros of action_dim in update_properties
     ou_theta = 0.15
@@ -85,6 +80,8 @@ class Config(object):
 
     tau = 0.005
     # tau = 0.125
+
+
     upper_bound = None
     lower_bound = None
     actor_learning_rate = 1e-3
@@ -129,8 +126,9 @@ class Config(object):
     # EVALUATION PARAMETERS
     # number_evaluations = 10000
 
-    def __init__(self, pso_config: PSOConfig):
+    def __init__(self, pso_config: PSOConfig, env_config: RLEnvConfig):
         self.pso_config = pso_config
+        self.env_config = env_config
 
         self.action_dimensions = None
         self.experiment_config_path = None
@@ -156,7 +154,6 @@ class Config(object):
         self.num_eval_intervals = None
         self.label_iterations_intervals = None
         self.iteration_intervals = None
-        self.obs_per_episode = None
         self.iterations = None
         self.num_actions = None
         self.network_type = None
@@ -165,25 +162,13 @@ class Config(object):
     def clone(self):
         return copy.deepcopy(self)
 
-    def update_properties(self, network_type=None, num_actions=None, load_checkpoint=None, action_dimensions=None, num_episodes=None, num_swarm_obs_intervals=None, swarm_obs_interval_length=None, train_steps=None, over_sample_exploration=None):
+    def update_properties(self, network_type=None, num_actions=None, load_checkpoint=None, action_dimensions=None, train_steps=None, over_sample_exploration=None):
 
         if num_actions is not None:
             self.num_actions = num_actions
 
         if load_checkpoint is not None:
             self.load_checkpoint_dir = os.path.join(self.checkpoint_dir, load_checkpoint)
-
-        if num_episodes is not None:  # The number of episodes in each Reinforcement Learning Iterations before terminating.
-            self.num_episodes = num_episodes
-            self.trace_length = num_episodes if num_episodes < 20 else 20
-
-        if num_swarm_obs_intervals is not None:  # The number of swarm observation intervals. Ex) At 10 evenly spaced observation intervals, observations in the swarm will be collected. Default is 10.
-            self.num_swarm_obs_intervals = num_swarm_obs_intervals
-
-        if swarm_obs_interval_length is not None:  # The number of observations per episode conducted in the swarm. Ex) Particle Best Replacement Counts are averaged over the last _ observations before an episode terminates and action is decided. Default is 30.
-            self.swarm_obs_interval_length = swarm_obs_interval_length
-
-        self.obs_per_episode = self.swarm_obs_interval_length * self.num_swarm_obs_intervals
 
         if train_steps is not None:
             self.train_steps = train_steps

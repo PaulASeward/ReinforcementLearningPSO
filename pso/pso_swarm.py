@@ -31,8 +31,8 @@ class PSOSwarm:
         self.velocity_braking = config.pso_config.velocity_braking
 
         # Observation Parameters
-        self.num_swarm_obs_intervals = config.num_swarm_obs_intervals
-        self.swarm_obs_interval_length = config.swarm_obs_interval_length
+        self.num_swarm_obs_intervals = config.env_config.num_swarm_obs_intervals
+        self.swarm_obs_interval_length = config.env_config.swarm_obs_interval_length
         self.iterations = self.num_swarm_obs_intervals * self.swarm_obs_interval_length
 
         # Set Constraints for clamping position and limiting velocity
