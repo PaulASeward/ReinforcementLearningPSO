@@ -12,7 +12,7 @@ class DQNModel(BaseModel):
     def nn_model(self):
         model = tf.keras.Sequential(
             [
-                Input((self.config.observation_length,)),
+                Input((self.rl_env_config.observation_length,)),
                 Dense(256, activation="relu"),
                 Dense(128, activation="relu"),
                 Dense(64, activation="relu"),

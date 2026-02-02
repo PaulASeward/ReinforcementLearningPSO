@@ -18,9 +18,6 @@ class Config(object):
     use_ou_noise = False
 
     # AGENT PARAMETERS
-    # observation_length = 151
-    observation_length = 152
-
     train_steps = 20000
     log_interval = 200
     eval_interval = 500
@@ -56,7 +53,6 @@ class Config(object):
     epsilon_start = 1.0
     epsilon_end = 0.01
 
-
     # Replay Buffer
     # buffer_size = 10000
     # buffer_size = 20000
@@ -64,6 +60,7 @@ class Config(object):
     # buffer_size = 1000000
     # batch_size = 64
     batch_size = 128
+
     replay_priority_capacity = 100000
     replay_priority_epsilon = 0.01  # small amount to avoid zero priority
     replay_priority_alpha = 0.7  # [0~1] convert the importance of TD error to priority
@@ -80,7 +77,6 @@ class Config(object):
 
     tau = 0.005
     # tau = 0.125
-
 
     upper_bound = None
     lower_bound = None
@@ -178,9 +174,6 @@ class Config(object):
             self.num_eval_intervals = train_steps // self.eval_interval
             self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
             self.label_iterations_intervals = range(0, train_steps + self.eval_interval, self.train_steps // 20)
-
-        # self.observation_length = self.swarm_size * 3 + 1
-        self.observation_length = self.pso_config.swarm_size * 3 + (1 * self.pso_config.num_sub_swarms) + (1 * self.pso_config.num_sub_swarms)
 
         if action_dimensions is not None:
             self.subswarm_action_dim = action_dimensions

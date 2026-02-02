@@ -23,7 +23,7 @@ class DiscretePsoGymEnv(gym.Env):
         self._avg_standard_pso_increase = self._avg_swarm_improvement / self._max_episodes
         self._penalty_for_negative_reward = config.penalty_for_negative_reward
 
-        self._observation_length = config.observation_length
+        self._observation_length = rl_env_config.observation_length
         low_limits_obs_space = np.zeros(self._observation_length)  # 150-dimensional array with all elements set to 0
         high_limits_obs_space = np.full(self._observation_length, np.inf)
 

@@ -27,7 +27,7 @@ class ContinuousPsoGymEnv(gym.Env):
         self.standard_pso_results = np.genfromtxt(config.standard_pso_path, delimiter=',', skip_header=1)
         self.standard_pso_cumulative_relative_fitness = abs(self._minimum - self.standard_pso_results[:, 1])
 
-        self._observation_length = config.observation_length
+        self._observation_length = rl_env_config.observation_length
         low_limits_obs_space = np.zeros(self._observation_length, dtype=np.float32)  # 150-dimensional array with all elements set to 0
         high_limits_obs_space = np.full(self._observation_length, np.inf, dtype=np.float32)
 
