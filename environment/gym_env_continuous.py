@@ -59,7 +59,6 @@ class ContinuousPsoGymEnv(gym.Env):
         self.total_difference = 0
         self.last_action = np.zeros(self._action_dimensions, dtype=np.float32)
 
-
         self.reward_functions = {
             "simple_reward": self.simple_reward,
             "fitness_reward": self.fitness_reward,

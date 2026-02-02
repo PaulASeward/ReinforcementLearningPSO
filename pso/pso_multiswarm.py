@@ -73,23 +73,19 @@ class PSOSubSwarm(PSOSwarm):
             self.add_particle(incoming_particle_data.particle, outgoing_particles[i].idx)
 
 
-class PSOMultiSwarm:
+class PSOMultiSwarm(PSOSwarm):
 
     def __init__(self, objective_function, config):
+        super(PSOSwarm).__init__(objective_function, config)
+
         # PSO Parameters
-        self.config = config
-        self.swarm_size = config.swarm_size
-        self.objective_function = objective_function
         # clone config to avoid changing the original config
         self.sub_swarm_config = config.clone()
         self.sub_swarm_size = config.swarm_size // config.num_sub_swarms
         self.sub_swarm_config.swarm_size = self.sub_swarm_size
         self.sub_swarm_config.is_sub_swarm = True
-        self.dim = config.dim
         self.num_sub_swarms = config.num_sub_swarms
-
-        self.gbest_val = float('inf')
-        self.gbest_pos = None
+        self.subswarms = []
 
         # Initialize the swarm's positions velocities and best solutions
         self._initialize()
@@ -101,7 +97,7 @@ class PSOMultiSwarm:
         self.update_swarm_valuations_and_bests()
 
     def _initialize(self):
-        self.sub_swarms = [PSOSubSwarm(self.objective_function, self.sub_swarm_config, gbest_val=self.gbest_val, gbest_pos=self.gbest_pos) for _ in range(self.num_sub_swarms)]
+        self.sub_swarms = [PSOSubSwarm(self.function, self.sub_swarm_config, gbest_val=self.gbest_val, gbest_pos=self.gbest_pos) for _ in range(self.num_sub_swarms)]
 
     def update_swarm_valuations_and_bests(self):
         for sub_swarm in self.sub_swarms:

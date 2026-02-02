@@ -1,12 +1,12 @@
 import numpy as np
-from enum import Enum
 from pso.pso_multiswarm import PSOSubSwarm
+from environment.actions.actions import Action
 
 
-class DiscreteMultiswarmActions:
+class DiscreteMultiswarmActions(Action):
     def __init__(self, swarm, config):
-        self.swarm = swarm
-        self.config = config
+        super(Action, self).__init__(swarm, config)
+
         self.subswarm_actions = [DiscreteActions(sub_swarm, config) for sub_swarm in self.swarm.sub_swarms]
         self.action_names = ['Do Nothing'] + [
             f"SubSwarm {i + 1} {action_name}"
@@ -31,10 +31,10 @@ class DiscreteMultiswarmActions:
 
 
 
-class DiscreteActions:
+class DiscreteActions(Action):
     def __init__(self, swarm, config):
-        self.swarm = swarm
-        self.config = config
+        super(Action, self).__init__(swarm, config)
+
 
         # self.action_methods = {
         #     0: self.reset_all_particles_keep_global_best,

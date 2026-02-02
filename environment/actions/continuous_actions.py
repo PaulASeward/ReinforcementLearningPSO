@@ -1,12 +1,13 @@
 import numpy as np
-from pso.pso_multiswarm import PSOSubSwarm
+from pso.pso_multiswarm import PSOSubSwarm, PSOMultiSwarm
+from environment.actions.actions import Action
 
 
-class ContinuousMultiswarmActions:
-    def __init__(self, swarm, config):
-        self.swarm = swarm
-        self.config = config
+class ContinuousMultiswarmActions(Action):
+    def __init__(self, swarm: PSOMultiSwarm, config):
+        super(Action, self).__init__(swarm, config)
         self.subswarm_actions = [ContinuousActions(sub_swarm, config) for sub_swarm in self.swarm.sub_swarms]
+
         self.action_names = [
             f"SubSwarm {i + 1} {action_name}"
             for i, subswarm in enumerate(self.subswarm_actions)
@@ -23,6 +24,16 @@ class ContinuousMultiswarmActions:
             for subswarm in self.subswarm_actions
             for limit in subswarm.practical_action_low_limit
         ]
+
+        self.lower_bound = np.array([
+            subswarm.actual_low_limit_action_space
+            for subswarm in self.subswarm_actions
+        ], dtype=np.float32).flatten()
+
+        self.upper_bound = np.array([
+            subswarm.actual_high_limit_action_space
+            for subswarm in self.subswarm_actions
+        ], dtype=np.float32).flatten()
 
     def __call__(self, action):
         # Restructure the flattened action from size(config.num_sub_swarms * 3) to size (config.num_sub_swarms, 3)
@@ -45,11 +56,9 @@ class ContinuousMultiswarmActions:
         ], dtype=np.float32).flatten()
 
 
-class ContinuousActions:
+class ContinuousActions(Action):
     def __init__(self, swarm, config):
-        self.swarm = swarm
-        self.config = config
-
+        super(Action, self).__init__(swarm, config)
         self.action_names = ['Velocity Scaling Factor']
         # self.action_names = ['PBest Distance Threshold', 'Velocity Braking Factor']
         # self.action_names = ['Inertia', 'Social', 'Cognitive']
@@ -78,6 +87,9 @@ class ContinuousActions:
         # self.actual_low_limit_action_space = [self.config.replacement_threshold_min]
         # self.actual_high_limit_action_space = [self.config.replacement_threshold_max]
 
+        self.lower_bound = np.array(self.actual_low_limit_action_space, dtype=np.float32)
+        self.upper_bound = np.array(self.actual_high_limit_action_space, dtype=np.float32)
+
     def __call__(self, action):
         actions = np.array(action)
 
@@ -89,7 +101,8 @@ class ContinuousActions:
         # self.swarm.distance_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
         # self.swarm.velocity_braking = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
         # self.swarm.distance_threshold = np.clip(actions[0], 0, self.config.distance_threshold_max)
-        self.swarm.abs_max_velocity = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
+        self.swarm.abs_max_velocity = np.clip(actions[0], self.practical_action_low_limit[0],
+                                              self.practical_action_high_limit[0])
         # self.swarm.velocity_scaling_factor = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
         #
         # if actions[0] > 0.50:
