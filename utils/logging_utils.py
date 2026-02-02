@@ -128,7 +128,7 @@ class ResultsLogger:
 class DiscreteActionsResultsLogger(ResultsLogger):
     def __init__(self, config):
         super().__init__(config)
-        self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.num_actions), dtype=np.int32)
+        self.action_counts = np.zeros((self.config.num_eval_intervals, self.rl_env_config.num_actions), dtype=np.int32)
 
     def save_actions(self, actions_row):
         for action in actions_row:
@@ -147,7 +147,7 @@ class DiscreteActionsResultsLogger(ResultsLogger):
 class ContinuousActionsResultsLogger(ResultsLogger):
     def __init__(self, config):
         super().__init__(config)
-        self.continuous_action_history = np.zeros((self.config.train_steps, self.config.env_config.num_episodes, self.config.action_dimensions), dtype=np.float32)
+        self.continuous_action_history = np.zeros((self.config.train_steps, self.config.env_config.num_episodes, self.rl_env_config.action_dimensions), dtype=np.float32)
 
     def store_results_at_log_interval(self, train_loss=None, actor_losses=None, critic_losses=None):
         losses = {

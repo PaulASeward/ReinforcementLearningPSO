@@ -25,7 +25,7 @@ class BaseAgent:
 
         self.build_environment()
         if config.policy == "ExponentialDecayGreedyEpsilon":
-            self.policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.num_actions)
+            self.policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=rl_env_config.num_actions)
             self.test_policy = GreedyPolicy()
 
     def build_environment(self):
@@ -78,10 +78,10 @@ class BaseAgent:
         return losses, None, None
 
     def get_actions(self):
-        print(f"num_actions: {self.config.num_actions}")
+        print(f"num_actions: {self.rl_env_config.num_actions}")
 
         for index, description in enumerate(self.config.actions_descriptions):
-            if index + 1 <= self.config.num_actions:
+            if index + 1 <= self.rl_env_config.num_actions:
                 action_no = str(index + 1)
                 print(f"Action #{action_no} Description: {description}")
 

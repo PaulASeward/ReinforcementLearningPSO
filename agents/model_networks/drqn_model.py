@@ -17,7 +17,7 @@ class DRQNModel(BaseModel):
                 LSTM(256, activation="tanh"),
                 Dense(128, activation="relu"),
                 Dense(64, activation="relu"),
-                Dense(self.config.num_actions),
+                Dense(self.rl_env_config.num_actions),
             ]
         )
 

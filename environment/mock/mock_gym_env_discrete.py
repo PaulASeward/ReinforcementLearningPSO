@@ -14,7 +14,7 @@ class MockDiscretePsoGymEnv(gym.Env):
 
     def __init__(self, config):
         self._func_num = config.pso_config.func_num
-        self._num_actions = config.num_actions
+        self._num_actions = rl_env_config.num_actions
         self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
 
         self._max_episodes = config.env_config.num_episodes

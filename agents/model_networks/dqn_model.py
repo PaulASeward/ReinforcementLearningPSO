@@ -16,7 +16,7 @@ class DQNModel(BaseModel):
                 Dense(256, activation="relu"),
                 Dense(128, activation="relu"),
                 Dense(64, activation="relu"),
-                Dense(self.config.num_actions),
+                Dense(self.rl_env_config.num_actions),
             ]
         )
 

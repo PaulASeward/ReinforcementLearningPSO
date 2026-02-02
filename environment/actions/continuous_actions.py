@@ -38,7 +38,7 @@ class ContinuousMultiswarmActions(Action):
     def __call__(self, action):
         # Restructure the flattened action from size(config.num_sub_swarms * 3) to size (config.num_sub_swarms, 3)
         # reshaped_arr = action.reshape(3, 5)
-        reformatted_action = np.array(action).reshape(self.config.pso_config.num_sub_swarms, self.config.subswarm_action_dim)
+        reformatted_action = np.array(action).reshape(self.config.pso_config.num_sub_swarms, self.config.env_config.subswarm_action_dim)
 
         # Action should be a dedicated action for each subswarm
         for i, subswarm_action in enumerate(self.subswarm_actions):

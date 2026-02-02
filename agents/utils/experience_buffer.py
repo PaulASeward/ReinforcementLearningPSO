@@ -219,7 +219,7 @@ class PPOBuffer:
 
     def __init__(self, config):
         self.obs_buf = np.zeros((config.env_config.num_episodes, rl_env_config.observation_length), dtype=np.float32)
-        self.act_buf = np.zeros((config.env_config.num_episodes, config.action_dimensions), dtype=np.float32)
+        self.act_buf = np.zeros((config.env_config.num_episodes, rl_env_config.action_dimensions), dtype=np.float32)
         self.adv_buf = np.zeros(config.env_config.num_episodes, dtype=np.float32)
         self.rew_buf = np.zeros(config.env_config.num_episodes, dtype=np.float32)
         self.ret_buf = np.zeros(config.env_config.num_episodes, dtype=np.float32)

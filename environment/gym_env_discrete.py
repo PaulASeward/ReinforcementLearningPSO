@@ -34,10 +34,10 @@ class DiscretePsoGymEnv(gym.Env):
         else:
             self.swarm = PSOSwarm(objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num), config=config)
             self.actions = DiscreteActions(swarm=self.swarm, config=config)
-            config.num_actions = len(self.actions.action_names)
+            rl_env_config.num_actions = len(self.actions.action_names)
 
-        config.actions_descriptions = self.actions.action_names[:config.num_actions]
-        self.action_space = gym.spaces.Discrete(config.num_actions)
+        config.actions_descriptions = self.actions.action_names[:rl_env_config.num_actions]
+        self.action_space = gym.spaces.Discrete(rl_env_config.num_actions)
         self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
                                                 shape=(self._observation_length,), dtype=np.float32)
 

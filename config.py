@@ -126,7 +126,6 @@ class Config(object):
         self.pso_config = pso_config
         self.env_config = env_config
 
-        self.action_dimensions = None
         self.experiment_config_path = None
         self.action_counts_path = None
         self.continuous_action_history_path = None
@@ -151,17 +150,13 @@ class Config(object):
         self.label_iterations_intervals = None
         self.iteration_intervals = None
         self.iterations = None
-        self.num_actions = None
         self.network_type = None
         self.over_sample_exploration = None
 
     def clone(self):
         return copy.deepcopy(self)
 
-    def update_properties(self, network_type=None, num_actions=None, load_checkpoint=None, action_dimensions=None, train_steps=None, over_sample_exploration=None):
-
-        if num_actions is not None:
-            self.num_actions = num_actions
+    def update_properties(self, network_type=None, load_checkpoint=None, train_steps=None, over_sample_exploration=None):
 
         if load_checkpoint is not None:
             self.load_checkpoint_dir = os.path.join(self.checkpoint_dir, load_checkpoint)
@@ -175,11 +170,8 @@ class Config(object):
             self.iteration_intervals = range(self.eval_interval, train_steps + self.eval_interval, self.eval_interval)
             self.label_iterations_intervals = range(0, train_steps + self.eval_interval, self.train_steps // 20)
 
-        if action_dimensions is not None:
-            self.subswarm_action_dim = action_dimensions
-            self.action_dimensions = action_dimensions * self.pso_config.num_sub_swarms
-
-            self.ou_mu = np.zeros(self.action_dimensions)
+        if self.env_config.action_dimensions is not None:
+            self.ou_mu = np.zeros(self.env_config.action_dimensions)
 
         if over_sample_exploration is not None:
             self.over_sample_exploration = over_sample_exploration

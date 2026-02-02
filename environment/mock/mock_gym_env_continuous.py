@@ -12,7 +12,7 @@ class MockContinuousPsoGymEnv(gym.Env):
 
     def __init__(self, config):
         self._func_num = config.pso_config.func_num
-        self._action_dimensions = config.action_dimensions
+        self._action_dimensions = rl_env_config.action_dimensions
         self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
 
         self._max_episodes = config.env_config.num_episodes
