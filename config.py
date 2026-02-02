@@ -101,8 +101,6 @@ class Config(object):
     critic_layers = (256, 128, 64)
     subswarm_action_dim = None
     state_shape = None
-    action_bound = None
-    action_shift = None
 
     # PPO TRAINING PARAMETERS
     clip_ratio = 0.2
