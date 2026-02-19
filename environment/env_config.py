@@ -49,7 +49,7 @@ class RLEnvConfig(object):
 
         self.num_swarm_obs_intervals = pso_config.num_swarm_obs_intervals
         self.swarm_obs_interval_length = pso_config.swarm_obs_interval_length
-        self.obs_per_episode = self.swarm_obs_interval_length / self.num_swarm_obs_intervals
+        self.obs_per_episode = self.swarm_obs_interval_length * self.num_swarm_obs_intervals
 
         self.num_episodes = num_episodes
         self.trace_length = num_episodes if num_episodes < 20 else 20

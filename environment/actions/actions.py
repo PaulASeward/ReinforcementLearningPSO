@@ -25,6 +25,7 @@ class Action:
     def __init__(self, swarm: PSOSwarm):
         self.swarm = swarm
         self.observation_length = swarm.get_observation().shape[0]
+        x=1
 
     def __call__(self, action):
         raise NotImplementedError

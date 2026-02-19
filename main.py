@@ -63,7 +63,7 @@ if __name__ == "__main__":
     parser.add_argument("--swarm_algorithm", type=str, default="PMSO", help="The metaheuristic swarm algorithm to use. Currently only PSO or PMSO is supported")
     parser.add_argument("--func_num", type=int, default=14, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
     parser.add_argument("--num_subswarms", type=int, default=2, help="The number of sub swarms. Algorithm must be PMSO Default is 5. Other options are 1,2,5,10,25,50 for 50 swarm size.")
-    parser.add_argument("--train", type=bool, default=False, help="Whether to train an agent or to replot an agent's results")
+    parser.add_argument("--train", type=bool, default=True, help="Whether to train an agent or to replot an agent's results")
     parser.add_argument("--test", type=bool, default=False, help="Whether to evaluate an agent from a trained/loaded state")
     parser.add_argument("--num_final_tests", type=int, default=100, help="How many times to evaluate an pretrained agent")
     parser.add_argument("--mock", type=bool, default=False, help="To use a mock data environment for evaluating")
