@@ -3,13 +3,13 @@ from typing import List, Callable
 import numpy as np
 import gymnasium as gym
 
-from config import Config
 from pso.pso_multiswarm import PSOSwarm
 
 
 class Action:
     action_callback: Callable
     action_names: List[str] = []
+    observation_length: int = None
     lower_bound: np.ndarray = None
     upper_bound: np.ndarray = None
     practical_low_limit_action_space = []
@@ -22,9 +22,9 @@ class Action:
     # Maybe? Either Box or Discrete Type
     action_space: gym.spaces.Discrete | gym.spaces.Box = None
 
-    def __init__(self, swarm: PSOSwarm, config: Config):
+    def __init__(self, swarm: PSOSwarm):
         self.swarm = swarm
-        self.config = config
+        self.observation_length = swarm.get_observation().shape[0]
 
     def __call__(self, action):
         raise NotImplementedError

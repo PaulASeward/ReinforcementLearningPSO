@@ -195,8 +195,8 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
             self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.env_config.action_dimensions)
         else:
             self.ou_noise = NormalNoise(config=config, size=config.env_config.action_dimensions)
-        self.lower_bound = config.lower_bound
-        self.upper_bound = config.upper_bound
+        self.lower_bound = config.env_config.actions.lower_bound
+        self.upper_bound = config.env_config.actions.upper_bound
         self.range = self.upper_bound - self.lower_bound
         # self.upper_bound = [1.0] * config.env_config.action_dimensions
 
@@ -222,8 +222,8 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
 
 class NoNoisePolicy(Policy):
     def __init__(self, config):
-        self.lower_bound = config.lower_bound
-        self.upper_bound = config.upper_bound
+        self.lower_bound = config.env_config.actions.lower_bound
+        self.upper_bound = config.env_config.actions.upper_bound
 
     def select_action(self, q_values, **kwargs):
         action = q_values
@@ -237,8 +237,8 @@ class PPOPolicy(Policy):
         self.config = config
         self.actor_network = actor_network
 
-        self.lower_bound = config.lower_bound
-        self.upper_bound = config.upper_bound
+        self.lower_bound = config.env_config.actions.lower_bound
+        self.upper_bound = config.env_config.actions.upper_bound
 
         self.current_epsilon = config.epsilon_start
         self.epsilon_start = config.epsilon_start

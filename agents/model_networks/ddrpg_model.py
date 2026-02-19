@@ -26,8 +26,8 @@ class ActorNetworkModel(BaseModel):
 
         # Output layer
         unscaled_output = Dense(self.config.env_config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)
-        scaling_factor = (self.config.upper_bound - self.config.lower_bound) / 2.0
-        shift_factor = (self.config.upper_bound + self.config.lower_bound) / 2.0
+        scaling_factor = (self.config.env_config.actions.upper_bound - self.config.env_config.actions.lower_bound) / 2.0
+        shift_factor = (self.config.env_config.actions.upper_bound + self.config.env_config.actions.lower_bound) / 2.0
         output = Lambda(lambda x: x * scaling_factor + shift_factor)(unscaled_output)
 
         model = Model(inputs=initial_input, outputs=output)

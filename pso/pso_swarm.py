@@ -3,20 +3,20 @@ import numpy as np
 
 class PSOSwarm:
 
-    def __init__(self, objective_function, config):
+    def __init__(self, objective_function, pso_config):
         self.X = None  # Current Position of particles
         self.V = None  # Current Velocity of particles
         self.P = None  # Best Position of particles
 
         # PSO Parameters
-        self.config = config
-        self.w = config.pso_config.w  # Inertia weight to prevent velocities becoming too large
-        self.c1 = config.pso_config.c1  # Social component Learning Factor
-        self.c2 = config.pso_config.c2  # Cognitive component Learning Factor
+        self.pso_config = pso_config
+        self.w = pso_config.w  # Inertia weight to prevent velocities becoming too large
+        self.c1 = pso_config.c1  # Social component Learning Factor
+        self.c2 = pso_config.c2  # Cognitive component Learning Factor
         self.function = objective_function
-        self.dimension = config.pso_config.pso_dim
-        self.swarm_size = config.pso_config.swarm_size
-        self.rangeF = config.pso_config.rangeF
+        self.dimension = pso_config.pso_dim
+        self.swarm_size = pso_config.swarm_size
+        self.rangeF = pso_config.rangeF
         self.perturb_velocities = False
         self.perturb_velocity_factor = None
         self.velocity_scaling_factor = 1.0
@@ -26,13 +26,13 @@ class PSOSwarm:
         self.perturb_position_particle_selection = None
 
         # Threshold Params
-        self.pbest_replacement_threshold = config.pso_config.replacement_threshold
-        self.distance_threshold = config.pso_config.distance_threshold
-        self.velocity_braking = config.pso_config.velocity_braking
+        self.pbest_replacement_threshold = pso_config.replacement_threshold
+        self.distance_threshold = pso_config.distance_threshold
+        self.velocity_braking = pso_config.velocity_braking
 
         # Observation Parameters
-        self.num_swarm_obs_intervals = config.env_config.num_swarm_obs_intervals
-        self.swarm_obs_interval_length = config.env_config.swarm_obs_interval_length
+        self.num_swarm_obs_intervals = pso_config.num_swarm_obs_intervals
+        self.swarm_obs_interval_length = pso_config.swarm_obs_interval_length
         self.iterations = self.num_swarm_obs_intervals * self.swarm_obs_interval_length
 
         # Set Constraints for clamping position and limiting velocity
@@ -64,13 +64,13 @@ class PSOSwarm:
         self.P_vals = None
 
         # Reset the adjustable parameters to starting values
-        self.w = self.config.pso_config.w
-        self.c1 = self.config.pso_config.c1
-        self.c2 = self.config.pso_config.c2
-        self.pbest_replacement_threshold = self.config.pso_config.replacement_threshold
-        self.distance_threshold = self.config.pso_config.distance_threshold
+        self.w = self.pso_config.w
+        self.c1 = self.pso_config.c1
+        self.c2 = self.pso_config.c2
+        self.pbest_replacement_threshold = self.pso_config.replacement_threshold
+        self.distance_threshold = self.pso_config.distance_threshold
         self.velocity_scaling_factor = 1.0
-        self.velocity_braking = self.config.pso_config.velocity_braking
+        self.velocity_braking = self.pso_config.velocity_braking
         self.abs_max_velocity = self.rangeF
 
         self.initialize_stored_counts()

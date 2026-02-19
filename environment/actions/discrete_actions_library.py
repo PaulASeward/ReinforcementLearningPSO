@@ -261,52 +261,52 @@ def decrease_velocities_of_fast_particles(swarm: PSOSwarm):
 
 def increase_max_velocity(swarm: PSOSwarm):
     swarm.abs_max_velocity *= 1.10
-    swarm.abs_max_velocity = np.clip(swarm.abs_max_velocity, swarm.config.pso_config.v_min,
-                                          swarm.config.pso_config.v_max)
+    swarm.abs_max_velocity = np.clip(swarm.abs_max_velocity, swarm.pso_config.pso_config.v_min,
+                                     swarm.pso_config.pso_config.v_max)
 
 
 def decrease_max_velocity(swarm: PSOSwarm):
     swarm.abs_max_velocity *= 0.90
-    swarm.abs_max_velocity = np.clip(swarm.abs_max_velocity, swarm.config.pso_config.v_min,
-                                          swarm.config.pso_config.v_max)
+    swarm.abs_max_velocity = np.clip(swarm.abs_max_velocity, swarm.pso_config.pso_config.v_min,
+                                     swarm.pso_config.pso_config.v_max)
 
 
 def increase_social_factor(swarm: PSOSwarm):
     swarm.c1 *= 1.10  # Social component
-    swarm.c1 = np.clip(swarm.c1, swarm.config.pso_config.c_min, swarm.config.pso_config.c_max)
+    swarm.c1 = np.clip(swarm.c1, swarm.pso_config.pso_config.c_min, swarm.pso_config.pso_config.c_max)
 
     swarm.c2 *= 0.90  # Cognitive component
-    swarm.c2 = np.clip(swarm.c2, swarm.config.pso_config.c_min, swarm.config.pso_config.c_max)
+    swarm.c2 = np.clip(swarm.c2, swarm.pso_config.pso_config.c_min, swarm.pso_config.pso_config.c_max)
 
 
 def increase_inertia(swarm: PSOSwarm):
     swarm.w *= 1.10
-    swarm.w = np.clip(swarm.w, swarm.config.pso_config.w_min, swarm.config.pso_config.w_max)
+    swarm.w = np.clip(swarm.w, swarm.pso_config.pso_config.w_min, swarm.pso_config.pso_config.w_max)
 
 
 def decrease_inertia(swarm: PSOSwarm):
     swarm.w *= 0.90
-    swarm.w = np.clip(swarm.w, swarm.config.pso_config.w_min, swarm.config.pso_config.w_max)
+    swarm.w = np.clip(swarm.w, swarm.pso_config.pso_config.w_min, swarm.pso_config.pso_config.w_max)
 
 
 def decrease_social_factor(swarm: PSOSwarm):
     swarm.c1 *= 0.90
-    swarm.c1 = np.clip(swarm.c1, swarm.config.pso_config.c_min, swarm.config.pso_config.c_max)
+    swarm.c1 = np.clip(swarm.c1, swarm.pso_config.pso_config.c_min, swarm.pso_config.pso_config.c_max)
 
     swarm.c2 *= 1.10
-    swarm.c2 = np.clip(swarm.c2, swarm.config.pso_config.c_min, swarm.config.pso_config.c_max)
+    swarm.c2 = np.clip(swarm.c2, swarm.pso_config.pso_config.c_min, swarm.pso_config.pso_config.c_max)
 
 
 # Threshold actions to promote exploration vs exploitation
 def decrease_pbest_replacement_threshold(swarm: PSOSwarm):
     swarm.pbest_replacement_threshold *= swarm.pbest_replacement_threshold_decay
     swarm.pbest_replacement_threshold = np.clip(swarm.pbest_replacement_threshold,
-                                                     swarm.config.pso_config.pbest_replacement_threshold_min,
-                                                     swarm.config.pso_config.pbest_replacement_threshold_max)
+                                                swarm.pso_config.pso_config.pbest_replacement_threshold_min,
+                                                swarm.pso_config.pso_config.pbest_replacement_threshold_max)
 
 
 def increase_pbest_replacement_threshold(swarm: PSOSwarm):
     swarm.pbest_replacement_threshold *= 1.10
     swarm.pbest_replacement_threshold = np.clip(swarm.pbest_replacement_threshold,
-                                                     swarm.config.pso_config.pbest_replacement_threshold_min,
-                                                     swarm.config.pso_config.pbest_replacement_threshold_max)
+                                                swarm.pso_config.pso_config.pbest_replacement_threshold_min,
+                                                swarm.pso_config.pso_config.pbest_replacement_threshold_max)

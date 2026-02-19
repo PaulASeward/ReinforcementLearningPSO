@@ -22,14 +22,14 @@ class ParticleDataMetaData:
 
 
 class PSOSubSwarm(PSOSwarm):
-    def __init__(self, objective_function, config, gbest_val, gbest_pos):
+    def __init__(self, objective_function, pso_config, gbest_val, gbest_pos):
         self.gbest_val = gbest_val
         self.gbest_pos = gbest_pos
 
         self.share_information_with_global_swarm = True
         self.sub_swarm_gbest_pos = None
         self.sub_swarm_gbest_val = float('inf')
-        super().__init__(objective_function, config)
+        super().__init__(objective_function, pso_config)
 
 
     def update_gbest(self):
@@ -75,16 +75,16 @@ class PSOSubSwarm(PSOSwarm):
 
 class PSOMultiSwarm(PSOSwarm):
 
-    def __init__(self, objective_function, config):
-        super(PSOSwarm).__init__(objective_function, config)
+    def __init__(self, objective_function, pso_config):
+        super(PSOSwarm).__init__(objective_function, pso_config)
 
         # PSO Parameters
         # clone config to avoid changing the original config
-        self.sub_swarm_config = config.clone()
-        self.sub_swarm_size = config.pso_config.swarm_size // config.pso_config.num_sub_swarms
+        self.sub_swarm_config = pso_config.clone()
+        self.sub_swarm_size = pso_config.swarm_size // pso_config.num_sub_swarms
         self.sub_swarm_config.pso_config.swarm_size = self.sub_swarm_size
         self.sub_swarm_config.pso_config.is_sub_swarm = True
-        self.num_sub_swarms = config.pso_config.num_sub_swarms
+        self.num_sub_swarms = pso_config.num_sub_swarms
         self.subswarms = []
 
         # Initialize the swarm's positions velocities and best solutions
@@ -185,8 +185,8 @@ class PSOMultiSwarm(PSOSwarm):
             self.sub_swarms[sub_swarm_idx].swap_in_particles(incoming_outgoing_dict[IN], incoming_outgoing_dict[OUT])
 
     def optimize(self):
-        for obs_interval_idx in range(self.config.env_config.num_swarm_obs_intervals):
-            for iteration_idx in range(self.config.env_config.swarm_obs_interval_length):
+        for obs_interval_idx in range(self.pso_config.env_config.num_swarm_obs_intervals):
+            for iteration_idx in range(self.pso_config.env_config.swarm_obs_interval_length):
                 for sub_swarm in self.sub_swarms:
                     if sub_swarm.share_information_with_global_swarm:
                         leader = self.gbest_pos

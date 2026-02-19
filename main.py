@@ -1,26 +1,36 @@
 import os
 
+from environment.actions.actions import Action
 from environment.env_config import RLEnvConfig
+from pso.cec_benchmark_functions import CEC_functions
 from pso.pso_config import PSOConfig
 from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
 from agents.ddpg_agent import DDPGAgent
 from agents.ddrpg_agent import DDRPGAgent
 from agents.ppo_agent import PPOAgent
+from actions_builder import build_continuous_action_space
 from config import Config
 import argparse
 
+from pso.pso_multiswarm import PSOMultiSwarm
+from pso.pso_swarm import PSOSwarm
+
+agent_mapping = {
+    "DQN": DQNAgent,
+    "DRQN": DRQNAgent,
+    "DDPG": DDPGAgent,
+    "DDRPG": DDRPGAgent,
+    "PPO": PPOAgent
+}
+
+swarm_mapping = {
+    "PSO": PSOSwarm,
+    "PMSO": PSOMultiSwarm
+}
 
 class Main:
     def __init__(self, config):
-        agent_mapping = {
-            "DQN": DQNAgent,
-            "DRQN": DRQNAgent,
-            "DDPG": DDPGAgent,
-            "DDRPG": DDRPGAgent,
-            "PPO": PPOAgent
-        }
-
         self.agent = agent_mapping.get(config.network_type, DRQNAgent)(config)
 
     def train(self):
@@ -52,9 +62,7 @@ if __name__ == "__main__":
     parser.add_argument("--network_type", type=str, default="DRQN", help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
     parser.add_argument("--swarm_algorithm", type=str, default="PMSO", help="The metaheuristic swarm algorithm to use. Currently only PSO or PMSO is supported")
     parser.add_argument("--func_num", type=int, default=14, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
-    parser.add_argument("--num_subswarms", type=int, default=2, help="The number of sub swarms. Algorithm must be PMSO Default is 5.")
-    parser.add_argument("--num_actions", type=int, default=9, help="The number of actions to choose from in the action space. Default is 5.")
-    parser.add_argument("--action_dimensions", type=int, default=4, help="The number of actions to choose from in the action space. Each subswarm will have this many dimensions.")
+    parser.add_argument("--num_subswarms", type=int, default=2, help="The number of sub swarms. Algorithm must be PMSO Default is 5. Other options are 1,2,5,10,25,50 for 50 swarm size.")
     parser.add_argument("--train", type=bool, default=False, help="Whether to train an agent or to replot an agent's results")
     parser.add_argument("--test", type=bool, default=False, help="Whether to evaluate an agent from a trained/loaded state")
     parser.add_argument("--num_final_tests", type=int, default=100, help="How many times to evaluate an pretrained agent")
@@ -68,7 +76,9 @@ if __name__ == "__main__":
     args, remaining = parser.parse_known_args()
 
     pso_config = PSOConfig(func_num=args.func_num, swarm_algorithm=args.swarm_algorithm, num_subswarms=args.num_subswarms)
-    rl_env_config = RLEnvConfig(action_dimensions=args.action_dimensions, num_actions=args.num_actions, swarm_size=pso_config.swarm_size, num_sub_swarms=pso_config.num_sub_swarms)
+    swarm = swarm_mapping.get(args.swarm_algorithm, PSOSwarm)(objective_function=CEC_functions(dim=pso_config.pso_dim, fun_num=pso_config.func_num), pso_config=pso_config)
+    rl_env_config = RLEnvConfig(swarm=swarm, network_type=args.network_type, pso_config=pso_config)
+
     config = Config(pso_config=pso_config, env_config=rl_env_config, network_type=args.network_type, load_checkpoint=args.load_checkpoint, train_steps=args.steps)
 
 

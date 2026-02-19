@@ -1,9 +1,7 @@
 import os
-import copy
 
 import numpy as np
 
-from environment.actions.actions import Action
 from environment.env_config import RLEnvConfig
 from pso.pso_config import PSOConfig
 
@@ -79,8 +77,6 @@ class Config(object):
     tau = 0.005
     # tau = 0.125
 
-    upper_bound = None
-    lower_bound = None
     actor_learning_rate = 1e-3
     critic_learning_rate = 1e-3
     actor_layers = (256, 128, 64)
@@ -102,10 +98,6 @@ class Config(object):
 
     over_sample_exploration = None
 
-    actions_descriptions = None
-    practical_action_low_limit = None
-    practical_action_high_limit = None
-
     # LEARNING PARAMETERS
     # discount_factor = 0.01
     gamma = 0.99
@@ -125,7 +117,6 @@ class Config(object):
     # EVALUATION PARAMETERS
     # number_evaluations = 10000
 
-    action_space: Action
 
     def __init__(self, pso_config: PSOConfig, env_config: RLEnvConfig, network_type, load_checkpoint=None, train_steps=2000):
         self.pso_config = pso_config
@@ -170,7 +161,3 @@ class Config(object):
         self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
         self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.pso_config.func_num}.csv")
         self.experience_buffer_path = os.path.join(self.results_dir, f"experience_buffer.pkl")
-
-    def clone(self):
-        return copy.deepcopy(self)
-

@@ -1,6 +1,10 @@
 import gymnasium as gym
 
 from environment.actions.actions import Action
+from actions_builder import build_continuous_action_space, build_continuous_multiswarm_action_space, build_discrete_action_space, build_discrete_multi_action_space
+from pso.pso_config import PSOConfig
+from pso.pso_multiswarm import PSOMultiSwarm
+from pso.pso_swarm import PSOSwarm
 
 
 class RLEnvConfig(object):
@@ -8,9 +12,11 @@ class RLEnvConfig(object):
     num_episodes = 20
     trace_length = 20
 
-    num_swarm_obs_intervals = 10
-    swarm_obs_interval_length = 30
-    obs_per_episode = swarm_obs_interval_length / num_swarm_obs_intervals
+    num_swarm_obs_intervals = None
+    swarm_obs_interval_length = None
+    obs_per_episode = None
+
+    actions: Action = None
 
     # Defines environment specific config such as action and observation space.
     observation_length = None
@@ -18,20 +24,26 @@ class RLEnvConfig(object):
 
     num_actions = None
     action_dimensions = None
-    subswarm_action_dim = None
 
-    # Maybe?
-    action_space: gym.spaces.Box = None
-    observation_space: gym.spaces.Box = None
+    def __init__(self, swarm: PSOSwarm, network_type, pso_config: PSOConfig, num_episodes=20):
+        if network_type in ("DQN", "DRQN") and isinstance(swarm, PSOMultiSwarm):
+            self.actions = build_discrete_multi_action_space(swarm)
+        elif network_type in ("DQN", "DRQN") and isinstance(swarm, PSOSwarm):
+            self.actions = build_discrete_action_space(swarm)
+        elif network_type in ("DDPG", "DDRPG", "PPO") and isinstance(swarm, PSOMultiSwarm):
+            self.actions = build_continuous_multiswarm_action_space(swarm)
+        elif network_type in ("DDPG", "DDRPG", "PPO") and isinstance(swarm, PSOSwarm):
+            self.actions = build_continuous_action_space(swarm)
 
-    def __init__(self, action_space: Action, num_actions, swarm_size, num_sub_swarms, action_dimensions=None, num_episodes=20):
-        # TODO: Make this dynamic to the action/observation space
-        num_sub_swarms = num_sub_swarms if num_sub_swarms is not None else 1
-        self.observation_length = swarm_size * 3 + (1 * num_sub_swarms) + (1 * num_sub_swarms)
+        self.observation_length = self.actions.observation_length
 
-        self.num_actions = num_actions
-        self.subswarm_action_dim = action_dimensions
-        self.action_dimensions = action_dimensions * num_sub_swarms
+        self.num_actions = len(self.actions.action_names)
+        self.action_dimensions = self.num_actions
+
+        self.num_swarm_obs_intervals = pso_config.num_swarm_obs_intervals
+        self.swarm_obs_interval_length = pso_config.swarm_obs_interval_length
+        self.obs_per_episode = self.swarm_obs_interval_length / self.num_swarm_obs_intervals
 
         self.num_episodes = num_episodes
         self.trace_length = num_episodes if num_episodes < 20 else 20
+

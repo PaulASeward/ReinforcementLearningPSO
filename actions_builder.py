@@ -1,4 +1,3 @@
-from config import Config
 from environment.actions.continuous_actions import ContinuousActions, ContinuousMultiswarmActions
 from environment.actions.actions import Action
 from environment.actions.discrete_actions import DiscreteActions, DiscreteMultiswarmActions
@@ -10,7 +9,7 @@ from environment.actions.discrete_actions_library import reset_slow_particles, r
 from pso.cec_benchmark_functions import CEC_functions
 
 
-def build_discrete_action_space(config: Config) -> Action:
+def build_discrete_action_space(swarm: PSOSwarm) -> Action:
     action_names = [
         'Reset slow particles',
         'Reset all particles with preserved information',
@@ -86,20 +85,16 @@ def build_discrete_action_space(config: Config) -> Action:
     #     7: self.reset_particles_velocity_to_zero_reset_position,
     #     8: self.reset_fast_velocity_to_zero_reset_position,
     # }
-    swarm = PSOSwarm(
-        objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num),
-        config=config)
 
     reset_action_space = DiscreteActions(
         swarm=swarm,
-        config=config,
         action_names=action_names,
         action_methods=action_methods,
     )
     return reset_action_space
 
 
-def build_discrete_multi_action_space(config: Config) -> Action:
+def build_discrete_multi_action_space(swarm: PSOMultiSwarm) -> Action:
     action_names = [
         'Reset slow particles',
         'Reset all particles with preserved information',
@@ -114,15 +109,11 @@ def build_discrete_multi_action_space(config: Config) -> Action:
             3: reshare_information_with_global_swarm
         }
 
-    swarm = PSOMultiSwarm(
-        objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num),
-        config=config)
-
-    multi_reset_action_space = DiscreteMultiswarmActions(swarm=swarm, config=config, action_names=action_names, action_methods=action_methods)
+    multi_reset_action_space = DiscreteMultiswarmActions(swarm=swarm, action_names=action_names, action_methods=action_methods)
     return multi_reset_action_space
 
 
-def build_continuous_action_space(config: Config) -> Action:
+def build_continuous_action_space(swarm: PSOSwarm) -> Action:
     # action_names = ['PBest Distance Threshold', 'Velocity Braking Factor']
     # action_names = ['Inertia', 'Social', 'Cognitive']
     action_names = ['Velocity Scaling Factor']
@@ -136,18 +127,14 @@ def build_continuous_action_space(config: Config) -> Action:
         # self.swarm.pbest_replacement_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
         # self.swarm.distance_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
         # self.swarm.velocity_braking = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
-        # self.swarm.distance_threshold = np.clip(actions[0], 0, self.config.distance_threshold_max)
+        # self.swarm.distance_threshold = np.clip(actions[0], 0, self.swarm.pso_config.distance_threshold_max)
         # self.swarm.velocity_scaling_factor = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
         #
         # if actions[0] > 0.50:
         #     self.reset_all_particles_keep_global_best()
 
-
-    swarm = PSOSwarm(objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num), config=config)
-
     velocity_action_space = ContinuousActions(
         swarm=swarm,
-        config=config,
         action_callback=action_callback,
         action_names=action_names,
         practical_action_low_limit=[10],
@@ -160,26 +147,24 @@ def build_continuous_action_space(config: Config) -> Action:
     # velocity_action_space.actual_high_limit_action_space = [190]
     # velocity_action_space.actual_low_limit_action_space = [0.75]
     # velocity_action_space.actual_high_limit_action_space = [1.25]
-    # velocity_action_space.actual_low_limit_action_space = [config.replacement_threshold_min]
-    # velocity_action_space.actual_high_limit_action_space = [config.replacement_threshold_max]
+    # velocity_action_space.actual_low_limit_action_space = [swarm.pso_config.replacement_threshold_min]
+    # velocity_action_space.actual_high_limit_action_space = [swarm.pso_config.replacement_threshold_max]
 
-    # velocity_action_space.actual_low_limit_action_space = [config.w_min, config.c_min, config.c_min]
-    # velocity_action_space.actual_high_limit_action_space = [config.w_max, config.c_max, config.c_max]
-    # velocity_action_space.practical_action_low_limit = [config.w_min, config.c_min, config.c_min]
-    # velocity_action_space.practical_action_high_limit = [config.w_max, config.c_max, config.c_max]
+    # velocity_action_space.actual_low_limit_action_space = [swarm.pso_config.w_min, swarm.pso_config.c_min, swarm.pso_config.c_min]
+    # velocity_action_space.actual_high_limit_action_space = [swarm.pso_config.w_max, swarm.pso_config.c_max, swarm.pso_config.c_max]
+    # velocity_action_space.practical_action_low_limit = [swarm.pso_config.w_min, swarm.pso_config.c_min, swarm.pso_config.c_min]
+    # velocity_action_space.practical_action_high_limit = [swarm.pso_config.w_max, swarm.pso_config.c_max, swarm.pso_config.c_max]
 
-    # velocity_action_space.practical_action_low_limit = [0, self.config.velocity_braking_min]
-    # velocity_action_space.practical_action_high_limit = [self.config.distance_threshold_max, self.config.velocity_braking_max]
+    # velocity_action_space.practical_action_low_limit = [0, self.swarm.pso_config.velocity_braking_min]
+    # velocity_action_space.practical_action_high_limit = [self.swarm.pso_config.distance_threshold_max, self.swarm.pso_config.velocity_braking_max]
     #
-    # velocity_action_space.actual_low_limit_action_space = [self.config.distance_threshold_min, self.config.velocity_braking_min]
-    # velocity_action_space.actual_high_limit_action_space = [self.config.distance_threshold_max, self.config.velocity_braking_max]
+    # velocity_action_space.actual_low_limit_action_space = [self.swarm.pso_config.distance_threshold_min, self.swarm.pso_config.velocity_braking_min]
+    # velocity_action_space.actual_high_limit_action_space = [self.swarm.pso_config.distance_threshold_max, self.swarm.pso_config.velocity_braking_max]
 
     return velocity_action_space
 
 
-def build_continuous_multiswarm_action_space(config: Config) -> Action:
-    swarm = PSOMultiSwarm(objective_function=CEC_functions(dim=config.pso_config.pso_dim, fun_num=config.pso_config.func_num), config=config)
-
+def build_continuous_multiswarm_action_space(swarm: PSOMultiSwarm) -> Action:
     action_names = ['Velocity Scaling Factor']
 
     def action_callback(actions, swarm: PSOSwarm, practical_action_low_limit, practical_action_high_limit):
@@ -187,7 +172,6 @@ def build_continuous_multiswarm_action_space(config: Config) -> Action:
 
     velocity_action_space = ContinuousMultiswarmActions(
         swarm=swarm,
-        config=config,
         action_callback=action_callback,
         action_names=action_names,
         practical_action_low_limit=[10],

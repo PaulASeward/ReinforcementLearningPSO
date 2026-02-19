@@ -1,3 +1,4 @@
+import copy
 
 class PSOConfig(object):
     # PSO Config:
@@ -22,6 +23,9 @@ class PSOConfig(object):
     rangeF = 100
     # v_min = 59.049
     # v_max = 161.051
+
+    num_swarm_obs_intervals = 10
+    swarm_obs_interval_length = 30
 
     v_min = 50
     v_max = 150
@@ -62,3 +66,6 @@ class PSOConfig(object):
             else:
                 self.num_sub_swarms = 1
 
+
+    def clone(self):
+        return copy.deepcopy(self)

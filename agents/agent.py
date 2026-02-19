@@ -36,16 +36,16 @@ class BaseAgent:
 
         if self.config.use_discrete_env:
             if self.config.use_mock_data:
-                self.env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config)
+                self.env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config, actions=self.config.env_config.actions)
             else:
-                self.env = gym.make("DiscretePsoGymEnv-v0", config=self.config)
+                self.env = gym.make("DiscretePsoGymEnv-v0", config=self.config, actions=self.config.env_config.actions)
 
             return self.env
 
         if self.config.use_mock_data:
-            self.env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config)
+            self.env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config, actions=self.config.env_config.actions)
         else:
-            self.env = gym.make("ContinuousPsoGymEnv-v0", config=self.config)
+            self.env = gym.make("ContinuousPsoGymEnv-v0", config=self.config, actions=self.config.env_config.actions)
 
         self.config.state_shape = self.env.observation_space.shape
 
@@ -84,11 +84,9 @@ class BaseAgent:
 
     def get_actions(self):
         print(f"num_actions: {self.config.env_config.num_actions}")
-
-        for index, description in enumerate(self.config.actions_descriptions):
-            if index + 1 <= self.config.env_config.num_actions:
-                action_no = str(index + 1)
-                print(f"Action #{action_no} Description: {description}")
+        for index, description in enumerate(self.config.env_config.actions.action_names):
+            action_no = str(index + 1)
+            print(f"Action #{action_no} Description: {description}")
 
     def initialize_current_state(self):
         self.policy.reset()
