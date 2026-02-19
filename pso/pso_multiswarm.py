@@ -76,19 +76,17 @@ class PSOSubSwarm(PSOSwarm):
 class PSOMultiSwarm(PSOSwarm):
 
     def __init__(self, objective_function, pso_config):
-        super(PSOSwarm).__init__(objective_function, pso_config)
-
         # PSO Parameters
         # clone config to avoid changing the original config
         self.sub_swarm_config = pso_config.clone()
         self.sub_swarm_size = pso_config.swarm_size // pso_config.num_sub_swarms
-        self.sub_swarm_config.pso_config.swarm_size = self.sub_swarm_size
-        self.sub_swarm_config.pso_config.is_sub_swarm = True
+        self.sub_swarm_config.swarm_size = self.sub_swarm_size
+        self.sub_swarm_config.is_sub_swarm = True
         self.num_sub_swarms = pso_config.num_sub_swarms
         self.subswarms = []
 
         # Initialize the swarm's positions velocities and best solutions
-        self._initialize()
+        super(PSOMultiSwarm, self).__init__(objective_function, pso_config)
 
     def reinitialize(self):
         for sub_swarm in self.sub_swarms:

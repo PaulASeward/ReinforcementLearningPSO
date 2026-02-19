@@ -7,7 +7,6 @@ from pso.pso_config import PSOConfig
 
 
 class Config(object):
-    use_discrete_env = None
     use_mock_data = False
     use_priority_replay = False
     reward_function = "fitness_reward"
@@ -124,11 +123,6 @@ class Config(object):
 
         if env_config.action_dimensions is not None:
             self.ou_mu = np.zeros(self.env_config.action_dimensions)
-
-        if network_type in ["DQN", "DRQN"]:
-            self.use_discrete_env = True
-        else:
-            self.use_discrete_env = False
 
         if load_checkpoint is not None:
             self.load_checkpoint_dir = os.path.join(self.checkpoint_dir, load_checkpoint)

@@ -22,19 +22,15 @@ class BaseAgent:
         self.is_in_exploration_state = True
 
         self.env = None
+        self.actions = config.env_config.actions
 
         self.build_environment()
         if config.policy == "ExponentialDecayGreedyEpsilon":
             self.policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.env_config.num_actions)
             self.test_policy = GreedyPolicy()
 
-    def build_action_space(self):
-        raise NotImplementedError
-
     def build_environment(self):
-        self.build_action_space()
-
-        if self.config.use_discrete_env:
+        if self.config.env_config.use_discrete_env:
             if self.config.use_mock_data:
                 self.env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config, actions=self.config.env_config.actions)
             else:

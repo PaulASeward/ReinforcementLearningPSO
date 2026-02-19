@@ -8,7 +8,7 @@ from environment.actions.actions import Action
 
 class DiscreteMultiswarmActions(Action):
     def __init__(self, swarm: PSOMultiSwarm, action_names: List[str], action_methods: Dict[int, Callable]):
-        super(Action, self).__init__(swarm)
+        super(DiscreteMultiswarmActions, self).__init__(swarm)
 
         self.subswarm_actions = [DiscreteActions(sub_swarm, action_names, action_methods) for sub_swarm in swarm.sub_swarms]
         self.action_names = ['Do Nothing'] + [
@@ -30,10 +30,18 @@ class DiscreteMultiswarmActions(Action):
         # Call the respective subswarm action
         self.subswarm_actions[subswarm_index](action_index)
 
+    def get_action_space(self):
+        return gym.spaces.Discrete(len(self.action_names))
+
+    def get_observation_space(self):
+        low_limits_obs_space = np.zeros(self.observation_length)
+        high_limits_obs_space = np.full(self.observation_length, np.inf)
+        return gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
+                               shape=(self.observation_length,), dtype=np.float32)
 
 class DiscreteActions(Action):
     def __init__(self, swarm, action_names: List[str], action_methods: Dict[int, Callable]):
-        super(Action, self).__init__(swarm)
+        super(DiscreteActions, self).__init__(swarm)
         self.action_names = action_names
         self.action_methods = action_methods
 
@@ -47,7 +55,7 @@ class DiscreteActions(Action):
         return gym.spaces.Discrete(len(self.action_names))
 
     def get_observation_space(self):
-        low_limits_obs_space = np.zeros(self.observation_length)  # 150-dimensional array with all elements set to 0
+        low_limits_obs_space = np.zeros(self.observation_length)
         high_limits_obs_space = np.full(self.observation_length, np.inf)
 
         return gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,

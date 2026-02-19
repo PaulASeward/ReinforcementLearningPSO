@@ -32,9 +32,6 @@ class DDPGAgent(BaseAgent):
         self.update_model_target_weights(tau=1.0)
         self.replay_buffer = PriorityReplayBuffer(config=config) if config.use_priority_replay else StandardReplayBuffer(config=config)
 
-    def build_action_space(self):
-        self.config.env_config.actions = build_continuous_action_space(self.config)
-
     def get_q_values(self, state):
         return self.actor_network.get_action_q_values(state)
 
