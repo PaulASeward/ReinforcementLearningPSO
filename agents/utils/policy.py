@@ -2,6 +2,7 @@
 
 import numpy as np
 from agents.utils.noise import OrnsteinUhlenbeckActionNoise, NormalNoise
+from config import Config
 
 
 class Policy:
@@ -34,9 +35,10 @@ class UniformRandomPolicy(Policy):
     """
     Chooses a discrete action with uniform random probability.
     """
-    def __init__(self, num_actions):
-        assert num_actions >= 1
-        self.num_actions = num_actions
+    def __init__(self, config: Config):
+        self.num_actions = config.env_config.num_actions
+
+        assert self.num_actions >= 1
 
     def select_action(self, **kwargs):
         return np.random.randint(0, self.num_actions)
@@ -64,9 +66,9 @@ class GreedyEpsilonPolicy(Policy):
     ----------
     epsilon: float  Initial probability of choosing a random action. Can be changed over time.
     """
-    def __init__(self, epsilon, num_actions):
-        self.epsilon = epsilon
-        self.num_actions = num_actions
+    def __init__(self, config: Config):
+        self.epsilon = config.epsilon_end
+        self.num_actions = config.env_config.num_actions
 
     def select_action(self, q_values, **kwargs):
         """Run Greedy-Epsilon for the given Q-values.
@@ -99,12 +101,13 @@ class LinearDecayGreedyEpsilonPolicy(Policy):
 
     """
 
-    def __init__(self, epsilon_start, epsilon_end, num_steps, num_actions):
-        self.epsilon_start = epsilon_start
-        self.epsilon_end = epsilon_end
-        self.num_actions = num_actions
+    def __init__(self, config: Config):
+        self.epsilon_start = config.epsilon_start
+        self.epsilon_end = config.epsilon_end
+        self.num_actions = config.env_config.num_actions
+        self.total_steps = config.train_steps
 
-        self.decay_rate = float(epsilon_end - epsilon_start) / num_steps
+        self.decay_rate = float(self.epsilon_start - self.epsilon_end) / self.total_steps
         self.step = 0
 
     def select_action(self, q_values, **kwargs):
@@ -149,14 +152,14 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
 
         """
 
-    def __init__(self, epsilon_start, epsilon_end, num_steps, num_actions):
-        self.current_epsilon = epsilon_start
-        self.epsilon_start = epsilon_start
-        self.epsilon_end = epsilon_end
-        self.num_actions = num_actions
-        self.total_steps = num_steps
+    def __init__(self, config: Config):
+        self.current_epsilon = config.epsilon_start
+        self.epsilon_start = config.epsilon_start
+        self.epsilon_end = config.epsilon_end
+        self.num_actions = config.env_config.num_actions
+        self.total_steps = config.train_steps
 
-        self.decay_rate = 1/4 * float(epsilon_start - epsilon_end) / num_steps
+        self.decay_rate = 1/4 * float(self.epsilon_start - self.epsilon_end) / self.total_steps
         self.step = 0
 
     def select_action(self, q_values, **kwargs):
@@ -190,7 +193,7 @@ class ExponentialDecayGreedyEpsilonPolicy(Policy):
 
 
 class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
-    def __init__(self, config):
+    def __init__(self, config: Config):
         if config.use_ou_noise:
             self.ou_noise = OrnsteinUhlenbeckActionNoise(config=config, size=config.env_config.action_dimensions)
         else:
@@ -221,7 +224,7 @@ class OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling(Policy):
 
 
 class NoNoisePolicy(Policy):
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.lower_bound = config.env_config.lower_bound
         self.upper_bound = config.env_config.upper_bound
 
@@ -233,7 +236,7 @@ class NoNoisePolicy(Policy):
 
 
 class PPOPolicy(Policy):
-    def __init__(self, config, actor_network):
+    def __init__(self, config: Config, actor_network):
         self.config = config
         self.actor_network = actor_network
 

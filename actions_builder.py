@@ -1,11 +1,25 @@
 from environment.actions.continuous_actions import ContinuousActions, ContinuousMultiswarmActions
 from environment.actions.actions import Action
 from environment.actions.discrete_actions import DiscreteActions, DiscreteMultiswarmActions
+from environment.env_config import RLEnvConfig
 from pso.pso_swarm import PSOSwarm
 from pso.pso_multiswarm import PSOMultiSwarm
 import numpy as np
 
 from environment.actions.discrete_actions_library import reset_slow_particles, reset_all_particles_keep_global_best, reset_all_particles_without_memory_sharing, reshare_information_with_global_swarm
+
+
+def build_actions(swarm: PSOSwarm, env_config: RLEnvConfig) -> Action:
+    if env_config.use_discrete_env and isinstance(swarm, PSOMultiSwarm):
+        return build_discrete_multi_action_space(num_sub_swarms=swarm.num_sub_swarms)
+    elif env_config.use_discrete_env:
+        return build_discrete_action_space()
+    elif not env_config.use_discrete_env and isinstance(swarm, PSOMultiSwarm):
+        return build_continuous_multiswarm_action_space(num_sub_swarms=swarm.num_sub_swarms)
+    elif not env_config.use_discrete_env:
+        return build_continuous_action_space()
+    else:
+        raise ValueError()
 
 
 def build_discrete_action_space() -> Action:

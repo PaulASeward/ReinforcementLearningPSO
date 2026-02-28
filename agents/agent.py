@@ -1,10 +1,21 @@
 import tensorflow as tf
-import gymnasium as gym
 import os
 from datetime import datetime
-from environment.gym_env_discrete import DiscretePsoGymEnv
-from agents.utils.policy import ExponentialDecayGreedyEpsilonPolicy, GreedyPolicy
+from agents.utils.policy import policy_mapping
 import numpy as np
+
+from agents.dqn_agent import DQNAgent
+from agents.drqn_agent import DRQNAgent
+from agents.ddpg_agent import DDPGAgent
+from agents.ddrpg_agent import DDRPGAgent
+
+agent_mapping = {
+    "DQN": DQNAgent,
+    "DRQN": DRQNAgent,
+    "DDPG": DDPGAgent,
+    "DDRPG": DDRPGAgent,
+    # "PPO": PPOAgent
+}
 
 
 class BaseAgent:
@@ -12,8 +23,6 @@ class BaseAgent:
         self.replay_buffer = None
         self.target_model = None
         self.model = None
-        self.train_policy = None
-        self.test_policy = None
         self.config = config
         self.log_dir = os.path.join(config.log_dir, config.experiment, datetime.now().strftime("%Y%m%d-%H%M%S"))
         self.writer = tf.summary.create_file_writer(self.log_dir)
@@ -22,13 +31,10 @@ class BaseAgent:
         self.is_in_exploration_state = True
 
         self.env = env
-
-        # TODO: THis could be derived from config, not the actual env
         self.config.env_config.state_shape = env.observation_space.shape  # Add to constructor and remove this derived state
 
-        if config.train_policy == "ExponentialDecayGreedyEpsilon":
-            self.train_policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.env_config.num_actions)
-            self.test_policy = GreedyPolicy()
+        self.train_policy = policy_mapping[config.train_policy](config)
+        self.test_policy = policy_mapping[config.test_policy](config)
 
     def get_q_values(self, state):
         return self.model.get_action_q_values(state)

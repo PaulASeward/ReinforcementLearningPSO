@@ -15,7 +15,7 @@ def plot_standard_results(config):
 
 
 def plot_discrete_actions(config):
-    if config.pso_config.swarm_algorithm == "PMSO":
+    if config.pso_config.swarm_algorithm == "multi-swarm":
         plot_actions_over_iteration_intervals_for_multiple_swarms(config.interval_actions_counts_path, config.fitness_path,
                                               'Iteration Intervals', 'Action Count',
                                               'Action Distribution Over Iteration Intervals',
@@ -52,7 +52,7 @@ def plot_continuous_actions(config):
     plot_data_over_iterations(config.critic_loss_file, 'Average Critic Loss', 'Iteration', config.log_interval)
 
 
-    if config.pso_config.swarm_algorithm == "PMSO":
+    if config.pso_config.swarm_algorithm == "multi-swarm":
         plot_average_continuous_actions_for_multiple_swarms(config.continuous_action_history_path,
                                                             config.action_values_path,
                                                             standard_pso_values_path=config.pso_config.standard_pso_path,

@@ -65,7 +65,7 @@ class PSOConfig(object):
         self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{func_num}.csv")
 
         if num_subswarms is not None:
-            if self.swarm_algorithm == "PMSO":
+            if self.swarm_algorithm == "multi-swarm":
                 self.num_sub_swarms = num_subswarms
             else:
                 self.num_sub_swarms = 1

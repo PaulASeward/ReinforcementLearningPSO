@@ -42,7 +42,8 @@ class Config(object):
     load_checkpoint_dir = None
 
     # EPSILON GREEDY PARAMETERS
-    train_policy = "ExponentialDecayGreedyEpsilon"
+    train_policy = "exponential_decay_greedy_epsilon"
+    test_policy = "greedy"
     epsilon_start = 1.0
     epsilon_end = 0.01
 

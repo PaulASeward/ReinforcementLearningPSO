@@ -1,4 +1,5 @@
 import numpy as np
+from pso.pso_multiswarm import PSOMultiSwarm
 
 
 class PSOSwarm:
@@ -302,7 +303,10 @@ class PSOSwarm:
         self.decay_parameters(obs_interval, iteration_idx)
 
 
-
+swarm_mapping = {
+    "single-swarm": PSOSwarm,
+    "multi-swarm": PSOMultiSwarm
+}
 
 
 

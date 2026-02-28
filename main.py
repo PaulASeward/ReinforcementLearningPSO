@@ -1,51 +1,23 @@
-from environment.actions.actions import Action
 import gymnasium as gym
 from environment.env_config import RLEnvConfig
 from pso.cec_benchmark_functions import CEC_functions
 from pso.pso_config import PSOConfig
-from pso.pso_multiswarm import PSOMultiSwarm
-from pso.pso_swarm import PSOSwarm
-from agents.dqn_agent import DQNAgent
+from pso.pso_swarm import PSOSwarm, swarm_mapping
+from agents.agent import agent_mapping
 from agents.drqn_agent import DRQNAgent
-from agents.ddpg_agent import DDPGAgent
-from agents.ddrpg_agent import DDRPGAgent
-from actions_builder import build_continuous_action_space, build_continuous_multiswarm_action_space, build_discrete_action_space, build_discrete_multi_action_space
+
+from actions_builder import build_actions
 from config import Config
 import argparse
 
-agent_mapping = {
-    "DQN": DQNAgent,
-    "DRQN": DRQNAgent,
-    "DDPG": DDPGAgent,
-    "DDRPG": DDRPGAgent,
-    # "PPO": PPOAgent
-}
-
-swarm_mapping = {
-    "PSO": PSOSwarm,
-    "PMSO": PSOMultiSwarm
-}
-
-
-def build_actions(swarm: PSOSwarm, env_config: RLEnvConfig) -> Action:  # TODO: Remove Swarm from being stored in Actions to being passed through action()
-    if env_config.use_discrete_env and isinstance(swarm, PSOMultiSwarm):
-        return build_discrete_multi_action_space(num_sub_swarms=swarm.num_sub_swarms)
-    elif env_config.use_discrete_env:
-        return build_discrete_action_space()
-    elif not env_config.use_discrete_env and isinstance(swarm, PSOMultiSwarm):
-        return build_continuous_multiswarm_action_space(num_sub_swarms=swarm.num_sub_swarms)
-    elif not env_config.use_discrete_env:
-        return build_continuous_action_space()
-    else:
-        raise ValueError()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run DQN Agent on PSO Algorithm")
     parser.add_argument("--network_type", type=str, default="DRQN", help="Type of the network to build, can either be 'DQN', 'DDPG',  or 'DRQN'")
-    parser.add_argument("--swarm_algorithm", type=str, default="PMSO", help="The metaheuristic swarm algorithm to use. Currently only PSO or PMSO is supported")
+    parser.add_argument("--swarm_algorithm", type=str, default="multi-swarm", help="The metaheuristic swarm algorithm to use. Currently only single-swarm or multi-swarm is supported")
     parser.add_argument("--func_num", type=int, default=14, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
-    parser.add_argument("--num_subswarms", type=int, default=2, help="The number of sub swarms. Algorithm must be PMSO Default is 5. Other options are 1,2,5,10,25,50 for 50 swarm size.")
+    parser.add_argument("--num_subswarms", type=int, default=2, help="The number of sub swarms. Default is 5. Other options are 1,2,5,10,25,50 for 50 swarm size.")
     parser.add_argument("--train", type=bool, default=True, help="Whether to train an agent")
     parser.add_argument("--test", type=bool, default=False, help="Whether to evaluate an agent from a trained/loaded state")
     parser.add_argument("--plot", type=bool, default=True, help="Whether to plot an agent's new/existing results")
@@ -75,10 +47,10 @@ if __name__ == "__main__":
     config.save_buffer = args.save_buffer
     config.over_sample_exploration = args.over_sample_exploration
 
-    assert args.swarm_algorithm in ["PSO", "PMSO"], "Please specify a swarm_algorithm of either PSO or PMSO"
+    assert args.swarm_algorithm in ["single-swarm", "multi-swarm"], "Please specify a swarm_algorithm of either PSO or PMSO"
     assert args.network_type in ["DQN", "DRQN", "DDPG", "DDRPG", "PPO"], "Please specify a network_type of either DQN, DRQN, or DDPG"
     assert args.func_num in list(range(1, 29)), "Please specify a func_num from 1-28"
-    if args.swarm_algorithm == "PMSO":
+    if args.swarm_algorithm == "multi-swarm":
         assert args.num_subswarms in [1,2,5,10,25,50], "Please specify a num_subswarms from 1,2,5,10,25,50"
 
     assert pso_config.pso_dim in [2, 5, 10, 20, 20, 30, 40, 50, 60, 70, 80, 90, 100], "Please specify a dim from 2,5,10,20,30,40,50,60,70,80,90,100"
