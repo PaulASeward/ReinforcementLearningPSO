@@ -7,9 +7,8 @@ from pso.pso_config import PSOConfig
 from pso.pso_swarm import PSOSwarm
 
 
-class ContinuousPsoGymEnv(gym.Env):
-    """Continuous environment."""
-
+class PsoGymEnv(gym.Env):
+    """ PSO Agent environment."""
     # reward_range = (-float("inf"), float("inf"))
 
     def __init__(
