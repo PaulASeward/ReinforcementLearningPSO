@@ -42,7 +42,6 @@ class MockContinuousPsoGymEnv(gym.Env):
         self._best_fitness = None
         self.current_best_f = None
 
-
     def _get_obs(self):
         # return self.swarm.get_observation()
         return np.random.rand(self._observation_length)

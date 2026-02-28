@@ -1,4 +1,3 @@
-import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Model
 from keras.layers import Input, Dense, LSTM, BatchNormalization, Lambda, Concatenate, Attention, LayerNormalization

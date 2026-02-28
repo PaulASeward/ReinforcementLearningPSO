@@ -1,11 +1,7 @@
-from typing import Dict, Optional, Tuple
-
 import gymnasium as gym
 import numpy as np
 
 from environment.env_config import RLEnvConfig
-from pso.cec_benchmark_functions import CEC_functions
-from environment.actions.discrete_actions import DiscreteActions
 from pso.pso_config import PSOConfig
 from pso.pso_swarm import PSOSwarm
 from environment.actions.actions import Action

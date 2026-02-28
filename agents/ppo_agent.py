@@ -2,10 +2,6 @@ from agents.agent import BaseAgent
 import numpy as np
 import tensorflow as tf
 
-from environment.gym_env_continuous import ContinuousPsoGymEnv
-from tf_agents.environments import tf_py_environment
-
-import gymnasium as gym
 from agents.utils.experience_buffer import PPOBuffer
 from agents.model_networks.ppo_model import ActorNetworkModel, CriticNetworkModel
 from utils.logging_utils import ContinuousActionsResultsLogger as ResultsLogger

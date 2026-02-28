@@ -1,4 +1,3 @@
-import os
 from environment.actions.actions import Action
 import gymnasium as gym
 from environment.env_config import RLEnvConfig

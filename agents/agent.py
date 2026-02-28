@@ -30,24 +30,6 @@ class BaseAgent:
             self.train_policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.env_config.num_actions)
             self.test_policy = GreedyPolicy()
 
-    # def build_environment(self):
-    #     if self.config.env_config.use_discrete_env:
-    #         if self.config.pso_config.use_mock_data:
-    #             self.env = gym.make("MockDiscretePsoGymEnv-v0", pso_config=self.config.pso_config, env_config=self.config.env_config, actions=self.config.env_config.actions)
-    #         else:
-    #             self.env = gym.make("DiscretePsoGymEnv-v0",  pso_config=self.config.pso_config, env_config=self.config.env_config, actions=self.config.env_config.actions)
-    #
-    #         return self.env
-    #
-    #     if self.config.pso_config.use_mock_data:
-    #         self.env = gym.make("MockContinuousPsoGymEnv-v0",  pso_config=self.config.pso_config, env_config=self.config.env_config, actions=self.config.env_config.actions)
-    #     else:
-    #         self.env = gym.make("ContinuousPsoGymEnv-v0",  pso_config=self.config.pso_config, env_config=self.config.env_config, actions=self.config.env_config.actions)
-    #
-    #     self.config.state_shape = self.env.observation_space.shape
-    #
-    #     return self.env
-
     def get_q_values(self, state):
         return self.model.get_action_q_values(state)
 

@@ -2,7 +2,6 @@ import copy
 import os
 
 class PSOConfig(object):
-    # PSO Config:
     is_sub_swarm = False
     use_mock_data = False
 

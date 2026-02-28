@@ -1,5 +1,4 @@
 from agents.agent import BaseAgent
-import numpy as np
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
 from agents.model_networks.dqn_model import DQNModel
 from utils.logging_utils import DiscreteActionsResultsLogger as ResultsLogger

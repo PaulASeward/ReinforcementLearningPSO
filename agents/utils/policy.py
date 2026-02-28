@@ -262,3 +262,13 @@ class PPOPolicy(Policy):
         return action
 
 
+policy_mapping = {
+    'uniform_random': UniformRandomPolicy,
+    'greedy': GreedyPolicy,
+    'greedy_epsilon': GreedyEpsilonPolicy,
+    'linear_decay_greedy_epsilon': LinearDecayGreedyEpsilonPolicy,
+    'exponential_decay_greedy_epsilon': ExponentialDecayGreedyEpsilonPolicy,
+    'ou_noise_with_decay_scaling': OrnsteinUhlenbeckActionNoisePolicyWithDecayScaling,
+    'no_noise': NoNoisePolicy,
+    'ppo_policy': PPOPolicy
+}

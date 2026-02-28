@@ -2,13 +2,6 @@ from agents.agent import BaseAgent
 import numpy as np
 import tensorflow as tf
 
-from environment.gym_env_continuous import ContinuousPsoGymEnv
-from tf_agents.environments import tf_py_environment
-
-import gymnasium as gym
-
-from actions_builder import build_continuous_action_space
-
 from agents.utils.experience_buffer import ExperienceBufferStandard as StandardReplayBuffer
 from agents.utils.experience_buffer import ExperienceBufferPriority as PriorityReplayBuffer
 from agents.model_networks.ddpg_model import ActorNetworkModel, CriticNetworkModel
