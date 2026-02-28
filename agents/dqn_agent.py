@@ -6,8 +6,8 @@ from utils.logging_utils import DiscreteActionsResultsLogger as ResultsLogger
 
 
 class DQNAgent(BaseAgent):
-    def __init__(self, config):
-        super(DQNAgent, self).__init__(config)
+    def __init__(self, config, env):
+        super(DQNAgent, self).__init__(config, env)
         self.results_logger = ResultsLogger(config)
 
         self.model = DQNModel(config)

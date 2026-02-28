@@ -2,8 +2,11 @@ from typing import Dict, Optional, Tuple
 
 import gymnasium as gym
 import numpy as np
+
+from environment.env_config import RLEnvConfig
 from pso.cec_benchmark_functions import CEC_functions
 from environment.actions.discrete_actions import DiscreteActions
+from pso.pso_config import PSOConfig
 from pso.pso_swarm import PSOSwarm
 from environment.actions.actions import Action
 
@@ -13,24 +16,31 @@ class MockDiscretePsoGymEnv(gym.Env):
 
     # reward_range = (-float("inf"), float("inf"))
 
-    def __init__(self, config, actions: Action):
-        self._func_num = config.pso_config.func_num
-        self._num_actions = config.env_config.num_actions
-        self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
+    def __init__(
+            self,
+            pso_config: PSOConfig,
+            env_config: RLEnvConfig,
+            actions: Action,
+            swarm: PSOSwarm
+    ):
+        self._func_num = pso_config.func_num
+        self._num_actions = env_config.num_actions
+        self._minimum = pso_config.fDeltas[pso_config.func_num - 1]
 
-        self._max_episodes = config.env_config.num_episodes
-        self._num_swarm_obs_intervals = config.env_config.num_swarm_obs_intervals
-        self._swarm_obs_interval_length = config.env_config.swarm_obs_interval_length
-        self._obs_per_episode = config.env_config.obs_per_episode
-        self._swarm_size = config.pso_config.swarm_size
-        self._dim = config.pso_config.pso_dim
+        self._max_episodes = env_config.num_episodes
+        self._swarm_size = pso_config.swarm_size
+        self._dim = pso_config.pso_dim
 
-        self.swarm = actions.swarm
+        self.swarm = swarm
         self.actions = actions
         self.action_space = actions.get_action_space()
-        self.observation_space = actions.get_observation_space()
+        self._observation_length = env_config.observation_length
 
-        self._observation_length = config.env_config.observation_length
+        # Does the dtype need to be specified here like continuous env?
+        low_limits_obs_space = np.zeros(self._observation_length)
+        high_limits_obs_space = np.full(self._observation_length, np.inf)
+        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
+                                                shape=(self._observation_length,), dtype=np.float32)
 
         self._actions_count = 0
         self._episode_ended = False
@@ -46,17 +56,6 @@ class MockDiscretePsoGymEnv(gym.Env):
     def _get_reward(self):
         reward = np.random.rand() - 0.5  # Random reward between -0.5 and 0.5
         self._best_fitness = np.random.rand() * 100 + 400
-
-        # self.current_best_f = self.swarm.get_current_best_fitness()
-        #
-        # if self._best_fitness is None:
-        #     reward = self._minimum - self.current_best_f
-        #     self._best_fitness = self.current_best_f
-        # else:
-        #     reward = max(self._best_fitness - self.current_best_f, 0)  # no penalty in reward
-        #     # reward = self._minimum - self.current_best_f
-        #     self._best_fitness = min(self._best_fitness, self.current_best_f)
-
         return reward
 
     def _get_done(self):
@@ -90,10 +89,6 @@ class MockDiscretePsoGymEnv(gym.Env):
         if self._actions_count == self._max_episodes:
             self._episode_ended = True
 
-        # # Implementation of the action
-        # self.actions(action)
-        # self.swarm.optimize()
-        #
         observation = self._get_obs()
         reward = self._get_reward()
         # truncated = False

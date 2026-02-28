@@ -1,27 +1,25 @@
 import os
-
 from environment.actions.actions import Action
+import gymnasium as gym
 from environment.env_config import RLEnvConfig
 from pso.cec_benchmark_functions import CEC_functions
 from pso.pso_config import PSOConfig
+from pso.pso_multiswarm import PSOMultiSwarm
+from pso.pso_swarm import PSOSwarm
 from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
 from agents.ddpg_agent import DDPGAgent
 from agents.ddrpg_agent import DDRPGAgent
-from agents.ppo_agent import PPOAgent
-from actions_builder import build_continuous_action_space
+from actions_builder import build_continuous_action_space, build_continuous_multiswarm_action_space, build_discrete_action_space, build_discrete_multi_action_space
 from config import Config
 import argparse
-
-from pso.pso_multiswarm import PSOMultiSwarm
-from pso.pso_swarm import PSOSwarm
 
 agent_mapping = {
     "DQN": DQNAgent,
     "DRQN": DRQNAgent,
     "DDPG": DDPGAgent,
     "DDRPG": DDRPGAgent,
-    "PPO": PPOAgent
+    # "PPO": PPOAgent
 }
 
 swarm_mapping = {
@@ -29,32 +27,18 @@ swarm_mapping = {
     "PMSO": PSOMultiSwarm
 }
 
-class Main:
-    def __init__(self, config):
-        self.agent = agent_mapping.get(config.network_type, DRQNAgent)(config)
 
-    def train(self):
-        if config.load_checkpoint_dir is not None:
-            print("Loading models and buffer from checkpoint: ", config.load_checkpoint_dir)
-            step_to_resume = int(config.load_checkpoint.split("_")[-1])
-            self.agent.load_from_checkpoint(step_to_resume)
-
-        self.agent.get_actions()
-        self.agent.train()
-        self.plot()
-
-    def plot(self):
-        self.agent.results_logger.plot_results()
-
-    def test(self):
-        if config.load_checkpoint_dir is not None:
-            print("Loading models from checkpoint: ", config.load_checkpoint_dir)
-            self.agent.load_models()
-        else:
-            if not config.train:
-                raise ValueError("An agent must either be trained or loaded to test. Please specify a checkpoint to load, or train an agent first.")
-
-        self.agent.test(step=self.agent.config.train_steps, number_of_tests=self.agent.config.num_final_tests)
+def build_actions(swarm: PSOSwarm, env_config: RLEnvConfig) -> Action:  # TODO: Remove Swarm from being stored in Actions to being passed through action()
+    if env_config.use_discrete_env and isinstance(swarm, PSOMultiSwarm):
+        return build_discrete_multi_action_space(num_sub_swarms=swarm.num_sub_swarms)
+    elif env_config.use_discrete_env:
+        return build_discrete_action_space()
+    elif not env_config.use_discrete_env and isinstance(swarm, PSOMultiSwarm):
+        return build_continuous_multiswarm_action_space(num_sub_swarms=swarm.num_sub_swarms)
+    elif not env_config.use_discrete_env:
+        return build_continuous_action_space()
+    else:
+        raise ValueError()
 
 
 if __name__ == "__main__":
@@ -63,8 +47,9 @@ if __name__ == "__main__":
     parser.add_argument("--swarm_algorithm", type=str, default="PMSO", help="The metaheuristic swarm algorithm to use. Currently only PSO or PMSO is supported")
     parser.add_argument("--func_num", type=int, default=14, help="The function number to optimize. Good functions to evaluate are 6,10,11,14,19")
     parser.add_argument("--num_subswarms", type=int, default=2, help="The number of sub swarms. Algorithm must be PMSO Default is 5. Other options are 1,2,5,10,25,50 for 50 swarm size.")
-    parser.add_argument("--train", type=bool, default=True, help="Whether to train an agent or to replot an agent's results")
+    parser.add_argument("--train", type=bool, default=True, help="Whether to train an agent")
     parser.add_argument("--test", type=bool, default=False, help="Whether to evaluate an agent from a trained/loaded state")
+    parser.add_argument("--plot", type=bool, default=True, help="Whether to plot an agent's new/existing results")
     parser.add_argument("--num_final_tests", type=int, default=100, help="How many times to evaluate an pretrained agent")
     parser.add_argument("--mock", type=bool, default=False, help="To use a mock data environment for evaluating")
     parser.add_argument("--priority_replay", type=bool, default=False, help="To use a priority replay buffer for training")
@@ -75,17 +60,17 @@ if __name__ == "__main__":
     parser.add_argument("--load_checkpoint", type=str, default=None, help="Load checkpoint to previously saved models. (e.g., 'step_100') Algorithms with two models will load both ")
     args, remaining = parser.parse_known_args()
 
-    pso_config = PSOConfig(func_num=args.func_num, swarm_algorithm=args.swarm_algorithm, num_subswarms=args.num_subswarms)
+    pso_config = PSOConfig(func_num=args.func_num, swarm_algorithm=args.swarm_algorithm, num_subswarms=args.num_subswarms, use_mock_data=args.mock)
     swarm = swarm_mapping.get(args.swarm_algorithm, PSOSwarm)(objective_function=CEC_functions(dim=pso_config.pso_dim, fun_num=pso_config.func_num), pso_config=pso_config)
-    rl_env_config = RLEnvConfig(swarm=swarm, network_type=args.network_type, pso_config=pso_config)
+    swarm_observation = swarm.get_observation()
 
+    rl_env_config = RLEnvConfig(network_type=args.network_type, pso_config=pso_config, swarm_observation_length=swarm_observation.shape[0])
     config = Config(pso_config=pso_config, env_config=rl_env_config, network_type=args.network_type, load_checkpoint=args.load_checkpoint, train_steps=args.steps)
 
-
+    config.plot = args.plot
     config.train = args.train
     config.test = args.test
     config.num_final_tests = args.num_final_tests
-    config.use_mock_data = args.mock
     config.use_priority_replay = args.priority_replay
     config.save_models = args.save_models
     config.save_buffer = args.save_buffer
@@ -105,7 +90,13 @@ if __name__ == "__main__":
     print("==== Remaining (Unknown) Args:")
     print(remaining)
 
-    main = Main(config)
+    actions = build_actions(swarm=swarm, env_config=rl_env_config)
+    rl_env_config.set_action_configs(actions)
+
+    env = gym.make(rl_env_config.env_name, pso_config=pso_config, env_config=rl_env_config, actions=actions, swarm=swarm)
+
+    agent = agent_mapping.get(config.network_type, DRQNAgent)(config, env)
+    agent.print_actions()
 
     if config.train:
         print(">> Training mode. Number of Steps to Train:", config.train_steps)
@@ -114,20 +105,36 @@ if __name__ == "__main__":
         print(">> Number of Episodes per Iteration:", config.env_config.num_episodes)
 
         func_eval_budget = pso_config.pso_dim * 10000
-        max_func_eval = pso_config.swarm_size * config.env_config.num_episodes * rl_env_config.obs_per_episode
+        max_func_eval = pso_config.swarm_size * rl_env_config.num_episodes * rl_env_config.obs_per_episode
         print(f"=== Function Evaluation Budget: {pso_config.pso_dim} dimensions x 10 000/dim = {func_eval_budget} Function Evaluations")
-        print(f"=== Observations Per Episode: {rl_env_config.num_swarm_obs_intervals} Number of Swarm Observation Intervals per Episode x {rl_env_config.swarm_obs_interval_length} Number of Observations in each Interval  = {rl_env_config.obs_per_episode}  Observations per Episode")
-        print(f"=== Function Evaluation Allocation: {pso_config.swarm_size} Swarm Size (# Particles) x {config.env_config.num_episodes} Episodes x {rl_env_config.obs_per_episode} Observations per Episode  = {max_func_eval} Function Evaluations")
+        print(f"=== Observations Per Episode: {pso_config.num_swarm_obs_intervals} Number of Swarm Observation Intervals per Episode x {pso_config.swarm_obs_interval_length} Number of Observations in each Interval  = {rl_env_config.obs_per_episode}  Observations per Episode")
+        print(f"=== Function Evaluation Allocation: {pso_config.swarm_size} Swarm Size (# Particles) x {rl_env_config.num_episodes} Episodes x {rl_env_config.obs_per_episode} Observations per Episode  = {max_func_eval} Function Evaluations")
         print()
 
         if func_eval_budget != max_func_eval:
             raise ValueError("Maximum Function Evaluation budget does not match total allocations of function evaluations.")
 
-        main.train()
-    else:
+        if config.load_checkpoint_dir is not None:
+            print("Loading models from checkpoint: ", config.load_checkpoint_dir)
+            step_to_resume = int(config.load_checkpoint.split("_")[-1])
+            agent.load_from_checkpoint(step_to_resume)
+
+        agent.train()
+        if config.plot:
+            agent.plot()
+
+    elif not config.train and config.plot:
         print("Re-Making Plots. Data will be reloaded from the results directory, ", config.results_dir, ", and re-plotted.")
-        main.plot()
+        agent.plot()
 
     if config.test:
         print(">> Testing mode. Number of Episodes to test: ", config.test_episodes, ". Will save test output to: ", config.test_step_results_path, "at the step, ", config.train_steps)
-        main.test()
+
+        if config.load_checkpoint_dir is None and not config.train:
+            raise ValueError("An agent must either be trained or loaded to test. Please specify a checkpoint to load, or train an agent first.")
+
+        if config.load_checkpoint_dir is not None:
+            print("Loading models from checkpoint: ", config.load_checkpoint_dir)
+            agent.load_models()
+
+        agent.test(step=agent.config.train_steps, number_of_tests=agent.config.num_final_tests)

@@ -14,8 +14,8 @@ from agents.utils.policy import PPOPolicy, NoNoisePolicy
 # Currently Deprecated and Has Bugs
 
 class PPOAgent(BaseAgent):
-    def __init__(self, config):
-        super(PPOAgent, self).__init__(config)
+    def __init__(self, config, env):
+        super(PPOAgent, self).__init__(config, env)
         self.results_logger = ResultsLogger(config)
 
         self.actor_network = ActorNetworkModel(config)

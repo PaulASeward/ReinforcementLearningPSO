@@ -183,8 +183,8 @@ class PSOMultiSwarm(PSOSwarm):
             self.sub_swarms[sub_swarm_idx].swap_in_particles(incoming_outgoing_dict[IN], incoming_outgoing_dict[OUT])
 
     def optimize(self):
-        for obs_interval_idx in range(self.pso_config.env_config.num_swarm_obs_intervals):
-            for iteration_idx in range(self.pso_config.env_config.swarm_obs_interval_length):
+        for obs_interval_idx in range(self.pso_config.num_swarm_obs_intervals):
+            for iteration_idx in range(self.pso_config.swarm_obs_interval_length):
                 for sub_swarm in self.sub_swarms:
                     if sub_swarm.share_information_with_global_swarm:
                         leader = self.gbest_pos

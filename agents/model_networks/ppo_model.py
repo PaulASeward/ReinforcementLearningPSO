@@ -35,7 +35,7 @@ class ActorNetworkModel(BaseModel):
         super(ActorNetworkModel, self).__init__(config, "actor")
 
     def nn_model(self):
-        initial_input = Input(shape=self.config.state_shape, dtype=tf.float32)
+        initial_input = Input(shape=self.config.env_config.state_shape, dtype=tf.float32)
 
         if self.config.use_attention_layer:
             attention_output = Attention(use_scale=True)([initial_input, initial_input])
@@ -49,8 +49,8 @@ class ActorNetworkModel(BaseModel):
             # x = BatchNormalization()(x)
 
         unscaled_output = Dense(self.config.env_config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)
-        scaling_factor = (self.config.env_config.actions.upper_bound - self.config.env_config.actions.lower_bound) / 2.0
-        shift_factor = (self.config.env_config.actions.upper_bound + self.config.env_config.actions.lower_bound) / 2.0
+        scaling_factor = (self.config.env_config.upper_bound - self.config.env_config.lower_bound) / 2.0
+        shift_factor = (self.config.env_config.upper_bound + self.config.env_config.lower_bound) / 2.0
         output = Lambda(lambda x: x * scaling_factor + shift_factor)(unscaled_output)
 
         # For continuous actions, output a mean plus log_std
@@ -119,7 +119,7 @@ class CriticNetworkModel(BaseModel):
         super(CriticNetworkModel, self).__init__(config, "critic")
 
     def nn_model(self):
-        initial_input = Input(shape=self.config.state_shape, dtype=tf.float32)
+        initial_input = Input(shape=self.config.env_config.state_shape, dtype=tf.float32)
 
         if self.config.use_attention_layer:
             attention_output = Attention(use_scale=True)([initial_input, initial_input])

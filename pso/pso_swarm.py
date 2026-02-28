@@ -149,7 +149,6 @@ class PSOSwarm:
         relative_fitnesses_norm = np.tanh(self.relative_fitnesses)
         pbest_counts_norm = self.average_pbest_replacement_counts / self.swarm_obs_interval_length
 
-
         obs_stack = np.column_stack([
             velocity_magnitudes_norm,
             relative_fitnesses_norm,
@@ -162,7 +161,7 @@ class PSOSwarm:
         # Add in the current replacement threshold
         # obs = np.append(obs, self.pbest_replacement_threshold)
         # obs = np.append(obs, self.distance_threshold)
-        # obs = np.append(obs, self.velocity_braking)distance_threshold
+        # obs = np.append(obs, self.velocity_braking)
 
         # # # Compute diversity as average distance to centroid
         swarm_centroid = np.mean(self.X, axis=0)

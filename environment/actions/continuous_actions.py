@@ -1,9 +1,9 @@
-from typing import List, Callable
+from typing import List, Callable, Optional
 import gymnasium as gym
 
 import numpy as np
 
-from pso.pso_multiswarm import PSOSubSwarm, PSOMultiSwarm
+from pso.pso_multiswarm import PSOMultiSwarm
 from environment.actions.actions import Action
 from pso.pso_swarm import PSOSwarm
 
@@ -11,120 +11,97 @@ from pso.pso_swarm import PSOSwarm
 class ContinuousMultiswarmActions(Action):
     def __init__(
             self,
-            swarm: PSOMultiSwarm,
+            num_sub_swarms: int,
             action_callback: Callable,
             action_names: List[str],
-            practical_action_high_limit: List[float],
-            practical_action_low_limit: List[float],
-            actual_action_high_limit: List[float],
-            actual_action_low_limit: List[float],
+            upper_bound: List[float],
+            lower_bound: List[float],
+            practical_action_high_limit: Optional[List[float]] = None,
+            practical_action_low_limit: Optional[List[float]] = None,
     ):
-        super(ContinuousMultiswarmActions, self).__init__(swarm)
-        self.num_sub_swarms = len(swarm.sub_swarms)
+        self.action_callback = action_callback
+        self.num_sub_swarms = num_sub_swarms
         self.subswarm_action_dim = len(action_names)
-
-        self.subswarm_actions = [
-            ContinuousActions(sub_swarm, action_callback, action_names, practical_action_high_limit,
-                              practical_action_low_limit, actual_action_high_limit, actual_action_low_limit) for
-            sub_swarm in swarm.sub_swarms]
+        self.single_swarm_practical_action_high_limit = practical_action_high_limit
+        self.single_swarm_practical_action_low_limit = practical_action_low_limit
 
         self.action_names = [
             f"SubSwarm {i + 1} {action_name}"
-            for i, subswarm in enumerate(self.subswarm_actions)
-            for action_name in subswarm.action_names
+            for i in range(self.num_sub_swarms)
+            for action_name in action_names
         ]
+
+        if practical_action_high_limit is None:
+            practical_action_high_limit = upper_bound
+        if practical_action_low_limit is None:
+            practical_action_low_limit = lower_bound
 
         self.practical_action_high_limit = [
             limit
-            for subswarm in self.subswarm_actions
-            for limit in subswarm.practical_action_high_limit
+            for _ in range(self.num_sub_swarms)
+            for limit in practical_action_high_limit
         ]
         self.practical_action_low_limit = [
             limit
-            for subswarm in self.subswarm_actions
-            for limit in subswarm.practical_action_low_limit
+            for _ in range(self.num_sub_swarms)
+            for limit in practical_action_low_limit
         ]
 
         self.lower_bound = np.array([
-            subswarm.actual_low_limit_action_space
-            for subswarm in self.subswarm_actions
+            lower_bound
+            for _ in range(self.num_sub_swarms)
         ], dtype=np.float32).flatten()
 
         self.upper_bound = np.array([
-            subswarm.actual_high_limit_action_space
-            for subswarm in self.subswarm_actions
+            upper_bound
+            for _ in range(self.num_sub_swarms)
         ], dtype=np.float32).flatten()
 
-    def __call__(self, action):
-        # Restructure the flattened action from size(config.num_sub_swarms * 3) to size (config.num_sub_swarms, 3)
+    def __call__(self, action, swarm: PSOMultiSwarm):
+        # Ex.) Restructures the flattened action from size(config.num_sub_swarms * 3) to size (config.num_sub_swarms, 3)
         # reshaped_arr = action.reshape(3, 5)
         reformatted_action = np.array(action).reshape(self.num_sub_swarms, self.subswarm_action_dim)
 
         # Action should be a dedicated action for each subswarm
-        for i, subswarm_action in enumerate(self.subswarm_actions):
-            subswarm_action(reformatted_action[i])
+        for i, subswarm in enumerate(swarm.sub_swarms):
+            self.action_callback(reformatted_action[i], subswarm, self.single_swarm_practical_action_high_limit, self.single_swarm_practical_action_low_limit)
 
     def get_action_space(self):
         return gym.spaces.Box(low=self.lower_bound, high=self.upper_bound,
                               shape=(len(self.action_names),), dtype=np.float32)
-
-    def get_observation_space(self):
-        low_limits_obs_space = np.zeros(self.observation_length,
-                                        dtype=np.float32)
-        high_limits_obs_space = np.full(self.observation_length, np.inf, dtype=np.float32)
-
-        return gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
-                              shape=(self.observation_length,), dtype=np.float32)
 
 
 class ContinuousActions(Action):
     def __init__(
             self,
-            swarm: PSOSwarm,
             action_callback: Callable,
             action_names: List[str],
-            practical_action_high_limit: List[float],
-            practical_action_low_limit: List[float],
-            actual_action_high_limit: List[float],
-            actual_action_low_limit: List[float]
+            upper_bound: List[float],
+            lower_bound: List[float],
+            # We may want to have a practical limit for the action space that is different from the actual limit of the action space.
+            # For example, the action space may allow for a wide range of values, but in practice, we may want to limit the actions
+            # to a smaller range to ensure stable learning.
+            practical_action_high_limit: Optional[List[float]] = None,
+            practical_action_low_limit: Optional[List[float]] = None,
     ):
-        super(ContinuousActions, self).__init__(swarm)
         self.action_names = action_names
         self.action_callback = action_callback
+
+        if practical_action_high_limit is None:
+            practical_action_high_limit = upper_bound
+        if practical_action_low_limit is None:
+            practical_action_low_limit = lower_bound
+
         self.practical_action_high_limit = practical_action_high_limit
         self.practical_action_low_limit = practical_action_low_limit
-        self.actual_action_high_limit = actual_action_high_limit
-        self.actual_action_low_limit = actual_action_low_limit
 
-        self.lower_bound = np.array(self.actual_low_limit_action_space, dtype=np.float32)
-        self.upper_bound = np.array(self.actual_high_limit_action_space, dtype=np.float32)
+        self.lower_bound = np.array(lower_bound, dtype=np.float32)
+        self.upper_bound = np.array(upper_bound, dtype=np.float32)
 
-
-    def __call__(self, action):
+    def __call__(self, action, swarm: PSOSwarm):
         actions = np.array(action)
-        self.action_callback(actions, self.practical_action_high_limit, self.practical_action_low_limit)
-
-    def reset_all_particles_keep_global_best(self):
-        old_gbest_pos = self.swarm.P[np.argmin(self.swarm.P_vals)]
-        old_gbest_val = np.min(self.swarm.P_vals)
-
-        self.swarm.reinitialize()
-        if type(self.swarm) == PSOSubSwarm:
-            self.swarm.share_information_with_global_swarm = True
-
-        # Keep Previous Solution before resetting.
-        if old_gbest_val < self.swarm.gbest_val:
-            self.swarm.gbest_pos = old_gbest_pos
-            self.swarm.gbest_val = old_gbest_val
+        self.action_callback(actions, swarm, self.practical_action_high_limit, self.practical_action_low_limit)
 
     def get_action_space(self):
         return gym.spaces.Box(low=self.lower_bound, high=self.upper_bound,
                               shape=(len(self.action_names),), dtype=np.float32)
-
-    def get_observation_space(self):
-        low_limits_obs_space = np.zeros(self.observation_length,
-                                        dtype=np.float32)
-        high_limits_obs_space = np.full(self.observation_length, np.inf, dtype=np.float32)
-
-        return gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
-                              shape=(self.observation_length,), dtype=np.float32)

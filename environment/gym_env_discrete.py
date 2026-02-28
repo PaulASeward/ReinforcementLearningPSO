@@ -2,6 +2,9 @@ import gymnasium as gym
 import numpy as np
 
 from environment.actions.actions import Action
+from environment.env_config import RLEnvConfig
+from pso.pso_config import PSOConfig
+from pso.pso_swarm import PSOSwarm
 
 
 class DiscretePsoGymEnv(gym.Env):
@@ -9,22 +12,37 @@ class DiscretePsoGymEnv(gym.Env):
 
     # reward_range = (-float("inf"), float("inf"))
 
-    def __init__(self, config, actions: Action):
-        self._func_num = config.pso_config.func_num
-        self._minimum = config.pso_config.fDeltas[config.pso_config.func_num - 1]
-        self._max_episodes = config.env_config.num_episodes
-        self._standard_pso_values_path = config.standard_pso_path
+    def __init__(
+            self,
+            pso_config: PSOConfig,
+            env_config: RLEnvConfig,
+            actions: Action,
+            swarm: PSOSwarm
+    ):
+        self._func_num = pso_config.func_num
+        self._minimum = pso_config.fDeltas[pso_config.func_num - 1]
+        self._max_episodes = env_config.num_episodes
+        self._standard_pso_values_path = pso_config.standard_pso_path
 
-        self._best_standard_pso = config.pso_config.best_f_standard_pso[config.pso_config.func_num - 1]
-        self._pso_variance = config.pso_config.standard_deviations[config.pso_config.func_num - 1] ** 2
-        self._avg_swarm_improvement = config.pso_config.swarm_improvement_pso[config.pso_config.func_num - 1]
+        self._best_standard_pso = pso_config.best_f_standard_pso[pso_config.func_num - 1]
+        self._pso_variance = pso_config.standard_deviations[pso_config.func_num - 1] ** 2
+        self._avg_swarm_improvement = pso_config.swarm_improvement_pso[pso_config.func_num - 1]
         self._avg_standard_pso_increase = self._avg_swarm_improvement / self._max_episodes
-        self._penalty_for_negative_reward = config.penalty_for_negative_reward
+        self._penalty_for_negative_reward = env_config.penalty_for_negative_reward
+        self._append_last_action_to_observation = env_config.append_last_action_to_observation
+        self._append_episode_completion_percentage_to_observation = env_config.append_episode_completion_percentage_to_observation
 
-        self.swarm = actions.swarm
+        self.swarm = swarm
         self.actions = actions
         self.action_space = actions.get_action_space()
-        self.observation_space = actions.get_observation_space()
+
+        self._observation_length = env_config.observation_length
+
+        # Does the dtype need to be specified here like continuous env?
+        low_limits_obs_space = np.zeros(self._observation_length)
+        high_limits_obs_space = np.full(self._observation_length, np.inf)
+        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
+                                                shape=(self._observation_length,), dtype=np.float32)
 
         self._actions_count = 0
         self._current_episode_percent = 0
@@ -46,7 +64,7 @@ class DiscretePsoGymEnv(gym.Env):
             "normalized_total_difference_reward": self.normalized_total_difference_reward,
             "smoothed_total_difference_reward": self.smoothed_total_difference_reward,
         }
-        self.reward_function = config.reward_function
+        self.reward_function = "fitness_reward"  # Default reward function
 
     def simple_reward(self, difference):
         if difference > 0:
@@ -108,9 +126,13 @@ class DiscretePsoGymEnv(gym.Env):
 
     def _get_obs(self):
         # return self.swarm.get_observation()
-        swarm_observation = self.swarm.get_observation()
-        observation = np.append(swarm_observation, self._current_episode_percent)
-        observation = np.append(observation, self.last_action)
+        observation = self.swarm.get_observation()
+
+        if self._append_episode_completion_percentage_to_observation:
+            observation = np.append(observation, self._current_episode_percent)
+
+        if self._append_last_action_to_observation:
+            observation = np.append(observation, self.last_action)
 
         return observation.astype(np.float32)
 
@@ -194,7 +216,8 @@ class DiscretePsoGymEnv(gym.Env):
             self._episode_ended = True
 
         # Implementation of the action
-        self.actions(action)
+        self.actions(action, self.swarm)
+
         self.swarm.optimize()
         if not isinstance(action, int):
             action = action.item()

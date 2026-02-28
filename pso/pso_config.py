@@ -1,8 +1,10 @@
 import copy
+import os
 
 class PSOConfig(object):
     # PSO Config:
     is_sub_swarm = False
+    use_mock_data = False
 
     w = 0.729844  # Inertia weight
     c1 = 2.05 * w  # Social component Learning Factor
@@ -53,19 +55,21 @@ class PSOConfig(object):
     best_f_standard_pso = [0,0,0,0,0,-26,-112,-21,-26,0,-85,-120,-200,-2279,-4080,-1,-104,-130,-5,-12,-305,-2513,-4594,-276,0,0,0,0]
     swarm_improvement_pso = [0,0,0,0,2,31,20,1,0,18,2,10,20,118,1300,1,43,141,4,1,1,237,1075,1,0,0,0,0]
     standard_deviations = [0.00e+00, 7.82e+05, 7.06e+07, 4.55e+03, 0.00e+00, 4.34e+00, 1.74e+01, 5.51e-2, 1.95e+00, 5.53e-2, 1.51e+01, 1.72e+01, 2.21e+01, 3.80e+02, 6.25e+02, 3.51e-1, 1.55e+01, 2.68e+01, 1.30e+00, 5.12e-1, 5.30e+01, 5.15e+02, 7.06e+02, 5.64e+00, 7.12e+00, 4.61e+01, 7.43e+01, 2.82e-13]
+    standard_pso_results_dir = "pso/standard_pso_results"
 
-    def __init__(self, func_num, swarm_algorithm, num_subswarms=None, swarm_size=50, pso_dim=30):
+    def __init__(self, func_num, swarm_algorithm, num_subswarms=None, use_mock_data=False, swarm_size=50, pso_dim=30):
         self.func_num = func_num
         self.pso_dim = pso_dim
         self.swarm_size = swarm_size
         self.swarm_algorithm = swarm_algorithm
+        self.use_mock_data = use_mock_data
+        self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{func_num}.csv")
 
         if num_subswarms is not None:
             if self.swarm_algorithm == "PMSO":
                 self.num_sub_swarms = num_subswarms
             else:
                 self.num_sub_swarms = 1
-
 
     def clone(self):
         return copy.deepcopy(self)

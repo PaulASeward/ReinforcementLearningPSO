@@ -7,8 +7,8 @@ from utils.logging_utils import DiscreteActionsResultsLogger as ResultsLogger
 
 
 class DRQNAgent(BaseAgent):
-    def __init__(self, config):
-        super(DRQNAgent, self).__init__(config)
+    def __init__(self, config, env):
+        super(DRQNAgent, self).__init__(config, env)
         self.results_logger = ResultsLogger(config)
         self.episode_states = np.zeros([self.config.env_config.trace_length, self.config.env_config.observation_length])
         self.model = DRQNModel(config)

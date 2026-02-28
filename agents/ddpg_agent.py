@@ -17,8 +17,8 @@ from agents.utils.policy import OrnsteinUhlenbeckActionNoisePolicyWithDecayScali
 
 
 class DDPGAgent(BaseAgent):
-    def __init__(self, config):
-        super(DDPGAgent, self).__init__(config)
+    def __init__(self, config, env):
+        super(DDPGAgent, self).__init__(config, env)
         self.results_logger = ResultsLogger(config)
 
         self.actor_network = ActorNetworkModel(config)
@@ -39,16 +39,18 @@ class DDPGAgent(BaseAgent):
         if tau is None:
             tau = self.config.tau
 
-        if not self.config.use_mock_data:
-            # Get the weights of the actor and critic networks
-            theta_a, theta_c, theta_a_targ, theta_c_targ = self.actor_network.model.get_weights(), self.critic_network.model.get_weights(), self.actor_network_target.model.get_weights(), self.critic_network_target.model.get_weights()
+        if self.config.pso_config.use_mock_data:
+            return False
 
-            # mixing factor tau : we gradually shift the weights...
-            theta_a_targ = [theta_a[i] * tau + theta_a_targ[i] * (1 - tau) for i in range(len(theta_a))]
-            theta_c_targ = [theta_c[i] * tau + theta_c_targ[i] * (1 - tau) for i in range(len(theta_c))]
+        # Get the weights of the actor and critic networks
+        theta_a, theta_c, theta_a_targ, theta_c_targ = self.actor_network.model.get_weights(), self.critic_network.model.get_weights(), self.actor_network_target.model.get_weights(), self.critic_network_target.model.get_weights()
 
-            self.actor_network_target.model.set_weights(theta_a_targ)
-            self.critic_network_target.model.set_weights(theta_c_targ)
+        # mixing factor tau : we gradually shift the weights...
+        theta_a_targ = [theta_a[i] * tau + theta_a_targ[i] * (1 - tau) for i in range(len(theta_a))]
+        theta_c_targ = [theta_c[i] * tau + theta_c_targ[i] * (1 - tau) for i in range(len(theta_c))]
+
+        self.actor_network_target.model.set_weights(theta_a_targ)
+        self.critic_network_target.model.set_weights(theta_c_targ)
 
         return False
 
@@ -60,7 +62,7 @@ class DDPGAgent(BaseAgent):
         actor_losses = []
         critic_losses = []
         total_losses = []
-        if not self.config.use_mock_data:
+        if not self.config.pso_config.use_mock_data:
             for _ in range(self.config.replay_experience_length):
                 ISWeights = 1.0
                 tree_idx = None

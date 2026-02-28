@@ -21,14 +21,14 @@ def plot_discrete_actions(config):
                                               'Action Distribution Over Iteration Intervals',
                                               config.iteration_intervals,
                                               config.label_iterations_intervals,
-                                              config.env_config.actions.action_names, num_subswarms=config.pso_config.num_sub_swarms)
+                                              config.env_config.action_names, num_subswarms=config.pso_config.num_sub_swarms)
         plot_actions_with_values_over_iteration_intervals_for_multiple_swarms(config.action_counts_path,
                                                                               config.action_values_path,
-                                                                              standard_pso_values_path=config.standard_pso_path,
+                                                                              standard_pso_values_path=config.pso_config.standard_pso_path,
                                                                               function_min_value=config.pso_config.fDeltas[
                                                                                   config.pso_config.func_num - 1],
                                                                               num_actions=config.env_config.num_actions,
-                                                                              action_names=config.env_config.actions.action_names,
+                                                                              action_names=config.env_config.action_names,
                                                                               num_subswarms=config.pso_config.num_sub_swarms)
     else:
         plot_actions_over_iteration_intervals(config.interval_actions_counts_path, config.fitness_path,
@@ -36,14 +36,14 @@ def plot_discrete_actions(config):
                                               'Action Distribution Over Iteration Intervals',
                                               config.iteration_intervals,
                                               config.label_iterations_intervals,
-                                              config.env_config.actions.action_names)
+                                              config.env_config.action_names)
         plot_actions_with_values_over_iteration_intervals(config.action_counts_path,
                                                           config.action_values_path,
-                                                          standard_pso_values_path=config.standard_pso_path,
+                                                          standard_pso_values_path=config.pso_config.standard_pso_path,
                                                           function_min_value=config.pso_config.fDeltas[
                                                               config.pso_config.func_num - 1],
                                                           num_actions=config.env_config.num_actions,
-                                                          action_names=config.env_config.actions.action_names)
+                                                          action_names=config.env_config.action_names)
 
 
 
@@ -55,24 +55,24 @@ def plot_continuous_actions(config):
     if config.pso_config.swarm_algorithm == "PMSO":
         plot_average_continuous_actions_for_multiple_swarms(config.continuous_action_history_path,
                                                             config.action_values_path,
-                                                            standard_pso_values_path=config.standard_pso_path,
+                                                            standard_pso_values_path=config.pso_config.standard_pso_path,
                                                             function_min_value=config.pso_config.fDeltas[
                                                                 config.pso_config.func_num - 1],
                                                             action_dimensions=config.env_config.action_dimensions,
-                                                            action_names=config.env_config.actions.action_names,
-                                                            practical_action_low_limit = config.env_config.actions.practical_action_low_limit,
-                                                            practical_action_high_limit = config.env_config.actions.practical_action_high_limit,
+                                                            action_names=config.env_config.action_names,
+                                                            practical_action_low_limit = config.env_config.practical_action_low_limit,
+                                                            practical_action_high_limit = config.env_config.practical_action_high_limit,
                                                             num_intervals=9)
     else:
         plot_average_continuous_actions_for_single_swarm(config.continuous_action_history_path,
                                                          config.action_values_path,
-                                                         standard_pso_values_path=config.standard_pso_path,
+                                                         standard_pso_values_path=config.pso_config.standard_pso_path,
                                                          function_min_value=config.pso_config.fDeltas[
                                                              config.pso_config.func_num - 1],
                                                          action_dimensions=config.env_config.action_dimensions,
-                                                         action_names=config.env_config.actions.action_names,
-                                                         practical_action_low_limit=config.env_config.actions.practical_action_low_limit,
-                                                         practical_action_high_limit=config.env_config.actions.practical_action_high_limit,
+                                                         action_names=config.env_config.action_names,
+                                                         practical_action_low_limit=config.env_config.practical_action_low_limit,
+                                                         practical_action_high_limit=config.env_config.practical_action_high_limit,
                                                          num_intervals=15)
 
 def plot_data_over_iterations(file_name, y_label, x_label, iteration_interval_scale):

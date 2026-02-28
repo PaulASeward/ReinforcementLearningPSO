@@ -8,11 +8,11 @@ import numpy as np
 
 
 class BaseAgent:
-    def __init__(self, config):
+    def __init__(self, config, env):
         self.replay_buffer = None
         self.target_model = None
         self.model = None
-        self.policy = None
+        self.train_policy = None
         self.test_policy = None
         self.config = config
         self.log_dir = os.path.join(config.log_dir, config.experiment, datetime.now().strftime("%Y%m%d-%H%M%S"))
@@ -21,39 +21,42 @@ class BaseAgent:
         self.starting_step = 0
         self.is_in_exploration_state = True
 
-        self.env = None
-        self.actions = config.env_config.actions
+        self.env = env
 
-        self.build_environment()
-        if config.policy == "ExponentialDecayGreedyEpsilon":
-            self.policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.env_config.num_actions)
+        # TODO: THis could be derived from config, not the actual env
+        self.config.env_config.state_shape = env.observation_space.shape  # Add to constructor and remove this derived state
+
+        if config.train_policy == "ExponentialDecayGreedyEpsilon":
+            self.train_policy = ExponentialDecayGreedyEpsilonPolicy(epsilon_start=config.epsilon_start, epsilon_end=config.epsilon_end, num_steps=config.train_steps, num_actions=config.env_config.num_actions)
             self.test_policy = GreedyPolicy()
 
-    def build_environment(self):
-        if self.config.env_config.use_discrete_env:
-            if self.config.use_mock_data:
-                self.env = gym.make("MockDiscretePsoGymEnv-v0", config=self.config, actions=self.config.env_config.actions)
-            else:
-                self.env = gym.make("DiscretePsoGymEnv-v0", config=self.config, actions=self.config.env_config.actions)
-
-            return self.env
-
-        if self.config.use_mock_data:
-            self.env = gym.make("MockContinuousPsoGymEnv-v0", config=self.config, actions=self.config.env_config.actions)
-        else:
-            self.env = gym.make("ContinuousPsoGymEnv-v0", config=self.config, actions=self.config.env_config.actions)
-
-        self.config.state_shape = self.env.observation_space.shape
-
-        return self.env
+    # def build_environment(self):
+    #     if self.config.env_config.use_discrete_env:
+    #         if self.config.pso_config.use_mock_data:
+    #             self.env = gym.make("MockDiscretePsoGymEnv-v0", pso_config=self.config.pso_config, env_config=self.config.env_config, actions=self.config.env_config.actions)
+    #         else:
+    #             self.env = gym.make("DiscretePsoGymEnv-v0",  pso_config=self.config.pso_config, env_config=self.config.env_config, actions=self.config.env_config.actions)
+    #
+    #         return self.env
+    #
+    #     if self.config.pso_config.use_mock_data:
+    #         self.env = gym.make("MockContinuousPsoGymEnv-v0",  pso_config=self.config.pso_config, env_config=self.config.env_config, actions=self.config.env_config.actions)
+    #     else:
+    #         self.env = gym.make("ContinuousPsoGymEnv-v0",  pso_config=self.config.pso_config, env_config=self.config.env_config, actions=self.config.env_config.actions)
+    #
+    #     self.config.state_shape = self.env.observation_space.shape
+    #
+    #     return self.env
 
     def get_q_values(self, state):
         return self.model.get_action_q_values(state)
 
     def update_model_target_weights(self):
-        if not self.config.use_mock_data:
-            weights = self.model.model.get_weights()
-            self.target_model.model.set_weights(weights)
+        if self.config.pso_config.use_mock_data:
+            return False
+
+        weights = self.model.model.get_weights()
+        self.target_model.model.set_weights(weights)
 
         return False
 
@@ -63,7 +66,7 @@ class BaseAgent:
             return None, None, None  # Not enough experience to replay yet.
 
         losses = []
-        if not self.config.use_mock_data:
+        if not self.config.pso_config.use_mock_data:
             for _ in range(self.config.replay_experience_length):
                 states, actions, rewards, next_states, done = self.replay_buffer.sample(self.config.batch_size)
                 targets = self.target_model.predict(states)
@@ -78,14 +81,14 @@ class BaseAgent:
 
         return losses, None, None
 
-    def get_actions(self):
+    def print_actions(self):
         print(f"num_actions: {self.config.env_config.num_actions}")
-        for index, description in enumerate(self.config.env_config.actions.action_names):
+        for index, description in enumerate(self.config.env_config.action_names):
             action_no = str(index + 1)
             print(f"Action #{action_no} Description: {description}")
 
     def initialize_current_state(self):
-        self.policy.reset()
+        self.train_policy.reset()
         observation, swarm_info = self.env.reset()
         return np.reshape(observation, (1, self.config.env_config.observation_length))
 
@@ -110,11 +113,14 @@ class BaseAgent:
         self.load_models()
         self.starting_step = step
         episilon_values = np.loadtxt(self.config.epsilon_values_path, delimiter=",")
-        self.policy.current_epsilon = episilon_values[-1]
-        self.policy.step = step * self.config.env_config.num_episodes
+        self.train_policy.current_epsilon = episilon_values[-1]
+        self.train_policy.step = step * self.config.env_config.num_episodes
 
     def load_models(self):
         pass
+
+    def plot(self):
+        self.results_logger.plot_results()
 
     def train(self):
         with self.writer.as_default():
@@ -126,7 +132,7 @@ class BaseAgent:
 
                 while not terminal:
                     q_values = self.get_q_values(current_state)
-                    action = self.policy.select_action(q_values)
+                    action = self.train_policy.select_action(q_values)
                     next_observation, reward, terminal, swarm_info = self.env.step(action)
 
                     current_state = self.update_memory_and_state(current_state, action, reward, next_observation, terminal)
@@ -149,7 +155,7 @@ class BaseAgent:
                 [losses, actor_losses, critic_losses] = self.replay_experience()
                 early_stop = self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
                 self.results_logger.save_log_statements(step=step + 1, actions=actions, fitness_rewards=fitness_rewards, training_rewards=rewards,
-                                                        train_loss=losses, epsilon=self.policy.current_epsilon,
+                                                        train_loss=losses, epsilon=self.train_policy.current_epsilon,
                                                         swarm_observations=swarm_observations, actor_losses=actor_losses, critic_losses=critic_losses)
 
                 if early_stop:
@@ -199,4 +205,4 @@ class BaseAgent:
         avg_training_reward = np.mean(cumulative_training_rewards)
 
         print(f"Average Fitness Reward: {avg_fitness_reward} Average Training Reward: {avg_training_reward}")
-        self.results_logger._save_to_csv([step, self.policy.current_epsilon, avg_fitness_reward, std_dev_fitness_reward, avg_training_reward], self.config.test_step_results_path)
+        self.results_logger._save_to_csv([step, self.train_policy.current_epsilon, avg_fitness_reward, std_dev_fitness_reward, avg_training_reward], self.config.test_step_results_path)

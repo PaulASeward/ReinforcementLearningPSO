@@ -6,10 +6,9 @@ from pso.pso_multiswarm import PSOMultiSwarm
 import numpy as np
 
 from environment.actions.discrete_actions_library import reset_slow_particles, reset_all_particles_keep_global_best, reset_all_particles_without_memory_sharing, reshare_information_with_global_swarm
-from pso.cec_benchmark_functions import CEC_functions
 
 
-def build_discrete_action_space(swarm: PSOSwarm) -> Action:
+def build_discrete_action_space() -> Action:
     action_names = [
         'Reset slow particles',
         'Reset all particles with preserved information',
@@ -87,14 +86,13 @@ def build_discrete_action_space(swarm: PSOSwarm) -> Action:
     # }
 
     reset_action_space = DiscreteActions(
-        swarm=swarm,
         action_names=action_names,
         action_methods=action_methods,
     )
     return reset_action_space
 
 
-def build_discrete_multi_action_space(swarm: PSOMultiSwarm) -> Action:
+def build_discrete_multi_action_space(num_sub_swarms: int) -> Action:
     action_names = [
         'Reset slow particles',
         'Reset all particles with preserved information',
@@ -109,11 +107,11 @@ def build_discrete_multi_action_space(swarm: PSOMultiSwarm) -> Action:
             3: reshare_information_with_global_swarm
         }
 
-    multi_reset_action_space = DiscreteMultiswarmActions(swarm=swarm, action_names=action_names, action_methods=action_methods)
+    multi_reset_action_space = DiscreteMultiswarmActions(num_sub_swarms=num_sub_swarms, action_names=action_names, action_methods=action_methods)
     return multi_reset_action_space
 
 
-def build_continuous_action_space(swarm: PSOSwarm) -> Action:
+def build_continuous_action_space() -> Action:
     # action_names = ['PBest Distance Threshold', 'Velocity Braking Factor']
     # action_names = ['Inertia', 'Social', 'Cognitive']
     action_names = ['Velocity Scaling Factor']
@@ -131,16 +129,13 @@ def build_continuous_action_space(swarm: PSOSwarm) -> Action:
         # self.swarm.velocity_scaling_factor = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
         #
         # if actions[0] > 0.50:
-        #     self.reset_all_particles_keep_global_best()
+        #     reset_all_particles_keep_global_best(swarm)
 
     velocity_action_space = ContinuousActions(
-        swarm=swarm,
         action_callback=action_callback,
         action_names=action_names,
-        practical_action_low_limit=[10],
-        practical_action_high_limit=[190],
-        actual_action_low_limit=[10],
-        actual_action_high_limit=[190],
+        lower_bound=[10],
+        upper_bound=[190]
     )
 
     # velocity_action_space.actual_low_limit_action_space = [10]
@@ -164,20 +159,18 @@ def build_continuous_action_space(swarm: PSOSwarm) -> Action:
     return velocity_action_space
 
 
-def build_continuous_multiswarm_action_space(swarm: PSOMultiSwarm) -> Action:
+def build_continuous_multiswarm_action_space(num_sub_swarms: int) -> Action:
     action_names = ['Velocity Scaling Factor']
 
     def action_callback(actions, swarm: PSOSwarm, practical_action_low_limit, practical_action_high_limit):
         swarm.abs_max_velocity = np.clip(actions[0], practical_action_low_limit[0], practical_action_high_limit[0])
 
     velocity_action_space = ContinuousMultiswarmActions(
-        swarm=swarm,
+        num_sub_swarms=num_sub_swarms,
         action_callback=action_callback,
         action_names=action_names,
-        practical_action_low_limit=[10],
-        practical_action_high_limit=[190],
-        actual_action_low_limit=[10],
-        actual_action_high_limit=[190],
+        lower_bound=[10],
+        upper_bound=[190]
     )
     return velocity_action_space
 

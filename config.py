@@ -7,11 +7,7 @@ from pso.pso_config import PSOConfig
 
 
 class Config(object):
-    use_mock_data = False
     use_priority_replay = False
-    reward_function = "fitness_reward"
-    # reward_function = "normalized_total_difference_reward"
-    penalty_for_negative_reward = 0
     use_attention_layer = False
     use_ou_noise = False
 
@@ -27,7 +23,6 @@ class Config(object):
     results_dir = "results"
     # results_dir = "run_history/20241126/f11_PMSO_DDPG"
 
-    standard_pso_results_dir = "pso/standard_pso_results"
     os.makedirs(results_dir, exist_ok=True)
     swarm_locations_dir = os.path.join(results_dir, "swarm_locations")
     os.makedirs(swarm_locations_dir, exist_ok=True)
@@ -47,7 +42,7 @@ class Config(object):
     load_checkpoint_dir = None
 
     # EPSILON GREEDY PARAMETERS
-    policy = "ExponentialDecayGreedyEpsilon"
+    train_policy = "ExponentialDecayGreedyEpsilon"
     epsilon_start = 1.0
     epsilon_end = 0.01
 
@@ -80,8 +75,6 @@ class Config(object):
     critic_learning_rate = 1e-3
     actor_layers = (256, 128, 64)
     critic_layers = (256, 128, 64)
-    subswarm_action_dim = None
-    state_shape = None
 
     # PPO TRAINING PARAMETERS
     clip_ratio = 0.2
@@ -120,6 +113,7 @@ class Config(object):
     def __init__(self, pso_config: PSOConfig, env_config: RLEnvConfig, network_type, load_checkpoint=None, train_steps=2000):
         self.pso_config = pso_config
         self.env_config = env_config
+        self.load_checkpoint = load_checkpoint
 
         if env_config.action_dimensions is not None:
             self.ou_mu = np.zeros(self.env_config.action_dimensions)
@@ -153,5 +147,4 @@ class Config(object):
         self.continuous_action_history_path = os.path.join(self.results_dir, f"continuous_action_history.npy")
         self.action_counts_path = os.path.join(self.results_dir, f"actions_counts.csv")
         self.epsilon_values_path = os.path.join(self.results_dir, f"epsilon_values.csv")
-        self.standard_pso_path = os.path.join(self.standard_pso_results_dir, f"f{self.pso_config.func_num}.csv")
         self.experience_buffer_path = os.path.join(self.results_dir, f"experience_buffer.pkl")
