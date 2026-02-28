@@ -67,7 +67,6 @@ class DDPGAgent(BaseAgent):
                 else:
                     states, actions, rewards, next_states, dones = self.replay_buffer.sample(self.config.batch_size)
 
-
                 next_actions = self.actor_network_target.predict(next_states)
                 next_q_values = self.critic_network_target.predict([next_states, next_actions])
                 rewards = rewards[:, np.newaxis]  # Shape (64, 1)

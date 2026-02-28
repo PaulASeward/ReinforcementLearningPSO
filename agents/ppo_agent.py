@@ -9,6 +9,7 @@ from agents.utils.policy import PPOPolicy, NoNoisePolicy
 
 # Currently Deprecated and Has Bugs
 
+
 class PPOAgent(BaseAgent):
     def __init__(self, config, env):
         super(PPOAgent, self).__init__(config, env)
@@ -66,7 +67,7 @@ class PPOAgent(BaseAgent):
         observation, swarm_info = self.env.reset()
         return tf.convert_to_tensor(observation.reshape(1, -1), dtype=tf.float32)
 
-    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
+    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal, add_to_replay_buffer=True):
         # TODO: How do I better access value and logp?
         value = self.current_value
         logp = self.policy.logp

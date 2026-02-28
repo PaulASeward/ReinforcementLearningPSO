@@ -18,10 +18,6 @@ class MockContinuousPsoGymEnv(gym.Env):
             actions: Action,
             swarm: PSOSwarm
     ):
-        self._func_num = pso_config.func_num
-        self._action_dimensions = env_config.action_dimensions
-        self._minimum = pso_config.fDeltas[pso_config.func_num - 1]
-
         self._max_episodes = env_config.num_episodes
         self._swarm_size = pso_config.swarm_size
         self._dim = pso_config.pso_dim
@@ -39,18 +35,13 @@ class MockContinuousPsoGymEnv(gym.Env):
         self._episode_ended = False
         self._episode_actions = []
         self._episode_values = []
-        self._best_fitness = None
-        self.current_best_f = None
 
     def _get_obs(self):
         # return self.swarm.get_observation()
         return np.random.rand(self._observation_length)
 
     def _get_reward(self):
-        reward = np.random.rand() - 0.5  # Random reward between -0.5 and 0.5
-        self._best_fitness = np.random.rand() * 100 + 400
-
-        return reward
+        return np.random.rand() - 0.5  # Random reward between -0.5 and 0.5
 
     def _get_done(self):
         return self._episode_ended
@@ -64,7 +55,6 @@ class MockContinuousPsoGymEnv(gym.Env):
 
         self._actions_count = 0
         self._episode_ended = False
-        self._best_fitness = None
 
         # Restart the swarm with initializing criteria
         # self.swarm.reinitialize()

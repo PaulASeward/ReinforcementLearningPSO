@@ -2,6 +2,7 @@ import gymnasium as gym
 import numpy as np
 from environment.actions.actions import Action
 from environment.env_config import RLEnvConfig
+from environment.reward_functions import reward_functions_mapping
 from pso.pso_config import PSOConfig
 from pso.pso_swarm import PSOSwarm
 
@@ -19,20 +20,12 @@ class ContinuousPsoGymEnv(gym.Env):
             swarm: PSOSwarm
     ):
         self._action_dimensions = env_config.action_dimensions
-        self._minimum = pso_config.fDeltas[pso_config.func_num - 1]
         self._max_episodes = env_config.num_episodes
-        self._standard_pso_values_path = pso_config.standard_pso_path
-
-        self._best_standard_pso = pso_config.best_f_standard_pso[pso_config.func_num - 1]
-        self._pso_variance = pso_config.standard_deviations[pso_config.func_num - 1] ** 2
-        self._avg_swarm_improvement = pso_config.swarm_improvement_pso[pso_config.func_num - 1]
-        self._avg_standard_pso_increase = self._avg_swarm_improvement / self._max_episodes
-        self._penalty_for_negative_reward = env_config.penalty_for_negative_reward
         self._append_last_action_to_observation = env_config.append_last_action_to_observation
         self._append_episode_completion_percentage_to_observation = env_config.append_episode_completion_percentage_to_observation
 
-        self.standard_pso_results = np.genfromtxt(pso_config.standard_pso_path, delimiter=',', skip_header=1)
-        self.standard_pso_cumulative_relative_fitness = abs(self._minimum - self.standard_pso_results[:, 1])
+        self._use_discrete_env = env_config.use_discrete_env
+        self._mock_data = pso_config.use_mock_data
 
         self.swarm = swarm
         self.actions = actions
@@ -41,109 +34,16 @@ class ContinuousPsoGymEnv(gym.Env):
         self._observation_length = env_config.observation_length
         low_limits_obs_space = np.zeros(self._observation_length, dtype=np.float32)
         high_limits_obs_space = np.full(self._observation_length, np.inf, dtype=np.float32)
-        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space,
-                                                shape=(self._observation_length,), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=low_limits_obs_space, high=high_limits_obs_space, shape=(self._observation_length,), dtype=np.float32)
 
+        self.last_action = 0 if self._use_discrete_env else np.zeros(self._action_dimensions, dtype=np.float32)
         self._actions_count = 0
         self._current_episode_percent = 0
         self._episode_ended = False
         self._episode_actions = []
         self._episode_values = []
-        self._best_fitness = None
-        self._best_relative_fitness_for_plots = None
-        self._best_relative_fitness_for_reward = None
-        self.total_difference = 0
-        self.last_action = np.zeros(self._action_dimensions, dtype=np.float32)
 
-        self.reward_functions = {
-            "simple_reward": self.simple_reward,
-            "fitness_reward": self.fitness_reward,
-            "relative_fitness_reward": self.relative_fitness_to_pso_reward,
-            "difference_reward": self.difference_reward,
-            "total_difference_reward": self.total_difference_reward,
-            "normalized_total_difference_reward": self.normalized_total_difference_reward,
-            "smoothed_total_difference_reward": self.smoothed_total_difference_reward,
-        }
-        self.reward_function = "fitness_reward"  # Default reward function
-
-    def simple_reward(self, difference):
-        if difference > 0:
-            return np.float32(1)
-        else:
-            return np.float32(self._penalty_for_negative_reward)
-
-    def fitness_reward(self, difference):
-        if self._actions_count == 0:
-            return np.float32(0)
-
-        current_best_fitness = self.swarm.get_current_best_fitness()
-
-        if self._best_relative_fitness_for_reward is None:
-            reward = self._minimum - current_best_fitness
-            self._best_relative_fitness_for_reward = current_best_fitness
-        else:
-            reward = self._best_relative_fitness_for_reward - current_best_fitness
-            self._best_relative_fitness_for_reward = min(self._best_relative_fitness_for_reward, current_best_fitness)
-
-        return max(reward, self._penalty_for_negative_reward)
-
-    def relative_fitness_to_pso_reward(self, difference):
-        current_best_fitness = self.swarm.get_current_best_fitness()
-        if self._actions_count == 0:
-            x=1
-        canonical_distance_from_global_optimum = self.standard_pso_cumulative_relative_fitness[self._actions_count-1]
-
-        if self._best_relative_fitness_for_reward is None:
-            self._best_relative_fitness_for_reward = current_best_fitness
-        else:
-            self._best_relative_fitness_for_reward = min(self._best_relative_fitness_for_reward, current_best_fitness)
-
-        current_distance_from_global_optimum = abs(self._minimum - self._best_relative_fitness_for_reward)
-        reward = canonical_distance_from_global_optimum - current_distance_from_global_optimum
-        # reward = max(reward, self._penalty_for_negative_reward)
-        # reward /= self._pso_variance
-
-        return reward
-
-    def difference_reward(self, difference):
-        return max(difference, self._penalty_for_negative_reward)
-
-    def total_difference_reward(self, difference):
-        reward = difference * self.total_difference
-        # Clip the reward to the total difference
-        if reward > self.total_difference:
-            reward = self.total_difference
-        return max(reward, self._penalty_for_negative_reward)
-
-    def smoothed_total_difference_reward(self, difference):
-        difference = max(difference, 0)
-        if self._actions_count == 1:
-            standard_start_value = np.genfromtxt(self._standard_pso_values_path, delimiter=',', skip_header=1)[0,1]
-            reward = (standard_start_value - self._best_fitness) * self._avg_standard_pso_increase
-            # reward = (standard_start_value - self._best_fitness) / self._pso_variance
-            return reward
-        else:
-            log_difference = np.log(1 + ((difference * self._avg_standard_pso_increase) / ((max(0.05, 1-self._current_episode_percent))**2)))
-            reward = log_difference * self.total_difference
-
-            # Clip the reward to the total difference
-            if reward > self.total_difference:
-                reward = self.total_difference
-
-            reward /= self._pso_variance
-
-            return max(reward, self._penalty_for_negative_reward)
-
-    def normalized_total_difference_reward(self, difference):
-        reward = difference * self.total_difference
-
-        # Clip the reward to the total difference
-        if reward > self.total_difference:
-            reward = self.total_difference
-
-        reward /= self._pso_variance
-
-        return max(reward, self._penalty_for_negative_reward)
+        self.reward_function = reward_functions_mapping[env_config.reward_function](pso_config, env_config)
 
     def _get_obs(self):
         # return self.swarm.get_observation().astype(np.float32)
@@ -154,6 +54,7 @@ class ContinuousPsoGymEnv(gym.Env):
 
         # Round the last action in each dimension to the nearest integer and append
         # rounded_last_action = np.round(self.last_action)
+
         if self._append_last_action_to_observation:
             observation = np.append(observation, self.last_action)
 
@@ -161,36 +62,16 @@ class ContinuousPsoGymEnv(gym.Env):
 
     def _get_reward(self):
         current_best_f = self.swarm.get_current_best_fitness()
-
-        difference = self._best_fitness - current_best_f
-        self.total_difference += difference
-        self._best_fitness = min(self._best_fitness, current_best_f)
-
-        reward = self.reward_functions[self.reward_function](difference)
-        if type(reward) is int:
-            reward = np.float32(reward)
-        else:
-            reward = reward.astype(np.float32)
-        return reward
-
-    def _get_fitness_reward_for_plots(self):
-        current_best_fitness = self.swarm.get_current_best_fitness()
-
-        if self._best_relative_fitness_for_plots is None:
-            reward = self._minimum - current_best_fitness
-            self._best_relative_fitness_for_plots = current_best_fitness
-        else:
-            reward = max(self._best_relative_fitness_for_plots - current_best_fitness, 0)  # no penalty in reward
-            self._best_relative_fitness_for_plots = min(self._best_relative_fitness_for_plots, current_best_fitness)
-
-        return reward
+        reward = self.reward_function(current_best_f, self._actions_count)
+        return np.float32(reward) if type(reward) is int else reward.astype(np.float32)
 
     def _get_done(self):
         return self._episode_ended
 
     def _get_info(self):
         info = self.swarm.get_swarm_observation()
-        info["fitness_reward"] = self._get_fitness_reward_for_plots()
+        current_best_fitness = self.swarm.get_current_best_fitness()
+        info["fitness_reward"] = self.reward_function.get_fitness_reward_for_plots(current_best_fitness)
 
         return info
 
@@ -198,21 +79,21 @@ class ContinuousPsoGymEnv(gym.Env):
         # We need the following line to seed self.np_random
         super().reset(seed=seed)
 
+        current_best_f = self.swarm.get_current_best_fitness()
+        self.reward_function.reset(current_best_f)
+
         self.last_action = np.zeros(self._action_dimensions, dtype=np.float32)
         self._actions_count = 0
         self._episode_ended = False
-        self.total_difference = 0
-        self._best_relative_fitness_for_plots = None
-        self._best_relative_fitness_for_reward = None
         self._current_episode_percent = 0
 
         # Restart the swarm with initializing criteria
-        self.swarm.reinitialize()
-        self._best_fitness = self.swarm.get_current_best_fitness()
+        if not self._mock_data:
+            self.swarm.reinitialize()
 
         observation = self._get_obs()
         info = self._get_info()
-        self._best_relative_fitness_for_plots = None  # Reset again since get_info() uses it
+        self.reward_function._best_relative_fitness_for_plots = None  # Reset since get_info() uses it
 
         return observation, info
 
@@ -228,13 +109,17 @@ class ContinuousPsoGymEnv(gym.Env):
             self._episode_ended = True
 
         # Implementation of the action
-        self.actions(action, self.swarm)
-        self.swarm.optimize()
+        if not self._mock_data:
+            self.actions(action, self.swarm)
+            self.swarm.optimize()
 
-        self.last_action = action
+            if self._use_discrete_env and not isinstance(action, int):
+                action = action.item()
+
+            self.last_action = action
+
         observation = self._get_obs()
         reward = self._get_reward()
-        # truncated = False
 
         terminated = self._get_done()
         info = self._get_info()

@@ -2,15 +2,28 @@ import gymnasium as gym
 from environment.env_config import RLEnvConfig
 from pso.cec_benchmark_functions import CEC_functions
 from pso.pso_config import PSOConfig
-from pso.pso_swarm import PSOSwarm, swarm_mapping
-from agents.agent import agent_mapping
+from pso.pso_swarm import PSOSwarm
+from pso.pso_multiswarm import PSOMultiSwarm
+from agents.dqn_agent import DQNAgent
 from agents.drqn_agent import DRQNAgent
-
+from agents.ddpg_agent import DDPGAgent
+from agents.ddrpg_agent import DDRPGAgent
 from actions_builder import build_actions
 from config import Config
 import argparse
 
+swarm_mapping = {
+    "single-swarm": PSOSwarm,
+    "multi-swarm": PSOMultiSwarm
+}
 
+agent_mapping = {
+    "DQN": DQNAgent,
+    "DRQN": DRQNAgent,
+    "DDPG": DDPGAgent,
+    "DDRPG": DDRPGAgent,
+    # "PPO": PPOAgent
+}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run DQN Agent on PSO Algorithm")

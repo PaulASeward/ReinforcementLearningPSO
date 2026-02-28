@@ -40,7 +40,6 @@ class ResultsLogger:
             for key, value in all_vars.items():
                 f.write(f"{key}: {value}\n")
 
-
     def save_step_results(self, epsilon, fitness_rewards, training_rewards, train_loss=None, swarm_observations_dicts=None):
         if train_loss is None:
             train_loss = 0.0
@@ -58,7 +57,7 @@ class ResultsLogger:
         swarm_observations = np.array([swarm_observations_dicts], dtype=object)  # Convert dict to array
         self.swarm_episode_observations = np.vstack([self.swarm_episode_observations, swarm_observations])
 
-        self._save_to_csv([epsilon], self.config.epsilon_values_path)  # TODO: remove
+        self._save_to_csv([epsilon], self.config.epsilon_values_path)
         self._save_to_csv([self.step, epsilon, cumulative_fitness_reward, fitness, train_loss, cumulative_training_reward], self.config.training_step_results_path)
 
         print(f"Step #{self.step} Fitness Reward:{cumulative_fitness_reward} Training Reward: {cumulative_training_reward} Current Epsilon: {epsilon}")

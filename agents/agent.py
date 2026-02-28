@@ -4,19 +4,6 @@ from datetime import datetime
 from agents.utils.policy import policy_mapping
 import numpy as np
 
-from agents.dqn_agent import DQNAgent
-from agents.drqn_agent import DRQNAgent
-from agents.ddpg_agent import DDPGAgent
-from agents.ddrpg_agent import DDRPGAgent
-
-agent_mapping = {
-    "DQN": DQNAgent,
-    "DRQN": DRQNAgent,
-    "DDPG": DDPGAgent,
-    "DDRPG": DDRPGAgent,
-    # "PPO": PPOAgent
-}
-
 
 class BaseAgent:
     def __init__(self, config, env):
@@ -24,13 +11,13 @@ class BaseAgent:
         self.target_model = None
         self.model = None
         self.config = config
+        self.env = env
         self.log_dir = os.path.join(config.log_dir, config.experiment, datetime.now().strftime("%Y%m%d-%H%M%S"))
         self.writer = tf.summary.create_file_writer(self.log_dir)
         self.results_logger = None
         self.starting_step = 0
         self.is_in_exploration_state = True
 
-        self.env = env
         self.config.env_config.state_shape = env.observation_space.shape  # Add to constructor and remove this derived state
 
         self.train_policy = policy_mapping[config.train_policy](config)
@@ -142,24 +129,18 @@ class BaseAgent:
 
                 [losses, actor_losses, critic_losses] = self.replay_experience()
                 early_stop = self.update_model_target_weights()  # target model gets updated AFTER episode, not during like the regular model.
-                self.results_logger.save_log_statements(step=step + 1, actions=actions, fitness_rewards=fitness_rewards, training_rewards=rewards,
-                                                        train_loss=losses, epsilon=self.train_policy.current_epsilon,
-                                                        swarm_observations=swarm_observations, actor_losses=actor_losses, critic_losses=critic_losses)
-
+                self.results_logger.save_log_statements(step=step + 1, actions=actions, fitness_rewards=fitness_rewards, training_rewards=rewards, train_loss=losses,
+                                                        epsilon=self.train_policy.current_epsilon, swarm_observations=swarm_observations, actor_losses=actor_losses, critic_losses=critic_losses)
                 if early_stop:
                     break
             self.results_logger.print_execution_time()
 
     def test(self, step=None, number_of_tests=None):
         if self.test_policy is None:
-            return
+            raise ValueError('test_policy must be initialized before testing')
 
-        if step is None:
-            step = self.config.train_steps
-
-        if number_of_tests is None:
-            number_of_tests = self.config.test_episodes
-
+        step = self.config.train_steps if step is None else step
+        number_of_tests = self.config.test_episodes if number_of_tests is None else number_of_tests
         cumulative_training_rewards = []
         cumulative_fitness_rewards = []
 
@@ -173,8 +154,7 @@ class BaseAgent:
                 next_observation, reward, terminal, swarm_info = self.env.step(action)
                 current_state = self.update_memory_and_state(current_state, action, reward, next_observation, terminal, add_to_replay_buffer=False)
 
-                fitness_reward = swarm_info[
-                    "fitness_reward"]  # This is for plotting swarm improvements, not learning purposes.
+                fitness_reward = swarm_info["fitness_reward"]  # This is for plotting swarm improvements, not learning purposes.
                 actions.append(action)
                 fitness_rewards.append(fitness_reward)
                 rewards.append(reward)
