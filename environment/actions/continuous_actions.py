@@ -1,113 +1,107 @@
+from typing import List, Callable, Optional
+import gymnasium as gym
+
 import numpy as np
-from pso.pso_multiswarm import PSOSubSwarm
+
+from pso.pso_multiswarm import PSOMultiSwarm
+from environment.actions.actions import Action
+from pso.pso_swarm import PSOSwarm
 
 
-class ContinuousMultiswarmActions:
-    def __init__(self, swarm, config):
-        self.swarm = swarm
-        self.config = config
-        self.subswarm_actions = [ContinuousActions(sub_swarm, config) for sub_swarm in self.swarm.sub_swarms]
+class ContinuousMultiswarmActions(Action):
+    def __init__(
+            self,
+            num_sub_swarms: int,
+            action_callback: Callable,
+            action_names: List[str],
+            upper_bound: List[float],
+            lower_bound: List[float],
+            practical_action_high_limit: Optional[List[float]] = None,
+            practical_action_low_limit: Optional[List[float]] = None,
+    ):
+        self.action_callback = action_callback
+        self.num_sub_swarms = num_sub_swarms
+        self.subswarm_action_dim = len(action_names)
+        self.single_swarm_practical_action_high_limit = practical_action_high_limit
+        self.single_swarm_practical_action_low_limit = practical_action_low_limit
+
         self.action_names = [
             f"SubSwarm {i + 1} {action_name}"
-            for i, subswarm in enumerate(self.subswarm_actions)
-            for action_name in subswarm.action_names
+            for i in range(self.num_sub_swarms)
+            for action_name in action_names
         ]
+
+        if practical_action_high_limit is None:
+            practical_action_high_limit = upper_bound
+        if practical_action_low_limit is None:
+            practical_action_low_limit = lower_bound
 
         self.practical_action_high_limit = [
             limit
-            for subswarm in self.subswarm_actions
-            for limit in subswarm.practical_action_high_limit
+            for _ in range(self.num_sub_swarms)
+            for limit in practical_action_high_limit
         ]
         self.practical_action_low_limit = [
             limit
-            for subswarm in self.subswarm_actions
-            for limit in subswarm.practical_action_low_limit
+            for _ in range(self.num_sub_swarms)
+            for limit in practical_action_low_limit
         ]
 
-    def __call__(self, action):
-        # Restructure the flattened action from size(config.num_sub_swarms * 3) to size (config.num_sub_swarms, 3)
+        self.lower_bound = np.array([
+            lower_bound
+            for _ in range(self.num_sub_swarms)
+        ], dtype=np.float32).flatten()
+
+        self.upper_bound = np.array([
+            upper_bound
+            for _ in range(self.num_sub_swarms)
+        ], dtype=np.float32).flatten()
+
+    def __call__(self, action, swarm: PSOMultiSwarm):
+        # Ex.) Restructures the flattened action from size(config.num_sub_swarms * 3) to size (config.num_sub_swarms, 3)
         # reshaped_arr = action.reshape(3, 5)
-        reformatted_action = np.array(action).reshape(self.config.num_sub_swarms, self.config.subswarm_action_dim)
+        reformatted_action = np.array(action).reshape(self.num_sub_swarms, self.subswarm_action_dim)
 
         # Action should be a dedicated action for each subswarm
-        for i, subswarm_action in enumerate(self.subswarm_actions):
-            subswarm_action(reformatted_action[i])
+        for i, subswarm in enumerate(swarm.sub_swarms):
+            self.action_callback(reformatted_action[i], subswarm, self.single_swarm_practical_action_high_limit, self.single_swarm_practical_action_low_limit)
 
-    def set_limits(self):
-        self.config.lower_bound = np.array([
-            subswarm.actual_low_limit_action_space
-            for subswarm in self.subswarm_actions
-        ], dtype=np.float32).flatten()
-
-        self.config.upper_bound = np.array([
-            subswarm.actual_high_limit_action_space
-            for subswarm in self.subswarm_actions
-        ], dtype=np.float32).flatten()
+    def get_action_space(self):
+        return gym.spaces.Box(low=self.lower_bound, high=self.upper_bound,
+                              shape=(len(self.action_names),), dtype=np.float32)
 
 
-class ContinuousActions:
-    def __init__(self, swarm, config):
-        self.swarm = swarm
-        self.config = config
+class ContinuousActions(Action):
+    def __init__(
+            self,
+            action_callback: Callable,
+            action_names: List[str],
+            upper_bound: List[float],
+            lower_bound: List[float],
+            # We may want to have a practical limit for the action space that is different from the actual limit of the action space.
+            # For example, the action space may allow for a wide range of values, but in practice, we may want to limit the actions
+            # to a smaller range to ensure stable learning.
+            practical_action_high_limit: Optional[List[float]] = None,
+            practical_action_low_limit: Optional[List[float]] = None,
+    ):
+        self.action_names = action_names
+        self.action_callback = action_callback
 
-        self.action_names = ['Velocity Scaling Factor']
-        # self.action_names = ['PBest Distance Threshold', 'Velocity Braking Factor']
-        # self.action_names = ['Inertia', 'Social', 'Cognitive']
-        self.practical_action_low_limit = [10]
-        self.practical_action_high_limit = [190]
-        # self.practical_action_low_limit = [0.75]
-        # self.practical_action_high_limit = [1.25]
+        if practical_action_high_limit is None:
+            practical_action_high_limit = upper_bound
+        if practical_action_low_limit is None:
+            practical_action_low_limit = lower_bound
 
-        #
-        # self.actual_low_limit_action_space = [config.w_min, config.c_min, config.c_min]
-        # self.actual_high_limit_action_space = [config.w_max, config.c_max, config.c_max]
-        # self.practical_action_low_limit = [config.w_min, config.c_min, config.c_min]
-        # self.practical_action_high_limit = [config.w_max, config.c_max, config.c_max]
+        self.practical_action_high_limit = practical_action_high_limit
+        self.practical_action_low_limit = practical_action_low_limit
 
-        # self.practical_action_low_limit = [0, self.config.velocity_braking_min]
-        # self.practical_action_high_limit = [self.config.distance_threshold_max, self.config.velocity_braking_max]
-        #
-        # self.actual_low_limit_action_space = [self.config.distance_threshold_min, self.config.velocity_braking_min]
-        # self.actual_high_limit_action_space = [self.config.distance_threshold_max, self.config.velocity_braking_max]
-        #
-        self.actual_low_limit_action_space = [10]
-        self.actual_high_limit_action_space = [190]
-        # self.actual_low_limit_action_space = [0.75]
-        # self.actual_high_limit_action_space = [1.25]
-        #
-        # self.actual_low_limit_action_space = [self.config.replacement_threshold_min]
-        # self.actual_high_limit_action_space = [self.config.replacement_threshold_max]
+        self.lower_bound = np.array(lower_bound, dtype=np.float32)
+        self.upper_bound = np.array(upper_bound, dtype=np.float32)
 
-    def __call__(self, action):
+    def __call__(self, action, swarm: PSOSwarm):
         actions = np.array(action)
+        self.action_callback(actions, swarm, self.practical_action_high_limit, self.practical_action_low_limit)
 
-        # self.swarm.w = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
-        # self.swarm.c1 = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
-        # self.swarm.c2 = np.clip(actions[2], self.practical_action_low_limit[2], self.practical_action_high_limit[2])
-
-        # self.swarm.pbest_replacement_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
-        # self.swarm.distance_threshold = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
-        # self.swarm.velocity_braking = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
-        # self.swarm.distance_threshold = np.clip(actions[0], 0, self.config.distance_threshold_max)
-        self.swarm.abs_max_velocity = np.clip(actions[0], self.practical_action_low_limit[0], self.practical_action_high_limit[0])
-        # self.swarm.velocity_scaling_factor = np.clip(actions[1], self.practical_action_low_limit[1], self.practical_action_high_limit[1])
-        #
-        # if actions[0] > 0.50:
-        #     self.reset_all_particles_keep_global_best()
-
-    def set_limits(self):
-        self.config.lower_bound = np.array(self.actual_low_limit_action_space, dtype=np.float32)
-        self.config.upper_bound = np.array(self.actual_high_limit_action_space, dtype=np.float32)
-
-    def reset_all_particles_keep_global_best(self):
-        old_gbest_pos = self.swarm.P[np.argmin(self.swarm.P_vals)]
-        old_gbest_val = np.min(self.swarm.P_vals)
-
-        self.swarm.reinitialize()
-        if type(self.swarm) == PSOSubSwarm:
-            self.swarm.share_information_with_global_swarm = True
-
-        # Keep Previous Solution before resetting.
-        if old_gbest_val < self.swarm.gbest_val:
-            self.swarm.gbest_pos = old_gbest_pos
-            self.swarm.gbest_val = old_gbest_val
+    def get_action_space(self):
+        return gym.spaces.Box(low=self.lower_bound, high=self.upper_bound,
+                              shape=(len(self.action_names),), dtype=np.float32)

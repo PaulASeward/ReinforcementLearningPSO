@@ -1,4 +1,3 @@
-import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Model
 from keras.layers import Input, Dense, BatchNormalization, Lambda, Concatenate, Attention, LayerNormalization
@@ -14,7 +13,7 @@ class ActorNetworkModel(BaseModel):
         init = tf.random_normal_initializer(stddev=0.0005)
 
         # State as input
-        initial_input = Input(shape=self.config.state_shape, dtype=tf.float32)
+        initial_input = Input(shape=self.config.env_config.state_shape, dtype=tf.float32)
 
         if self.config.use_attention_layer:
             attention_output = Attention(use_scale=True)([initial_input, initial_input])
@@ -29,9 +28,9 @@ class ActorNetworkModel(BaseModel):
             x = BatchNormalization()(x)
 
         # Output layer
-        unscaled_output = Dense(self.config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)
-        scaling_factor = (self.config.upper_bound - self.config.lower_bound) / 2.0
-        shift_factor = (self.config.upper_bound + self.config.lower_bound) / 2.0
+        unscaled_output = Dense(self.config.env_config.action_dimensions, name="Output", activation=tf.nn.tanh)(x)
+        scaling_factor = (self.config.env_config.upper_bound - self.config.env_config.lower_bound) / 2.0
+        shift_factor = (self.config.env_config.upper_bound + self.config.env_config.lower_bound) / 2.0
         output = Lambda(lambda x: x * scaling_factor + shift_factor)(unscaled_output)
 
         model = Model(inputs=initial_input, outputs=output)
@@ -58,10 +57,10 @@ class CriticNetworkModel(BaseModel):
 
     def nn_model(self):
         init = tf.random_normal_initializer(stddev=0.0005)
-        action_input_shape = (self.config.action_dimensions,)
+        action_input_shape = (self.config.env_config.action_dimensions,)
 
         # State as input
-        state_input = Input(shape=self.config.state_shape, dtype=tf.float32)
+        state_input = Input(shape=self.config.env_config.state_shape, dtype=tf.float32)
         action_input = Input(shape=action_input_shape, dtype=tf.float32)
 
         if self.config.use_attention_layer:

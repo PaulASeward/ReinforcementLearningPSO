@@ -36,13 +36,17 @@ source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 You can customize the training configuration by specifying arguments, for example:
     
 ```bash
-python main.py --train True --network_type DRQN --algorithm PSO --dim 30 --swarm_size 50 --func_num 6
+python main.py --train True --network_type DRQN --algorithm PSO --func_num 6
 ```
 
 
 ## Project Structure
     ReinforcementLearningPSO/
         ├── agents/
+        |   ├── model_networks/
+        │       ├── base_model.py
+        │       ├── dqn_model.py
+        │       └──  drqn_model.py
         │   ├── agent.py
         │   ├── dqn_agent.py
         │   ├── drqn_agent.py
@@ -50,22 +54,20 @@ python main.py --train True --network_type DRQN --algorithm PSO --dim 30 --swarm
         │   │   ├── experience_buffer.py
         │   │   └── policy.py
         ├── environment/
-        │   ├── mock_env.py
-        │   ├── env.py
-        │   └── tracked_locations_pso_env.py
+        │   ├── env_config.py
+        │   ├── pso_gym_env.py
+        │   └──  reward_functions.py
         ├── pso/
         │   ├── extdata/
-        │   ├── spring2023Results/
-        │   ├── functions.py
+        │   ├── standard_pso_results/
+        │   ├── cec_benchmark_functions.py
+        │   ├── pso_config.py
         │   ├── pso_swarm.py
-        ├── model_networks/
-        │   ├── base_model.py
-        │   ├── dqn_model.py
-        │   ├── drqn_model.py
+        │   └──  pso_multiswarm.py
         ├── run_history/
         ├── utils/
         │   ├── logging_utils.py
-        │   ├── plot_utils.py
+        │   └──  plot_utils.py
         ├── config.py
         ├── main.py
         ├── README.md

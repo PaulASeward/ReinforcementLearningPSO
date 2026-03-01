@@ -10,7 +10,7 @@ class ResultsLogger:
         self.config = config
         self.step = 0
         self.train_steps = config.train_steps
-        self.num_episodes = config.num_episodes
+        self.num_episodes = config.env_config.num_episodes
         self.start_time = time.time()
         self.last_log_interval_time = self.start_time
 
@@ -40,7 +40,6 @@ class ResultsLogger:
             for key, value in all_vars.items():
                 f.write(f"{key}: {value}\n")
 
-
     def save_step_results(self, epsilon, fitness_rewards, training_rewards, train_loss=None, swarm_observations_dicts=None):
         if train_loss is None:
             train_loss = 0.0
@@ -51,14 +50,14 @@ class ResultsLogger:
         #     print(ep_dict)
         cumulative_training_reward = np.sum(training_rewards)
         cumulative_fitness_reward = np.sum(fitness_rewards)
-        fitness = self.config.fDeltas[self.config.func_num - 1] - cumulative_fitness_reward
+        fitness = self.config.pso_config.fDeltas[self.config.pso_config.func_num - 1] - cumulative_fitness_reward
 
         self._save_to_csv(fitness_rewards, self.config.action_values_path)
         self._save_to_csv(training_rewards, self.config.action_training_values_path)
         swarm_observations = np.array([swarm_observations_dicts], dtype=object)  # Convert dict to array
         self.swarm_episode_observations = np.vstack([self.swarm_episode_observations, swarm_observations])
 
-        self._save_to_csv([epsilon], self.config.epsilon_values_path)  # TODO: remove
+        self._save_to_csv([epsilon], self.config.epsilon_values_path)
         self._save_to_csv([self.step, epsilon, cumulative_fitness_reward, fitness, train_loss, cumulative_training_reward], self.config.training_step_results_path)
 
         print(f"Step #{self.step} Fitness Reward:{cumulative_fitness_reward} Training Reward: {cumulative_training_reward} Current Epsilon: {epsilon}")
@@ -104,7 +103,7 @@ class ResultsLogger:
         rewards = np.genfromtxt(self.config.action_values_path, delimiter=',')
         recent_rewards = rewards[-self.config.eval_interval:, :]
         reward_sums = np.sum(recent_rewards, axis=1)
-        fitness = self.config.fDeltas[self.config.func_num - 1] - reward_sums
+        fitness = self.config.pso_config.fDeltas[self.config.pso_config.func_num - 1] - reward_sums
 
         avg_return = np.mean(reward_sums)  # Total return of all episodes for an iteration
         avg_fitness = np.mean(fitness)  # Furthest minimum value explored for an iteration
@@ -128,7 +127,7 @@ class ResultsLogger:
 class DiscreteActionsResultsLogger(ResultsLogger):
     def __init__(self, config):
         super().__init__(config)
-        self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.num_actions), dtype=np.int32)
+        self.action_counts = np.zeros((self.config.num_eval_intervals, self.config.env_config.num_actions), dtype=np.int32)
 
     def save_actions(self, actions_row):
         for action in actions_row:
@@ -147,7 +146,7 @@ class DiscreteActionsResultsLogger(ResultsLogger):
 class ContinuousActionsResultsLogger(ResultsLogger):
     def __init__(self, config):
         super().__init__(config)
-        self.continuous_action_history = np.zeros((self.config.train_steps, self.config.num_episodes, self.config.action_dimensions), dtype=np.float32)
+        self.continuous_action_history = np.zeros((self.config.train_steps, self.config.env_config.num_episodes, self.config.env_config.action_dimensions), dtype=np.float32)
 
     def store_results_at_log_interval(self, train_loss=None, actor_losses=None, critic_losses=None):
         losses = {

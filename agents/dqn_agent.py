@@ -1,13 +1,12 @@
 from agents.agent import BaseAgent
-import numpy as np
 from agents.utils.experience_buffer import ExperienceBufferStandard as ReplayBuffer
 from agents.model_networks.dqn_model import DQNModel
 from utils.logging_utils import DiscreteActionsResultsLogger as ResultsLogger
 
 
 class DQNAgent(BaseAgent):
-    def __init__(self, config):
-        super(DQNAgent, self).__init__(config)
+    def __init__(self, config, env):
+        super(DQNAgent, self).__init__(config, env)
         self.results_logger = ResultsLogger(config)
 
         self.model = DQNModel(config)

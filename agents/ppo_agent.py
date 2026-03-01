@@ -2,10 +2,6 @@ from agents.agent import BaseAgent
 import numpy as np
 import tensorflow as tf
 
-from environment.gym_env_continuous import ContinuousPsoGymEnv
-from tf_agents.environments import tf_py_environment
-
-import gymnasium as gym
 from agents.utils.experience_buffer import PPOBuffer
 from agents.model_networks.ppo_model import ActorNetworkModel, CriticNetworkModel
 from utils.logging_utils import ContinuousActionsResultsLogger as ResultsLogger
@@ -13,9 +9,10 @@ from agents.utils.policy import PPOPolicy, NoNoisePolicy
 
 # Currently Deprecated and Has Bugs
 
+
 class PPOAgent(BaseAgent):
-    def __init__(self, config):
-        super(PPOAgent, self).__init__(config)
+    def __init__(self, config, env):
+        super(PPOAgent, self).__init__(config, env)
         self.results_logger = ResultsLogger(config)
 
         self.actor_network = ActorNetworkModel(config)
@@ -70,7 +67,7 @@ class PPOAgent(BaseAgent):
         observation, swarm_info = self.env.reset()
         return tf.convert_to_tensor(observation.reshape(1, -1), dtype=tf.float32)
 
-    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal):
+    def update_memory_and_state(self, current_state, action, reward, next_observation, terminal, add_to_replay_buffer=True):
         # TODO: How do I better access value and logp?
         value = self.current_value
         logp = self.policy.logp

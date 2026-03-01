@@ -1,22 +1,21 @@
 import numpy as np
 
-
 class PSOSwarm:
 
-    def __init__(self, objective_function, config):
+    def __init__(self, objective_function, pso_config):
         self.X = None  # Current Position of particles
         self.V = None  # Current Velocity of particles
         self.P = None  # Best Position of particles
 
         # PSO Parameters
-        self.config = config
-        self.w = config.w  # Inertia weight to prevent velocities becoming too large
-        self.c1 = config.c1  # Social component Learning Factor
-        self.c2 = config.c2  # Cognitive component Learning Factor
+        self.pso_config = pso_config
+        self.w = pso_config.w  # Inertia weight to prevent velocities becoming too large
+        self.c1 = pso_config.c1  # Social component Learning Factor
+        self.c2 = pso_config.c2  # Cognitive component Learning Factor
         self.function = objective_function
-        self.dimension = config.dim
-        self.swarm_size = config.swarm_size
-        self.rangeF = config.rangeF
+        self.dimension = pso_config.pso_dim
+        self.swarm_size = pso_config.swarm_size
+        self.rangeF = pso_config.rangeF
         self.perturb_velocities = False
         self.perturb_velocity_factor = None
         self.velocity_scaling_factor = 1.0
@@ -26,13 +25,13 @@ class PSOSwarm:
         self.perturb_position_particle_selection = None
 
         # Threshold Params
-        self.pbest_replacement_threshold = config.replacement_threshold
-        self.distance_threshold = config.distance_threshold
-        self.velocity_braking = config.velocity_braking
+        self.pbest_replacement_threshold = pso_config.replacement_threshold
+        self.distance_threshold = pso_config.distance_threshold
+        self.velocity_braking = pso_config.velocity_braking
 
         # Observation Parameters
-        self.num_swarm_obs_intervals = config.num_swarm_obs_intervals
-        self.swarm_obs_interval_length = config.swarm_obs_interval_length
+        self.num_swarm_obs_intervals = pso_config.num_swarm_obs_intervals
+        self.swarm_obs_interval_length = pso_config.swarm_obs_interval_length
         self.iterations = self.num_swarm_obs_intervals * self.swarm_obs_interval_length
 
         # Set Constraints for clamping position and limiting velocity
@@ -64,13 +63,13 @@ class PSOSwarm:
         self.P_vals = None
 
         # Reset the adjustable parameters to starting values
-        self.w = self.config.w
-        self.c1 = self.config.c1
-        self.c2 = self.config.c2
-        self.pbest_replacement_threshold = self.config.replacement_threshold
-        self.distance_threshold = self.config.distance_threshold
+        self.w = self.pso_config.w
+        self.c1 = self.pso_config.c1
+        self.c2 = self.pso_config.c2
+        self.pbest_replacement_threshold = self.pso_config.replacement_threshold
+        self.distance_threshold = self.pso_config.distance_threshold
         self.velocity_scaling_factor = 1.0
-        self.velocity_braking = self.config.velocity_braking
+        self.velocity_braking = self.pso_config.velocity_braking
         self.abs_max_velocity = self.rangeF
 
         self.initialize_stored_counts()
@@ -149,7 +148,6 @@ class PSOSwarm:
         relative_fitnesses_norm = np.tanh(self.relative_fitnesses)
         pbest_counts_norm = self.average_pbest_replacement_counts / self.swarm_obs_interval_length
 
-
         obs_stack = np.column_stack([
             velocity_magnitudes_norm,
             relative_fitnesses_norm,
@@ -162,7 +160,7 @@ class PSOSwarm:
         # Add in the current replacement threshold
         # obs = np.append(obs, self.pbest_replacement_threshold)
         # obs = np.append(obs, self.distance_threshold)
-        # obs = np.append(obs, self.velocity_braking)distance_threshold
+        # obs = np.append(obs, self.velocity_braking)
 
         # # # Compute diversity as average distance to centroid
         swarm_centroid = np.mean(self.X, axis=0)
@@ -301,9 +299,6 @@ class PSOSwarm:
         self.update_gbest()
 
         self.decay_parameters(obs_interval, iteration_idx)
-
-
-
 
 
 
